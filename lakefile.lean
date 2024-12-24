@@ -14,7 +14,8 @@ require "leanprover-community" / "mathlib"
 lean_lib «PolygonalNumbers» where
   -- add any library configuration options here
 
-require checkdecls from git "https://github.com/PatrickMassot/checkdecls.git"
+-- https://github.com/PatrickMassot/checkdecls
+require checkdecls from git "https://github.com/urkud/checkdecls" @ "YK-fix-superscript"
 
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git

@@ -1,2 +1,14 @@
 /.lake
 /.lake
+blueprint/print
+blueprint/web
+blueprint/print
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.paux
+*.pdf
