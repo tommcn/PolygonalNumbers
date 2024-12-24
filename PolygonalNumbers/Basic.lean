@@ -8,20 +8,6 @@
   Lean (version 4.15.0-rc1, arm64-apple-darwin23.6.0, commit ffac974dba79, Release)
 
   Tomas McNamer
-
-  ---
-
-  The result is stated as
-
-  > Every non-negative integer is written as the sum of m+2 polygonal number of order m+2 for m ≥ 3
-
-  In order to formalize the result, we introduce a subtype of ℕ which contains all numbers which are polygonal of order n, for n ∈ ℕ
-
-  We then introduce Finsets of those subtypes, which we can sum (over ↑Polygonal = ℕ) and verify their (finite) cardinality.
-
-  For now, using sums such of Polygonal numbers using n.val is fine enough, but I might want to define addition and such operations on Polygonal numbers (which might be hard as they are not closed under addition).
-
-  Another difficulty will be the existence of the Finset, without necessarily constructing the Finset explicitly
 -/
 
 import Mathlib.Tactic
@@ -32,11 +18,6 @@ import Mathlib.Data.Set.Defs
 -/
 
 
-/-
-Note that we define Polygonal/Triangular Numbers as subtypes of ℚ, instead of the more natural ℕ, as we need to perform division on them (which does not behave as expected on ℕ or ℤ).
-
-However, it is easy to show that the numbers we are interested in are always integers, `m` and `k` are both integers (thus, while not formally proved, `a` will have a denominator of `1`, making it an integer).
--/
 def IsTriangular (n : ℚ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
 def IsnPolygonal (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = a
 def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
@@ -45,14 +26,6 @@ def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * 
 def Triangular := Subtype (fun (n : ℤ) ↦ IsTriangular n)
 def Polygonal (n : ℤ) := Subtype (fun (m : ℚ) ↦ IsnPolygonal n m)
 
-
-/-
-The following instances define equality and addition for Polygonal numbers, which will be useful for the proof.
-
-We do not use all of them, and some instances are remnants of previous attempts at the proof, and they are left here as a testament to the work done.
-
-The same is true for `BEq`, `LawfulBEq`, and `DecidableEq` instances, which were used in the proof when I was trying to define a `Finset` of `Polygonal` numbers, which required equality to be defined on them, as `Finset`s do not allow for duplicates.
--/
 
 instance : BEq (Polygonal n) where
   beq a b := if (a.val == b.val)
@@ -104,9 +77,7 @@ instance : HAdd ℤ (Polygonal n) ℚ where
   hAdd a b := a + b.val
 
 
-/-
-Defining the function which sums all numbers in the `Multiset`, as a `foldr` function, which is (provably) left commutative.
--/
+
 def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ (x1.val : ℚ) + (x2 : ℚ)
 
 instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
@@ -181,6 +152,7 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
 -/
+
 /-
 Proof omitted as it is purely algebraic manipulation, and in the interest of time
 -/
@@ -204,15 +176,7 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     ring_nf
     sorry
 
-  /-
-    Given two endpoints whose difference is at least 4, we can find two odd integers between them which differ by 2
-
-    This is a long proof, which is seems odd to me
-  -/
   have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ ≥ 4 ) : ∃ (b₁ b₂ : ℤ), (Odd b₁) ∧ (Odd b₂) ∧ (b₁ ≥ ep₁) ∧ (b₂ ≤ ep₂) ∧ (b₂ = b₁ + 2) := by
-    /-
-      Given two consecutive integers, one of them is odd
-    -/
     have heiorarb (a : ℤ) : (Odd a) ∨ (Odd (a + 1)) := by
       have hoddornot : (Odd a) ∨ ¬ Odd (a) := Decidable.em (Odd a)
 
@@ -220,9 +184,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       . left; exact hodd₁
       . right; rw [Int.not_odd_iff_even] at hnotodd₁; apply Even.add_one at hnotodd₁; exact hnotodd₁
 
-    /-
-      And so we prove that the ceiling of the first endpoint (or its successor) is odd, and that the following odd number is at most the second endpoint
-    -/
     rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
     . use ⌈ ep₁ ⌉, ⌈ ep₁ ⌉ + 2
       constructor
@@ -262,8 +223,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
           apply Even.add ep1odd even_neg_two
         . constructor
           . simp
-            -- SORRY: ↑(⌈ep₁⌉ + 1) ≥ ep₁
-            -- See above
             sorry
           . constructor
             . simp
@@ -271,16 +230,11 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
                 _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
                 _ ≤ ep₁ + 1 + 3 := by
                   simp
-                  -- SORRY: ep₁ ≤ ↑⌈ep₁⌉ + 1
-                  -- See above
                   sorry
                 _ ≤ ep₁ + 4 := by linarith
                 _ ≤ ep₂ := by linarith
             . ring
 
-  /-
-    Given that the interval is at least 4, we can find two (consecutive) odd numbers in the interval
-  -/
   let ⟨ b₁, b₂, hbo₁, hbo₂, hb₁, hb₂, hb₁b₂ ⟩ := hExistsOddPair (0.5 + √(6 * (n/m) - 3)) ((2 / 3) + √(8 * (n / m) - 8)) hIntervalLength
 
 
@@ -293,15 +247,10 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
   let ⟨ r, hr ⟩ := h₁
   let ⟨ b, hb ⟩ := hr.right
 
-  /-
-    Little lemma, if `b` is chosen as above, it is either `b₁` or `b₂`
-  -/
   have hb₁ohb₂o : b = b₁ ∨ b = b₂ := by
     rw [← List.mem_pair]
     exact hb.left
-  /-
-    And as such, it must be odd
-  -/
+
   have hbo : Odd b := by
     rcases hb₁ohb₂o with hb₁ | hb₂
     . rw [hb₁]
@@ -309,14 +258,8 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     . rw [hb₂]
       exact hbo₂
 
-  /-
-    Equation (4)
-  -/
   let a : ℚ := 2 * ((n - b - r) / m) + b
 
-  /-
-    `a` is odd
-  -/
   have hao : Odd a := by
     have hae₁ : Even (2 * (((n : ℚ) - b - ↑r) / ↑m)) := by
       exact even_two_mul (((n : ℚ) - b - ↑r) / ↑m)
@@ -324,7 +267,7 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     refine Even.add_odd hae₁ (Odd.intCast hbo)
 
   /-
-    `r` is either 0 or 1, I do not know why this is true, but every source online seems to assert this, so I'm leaving this here
+    Change to `r ≤ m-3` or whatever
   -/
   have hr : r = 0 ∨ r = 1:= by
     sorry
@@ -341,9 +284,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     -- rw [div_mul_cancel (n - b - r) m]
     sorry
 
-  /-
-    Setting up Cauchy's Lemma
-  -/
   have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
     constructor
     . dsimp [a]
@@ -352,7 +292,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       sorry
 
   let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a b hao hbo h₇.left h₇.right
-  /- Define the numbers as in the paper -/
   let sl : ℚ := (m / 2) * (s^2 - s) + s
   let tl : ℚ := (m / 2) * (t^2 - t) + t
   let ul : ℚ := (m / 2) * (u^2 - u) + u
@@ -402,7 +341,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     simp
     ring
 
-  /- Define the multiset of the numbers -/
   let S : Multiset (Polygonal (m+2)) :={⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩, ⟨ r, hrp ⟩}
 
   use S
