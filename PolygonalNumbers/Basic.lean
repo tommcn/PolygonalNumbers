@@ -17,7 +17,6 @@ import Mathlib.Data.Set.Defs
   ==================== Support for Polygonal Numbers ====================
 -/
 
-
 def IsTriangular (n : ℚ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
 def IsnPolygonal (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = a
 def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
@@ -25,7 +24,6 @@ def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * 
 
 def Triangular := Subtype (fun (n : ℤ) ↦ IsTriangular n)
 def Polygonal (n : ℤ) := Subtype (fun (m : ℚ) ↦ IsnPolygonal n m)
-
 
 instance : BEq (Polygonal n) where
   beq a b := if (a.val == b.val)
@@ -55,30 +53,30 @@ instance : DecidableEq (Polygonal n) :=
     else
       isFalse (by rw [a.eq_iff]; exact h)
 
-instance : HAdd (Polygonal n) (Polygonal n) ℚ where
-  hAdd a b := a.val + b.val
+-- instance : HAdd (Polygonal n) (Polygonal n) ℚ where
+--   hAdd a b := a.val + b.val
 
-instance : HAdd (Polygonal n) ℤ ℚ where
-  hAdd a b := a.val + b
+-- instance : HAdd (Polygonal n) ℤ ℚ where
+--   hAdd a b := a.val + b
 
-instance : HAdd (Polygonal n) ℚ ℚ where
-  hAdd a b := a.val + b
+-- instance : HAdd (Polygonal n) ℚ ℚ where
+--   hAdd a b := a.val + b
 
-instance : HAdd ℚ (Polygonal n) ℚ where
-  hAdd a b := a + b.val
+-- instance : HAdd ℚ (Polygonal n) ℚ where
+--   hAdd a b := a + b.val
 
-instance : HAdd (Polygonal n) ℚ ℚ where
-  hAdd a b := a.val + b
+-- instance : HAdd (Polygonal n) ℚ ℚ where
+--   hAdd a b := a.val + b
 
-instance : HAdd (Polygonal n) (Polygonal n) ℚ where
-  hAdd a b := a.val + b.val
+-- instance : HAdd (Polygonal n) (Polygonal n) ℚ where
+--   hAdd a b := a.val + b.val
 
-instance : HAdd ℤ (Polygonal n) ℚ where
-  hAdd a b := a + b.val
+-- instance : HAdd ℤ (Polygonal n) ℚ where
+--   hAdd a b := a + b.val
 
 
 
-def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ (x1.val : ℚ) + (x2 : ℚ)
+def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ x1.val + x2
 
 instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
   left_comm := by
@@ -86,12 +84,31 @@ instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
     simp [foldrfun]
     ring
 
+/--
+  Sum of a multiset of polygonal numbers of same order `n` (i.e., rational
+  numbers) into a rational number
+-/
 def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℚ := S.foldr (foldrfun n) 0
 
-lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
+
+
+lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
+  have h : Even (r * (r - 1)) := by
+    apply Int.even_mul_pred_self
+  dsimp [Even] at h
+  let ⟨ k, hk ⟩ := h
+  use k
+  rw [hk]
   ring
 
+
+/--
+  Both conditions `IsnPolygonal` and `IsnPolygonal'` are equivalent.
+-/
 lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
+  have kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
+    ring
+
   unfold IsnPolygonal IsnPolygonal'
   funext m a
   apply propext
@@ -107,6 +124,46 @@ lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
     use k
     rw [kfactq k]
     exact hk
+
+/--
+  `Polygonal` numbers, despite being a subtype of `ℚ`, are equal to their integer part.
+-/
+lemma PolygonalInteger (n : ℤ) (a : Polygonal n) : a.val = ⌊ a.val ⌋ := by
+  dsimp [Polygonal, IsnPolygonal] at a
+  let ⟨ k, hk ⟩ := a
+  let ⟨ r, hr ⟩ := hk
+  simp
+
+  rw [← hr]
+  simp
+
+  let ⟨ e, he ⟩ := revenk r
+  let e' := (e : ℚ)
+
+  have tworatint : (2 : ℚ) = (2 : ℤ) := rfl
+  have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
+
+
+  have he' : (r : ℚ) * ((r : ℚ) - 1) = 2 * e' := by
+    rw [oneratint]
+    rw [← Int.cast_sub r 1]
+    rw [← Int.cast_mul r (r - 1)]
+    rw [he]
+    simp
+
+  rw [he']
+  have htwoassoc : (n - 2) / 2 * (2 * e') = (n - 2) * e' := by
+    ring
+  rw [htwoassoc]
+  dsimp [e']
+
+  rw [tworatint]
+  rw [← Int.cast_sub n 2]
+  rw [← Int.cast_mul (n - 2)]
+  exact rfl
+
+
+
 
 /-
   ==================== Examples for Polygonal Numbers ====================
@@ -173,10 +230,10 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       := by
 
   have hIntervalLength : ((2 / 3) + √(8 * (n / m) - 8)) - (0.5 + √(6 * (n/m) - 3)) ≥ 4 := by
-    ring_nf
+
     sorry
 
-  have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ ≥ 4 ) : ∃ (b₁ b₂ : ℤ), (Odd b₁) ∧ (Odd b₂) ∧ (b₁ ≥ ep₁) ∧ (b₂ ≤ ep₂) ∧ (b₂ = b₁ + 2) := by
+  have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ ≥ 4 ) : ∃ (b₁ b₂ : ℤ), (Odd b₁) ∧ (Odd b₂) ∧ (b₁ > ep₁) ∧ (b₂ < ep₂) ∧ (b₂ = b₁ + 2) := by
     have heiorarb (a : ℤ) : (Odd a) ∨ (Odd (a + 1)) := by
       have hoddornot : (Odd a) ∨ ¬ Odd (a) := Decidable.em (Odd a)
 
@@ -196,17 +253,14 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
           rw [← epodd_two]
           apply Even.add epodd even_neg_two
         . constructor
-          . apply Int.le_ceil
+          . simp
+            sorry
           . constructor
             . calc
                 _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp
-                _ ≤ ep₁ + 1 + 2 := by
+                _ < ep₁ + 1 + 2 := by
                   simp
-                  -- SORRY: ↑⌈ep₁⌉ ≤ ep₁ + 1
-                  -- There is the following lemma in mathlib:
-                  -- apply Int.ceil_lt_add_one (ep₁)
-                  -- but it is a strict inequality, and I using it breaks the `calc` tactic
-                  sorry
+                  apply Int.ceil_lt_add_one (ep₁)
                 _ ≤ ep₁ + 4 := by linarith
                 _ ≤ ep₂ := by linarith
             . rfl
@@ -228,9 +282,9 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
             . simp
               calc
                 _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
-                _ ≤ ep₁ + 1 + 3 := by
+                _ < ep₁ + 1 + 3 := by
                   simp
-                  sorry
+                  apply Int.ceil_lt_add_one (ep₁)
                 _ ≤ ep₁ + 4 := by linarith
                 _ ≤ ep₂ := by linarith
             . ring
