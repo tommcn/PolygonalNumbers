@@ -74,7 +74,7 @@ instance : DecidableEq (Polygonal n) :=
 -- instance : HAdd ℤ (Polygonal n) ℚ where
 --   hAdd a b := a + b.val
 
-
+#check Polygonal
 
 def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ x1.val + x2
 
@@ -240,6 +240,10 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       rcases (hoddornot) with hodd₁ | hnotodd₁
       . left; exact hodd₁
       . right; rw [Int.not_odd_iff_even] at hnotodd₁; apply Even.add_one at hnotodd₁; exact hnotodd₁
+    
+    have ep₁inornot : ep₁ < ⌈ ep₁ ⌉ ∨ ep₁ = ⌈ ep₁ ⌉  := by
+      refine lt_or_eq_of_le ?_
+      exact Int.le_ceil ep₁
 
     rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
     . use ⌈ ep₁ ⌉, ⌈ ep₁ ⌉ + 2
@@ -334,8 +338,10 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     simp
     rw [← mul_assoc, mul_comm]
     simp
-    -- SORRY: Again, this is a simple case of `x/n*n=x`, but for some reason, I can not manipulate this one to get the correct types. The result follows directly after this step
+    -- SORRY: Again, this is a simple case of `x/n*n=x`, but for some reason, I can not manipulate this one to get the correct types. 
+    -- The result follows directly after this step
     -- rw [div_mul_cancel (n - b - r) m]
+    rw [div_mul_cancel (n - b - r) m]
     sorry
 
   have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
@@ -405,3 +411,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     rw [← add_assoc, ← add_assoc, ← add_assoc]
     exact corsum
   . simp [S] -- Proof it has at most 5 elements
+
+
+
