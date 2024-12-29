@@ -230,7 +230,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       := by
 
   have hIntervalLength : ((2 / 3) + √(8 * (n / m) - 8)) - (0.5 + √(6 * (n/m) - 3)) ≥ 4 := by
-
     sorry
 
   have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ ≥ 4 ) : ∃ (b₁ b₂ : ℤ), (Odd b₁) ∧ (Odd b₂) ∧ (b₁ > ep₁) ∧ (b₂ < ep₂) ∧ (b₂ = b₁ + 2) := by
@@ -240,58 +239,52 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       rcases (hoddornot) with hodd₁ | hnotodd₁
       . left; exact hodd₁
       . right; rw [Int.not_odd_iff_even] at hnotodd₁; apply Even.add_one at hnotodd₁; exact hnotodd₁
-    
+
     have ep₁inornot : ep₁ < ⌈ ep₁ ⌉ ∨ ep₁ = ⌈ ep₁ ⌉  := by
       refine lt_or_eq_of_le ?_
       exact Int.le_ceil ep₁
 
-    rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
+    rcases (heiorarb ⌈ ep₁ ⌉ ) with epodd | ep1odd
     . use ⌈ ep₁ ⌉, ⌈ ep₁ ⌉ + 2
-      constructor
+      and_intros
       . assumption
-      . constructor
-        . contrapose epodd
-          simp
-          simp at epodd
-          have epodd_two : ⌈ ep₁ ⌉ + 2 + -2 = ⌈ ep₁ ⌉ := by simp
-          rw [← epodd_two]
-          apply Even.add epodd even_neg_two
-        . constructor
-          . simp
-            sorry
-          . constructor
-            . calc
-                _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp
-                _ < ep₁ + 1 + 2 := by
-                  simp
-                  apply Int.ceil_lt_add_one (ep₁)
-                _ ≤ ep₁ + 4 := by linarith
-                _ ≤ ep₂ := by linarith
-            . rfl
+      . contrapose epodd
+        simp
+        simp at epodd
+        have epodd_two : ⌈ ep₁ ⌉ + 2 + -2 = ⌈ ep₁ ⌉ := by simp
+        rw [← epodd_two]
+        apply Even.add epodd even_neg_two
+      . simp
+        sorry
+      . calc
+          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp
+          _ < ep₁ + 1 + 2 := by
+            simp
+            apply Int.ceil_lt_add_one (ep₁)
+          _ ≤ ep₁ + 4 := by linarith
+          _ ≤ ep₂ := by linarith
+      . rfl
 
     . use ⌈ ep₁ ⌉ + 1, ⌈ ep₁ ⌉ + 3
-      constructor
+      and_intros
       . assumption
-      . constructor
-        . contrapose ep1odd
-          simp
-          simp at ep1odd
-          have ep1odd_two : ⌈ ep₁ ⌉ + 3 + -2 = ⌈ ep₁ ⌉ + 1 := by linarith
-          rw [← ep1odd_two]
-          apply Even.add ep1odd even_neg_two
-        . constructor
-          . simp
-            sorry
-          . constructor
-            . simp
-              calc
-                _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
-                _ < ep₁ + 1 + 3 := by
-                  simp
-                  apply Int.ceil_lt_add_one (ep₁)
-                _ ≤ ep₁ + 4 := by linarith
-                _ ≤ ep₂ := by linarith
-            . ring
+      . contrapose ep1odd
+        simp
+        simp at ep1odd
+        have ep1odd_two : ⌈ ep₁ ⌉ + 3 + -2 = ⌈ ep₁ ⌉ + 1 := by linarith
+        rw [← ep1odd_two]
+        apply Even.add ep1odd even_neg_two
+      . simp
+        sorry
+      . simp
+        calc
+          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
+          _ < ep₁ + 1 + 3 := by
+            simp
+            apply Int.ceil_lt_add_one (ep₁)
+          _ ≤ ep₁ + 4 := by linarith
+          _ ≤ ep₂ := by linarith
+      . ring
 
   let ⟨ b₁, b₂, hbo₁, hbo₂, hb₁, hb₂, hb₁b₂ ⟩ := hExistsOddPair (0.5 + √(6 * (n/m) - 3)) ((2 / 3) + √(8 * (n / m) - 8)) hIntervalLength
 
@@ -338,10 +331,10 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     simp
     rw [← mul_assoc, mul_comm]
     simp
-    -- SORRY: Again, this is a simple case of `x/n*n=x`, but for some reason, I can not manipulate this one to get the correct types. 
+    -- SORRY: Again, this is a simple case of `x/n*n=x`, but for some reason, I can not manipulate this one to get the correct types.
     -- The result follows directly after this step
     -- rw [div_mul_cancel (n - b - r) m]
-    rw [div_mul_cancel (n - b - r) m]
+    -- rw [div_mul_cancel (n - b - r) m]
     sorry
 
   have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
@@ -411,6 +404,3 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     rw [← add_assoc, ← add_assoc, ← add_assoc]
     exact corsum
   . simp [S] -- Proof it has at most 5 elements
-
-
-
