@@ -221,18 +221,28 @@ lemma CauchyLemma (a : ℚ) (b : ℤ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 
   ==================== Theorem I for Polygonal Numbers ====================
 -/
 /--
-  n : Number we want to write as the sum
-  m : Polygonal order
+  # Theorem I
+  > Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
+  > order m + 2, at most four of which are different from 0 or 1.
 -/
 theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
-      (sumPolyToInt (m+2) S = n)                  -- Sum = m
-    ∧ (Multiset.card S ≤ 5)               -- With at most m+1 elements (as 0 is always a polygonal number, we can always "fill" the multiset with 0's to get the correct cardinality), and so we will only look at the set without the zeros (which, we assert has cardinality at most 4)
+      (sumPolyToInt (m+2) S = n)                  -- Sum = n
+    ∧ (Multiset.card S ≤ m+1)               -- With at most m+1 elements (as 0 is always a polygonal number, we can always "fill" the multiset with 0's to get the correct cardinality), and so we will only look at the set without the zeros (which, we assert has cardinality at most 4)
       := by
+  have hmqgeq3 : (m : ℚ) ≥ 3 := by
+    exact Nat.ofNat_le_cast.mpr mb
+  have hmnot0 : (m : ℚ) ≠ 0 := by
+    linarith
 
-  have hIntervalLength : ((2 / 3) + √(8 * (n / m) - 8)) - (0.5 + √(6 * (n/m) - 3)) ≥ 4 := by
+  have hIntervalLength : ((2 / 3) + √(8 * (n / m) - 8)) - (0.5 + √(6 * (n/m) - 3)) > 4 := by
     sorry
 
-  have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ ≥ 4 ) : ∃ (b₁ b₂ : ℤ), (Odd b₁) ∧ (Odd b₂) ∧ (b₁ > ep₁) ∧ (b₂ < ep₂) ∧ (b₂ = b₁ + 2) := by
+  have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ > 4 ) : ∃ (b₁ b₂ : ℤ),
+      (Odd b₁)
+    ∧ (Odd b₂)
+    ∧ (b₁ > ep₁)
+    ∧ (b₂ < ep₂)
+    ∧ (b₂ = b₁ + 2) := by
     have heiorarb (a : ℤ) : (Odd a) ∨ (Odd (a + 1)) := by
       have hoddornot : (Odd a) ∨ ¬ Odd (a) := Decidable.em (Odd a)
 
@@ -240,11 +250,12 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       . left; exact hodd₁
       . right; rw [Int.not_odd_iff_even] at hnotodd₁; apply Even.add_one at hnotodd₁; exact hnotodd₁
 
-    have ep₁inornot : ep₁ < ⌈ ep₁ ⌉ ∨ ep₁ = ⌈ ep₁ ⌉  := by
+    have hep₁inornot : ep₁ < ⌈ ep₁ ⌉ ∨ ep₁ = ⌈ ep₁ ⌉  := by
       refine lt_or_eq_of_le ?_
       exact Int.le_ceil ep₁
 
-    rcases (heiorarb ⌈ ep₁ ⌉ ) with epodd | ep1odd
+    rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
+    <;> rcases hep₁inornot with ep₁lt | ep₁eq
     . use ⌈ ep₁ ⌉, ⌈ ep₁ ⌉ + 2
       and_intros
       . assumption
@@ -255,7 +266,7 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
         rw [← epodd_two]
         apply Even.add epodd even_neg_two
       . simp
-        sorry
+        linarith
       . calc
           _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp
           _ < ep₁ + 1 + 2 := by
@@ -264,7 +275,17 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
           _ ≤ ep₁ + 4 := by linarith
           _ ≤ ep₂ := by linarith
       . rfl
-
+    . use ⌈ ep₁ ⌉ + 2, ⌈ ep₁ ⌉ + 4
+      and_intros
+      . refine Int.odd_add.mpr ?_; simp; assumption
+      . refine Int.odd_add.mpr ?_
+        have heven4 : Even (4 : ℤ) := by dsimp [Even]; use 2; simp
+        constructor <;> intro _ <;> assumption
+      . simp
+        linarith
+      . rw [Int.cast_add, ← ep₁eq]
+        exact lt_tsub_iff_left.mp hfour
+      . ring
     . use ⌈ ep₁ ⌉ + 1, ⌈ ep₁ ⌉ + 3
       and_intros
       . assumption
@@ -275,7 +296,7 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
         rw [← ep1odd_two]
         apply Even.add ep1odd even_neg_two
       . simp
-        sorry
+        linarith
       . simp
         calc
           _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
@@ -285,13 +306,25 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
           _ ≤ ep₁ + 4 := by linarith
           _ ≤ ep₂ := by linarith
       . ring
+    . use ⌈ ep₁ ⌉ + 1, ⌈ ep₁ ⌉ + 3
+      and_intros
+      . assumption
+      . dsimp [Odd]
+        dsimp [Odd] at ep1odd
+        let ⟨ k, hk ⟩ := ep1odd
+        use k + 1
+        linarith
+      . simp
+        linarith
+      . simp
+        linarith
+      . ring
 
   let ⟨ b₁, b₂, hbo₁, hbo₂, hb₁, hb₂, hb₁b₂ ⟩ := hExistsOddPair (0.5 + √(6 * (n/m) - 3)) ((2 / 3) + √(8 * (n / m) - 8)) hIntervalLength
 
 
   have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r : ℤ) [ZMOD m] := by
     simp
-    -- SORRY
     -- Proof by pigeonhole principle, the set of numbers `b+r` as defined above is larger than the set of residues mod m
     sorry
 
@@ -326,20 +359,31 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
   /-
     Equation (5)
   -/
-  have h₂ : n = (m / 2) * (a - b) + b + r := by
+  have h₂ : (n : ℚ) = ((m : ℚ) / 2) * (a - b) + b + r := by
     dsimp [a]
     simp
     rw [← mul_assoc, mul_comm]
     simp
-    -- SORRY: Again, this is a simple case of `x/n*n=x`, but for some reason, I can not manipulate this one to get the correct types.
-    -- The result follows directly after this step
-    -- rw [div_mul_cancel (n - b - r) m]
-    -- rw [div_mul_cancel (n - b - r) m]
-    sorry
+    rw [div_mul_cancel₀ ((n : ℚ) - (b : ℚ) - (r : ℚ)) hmnot0]
+    ring
 
   have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
     constructor
-    . dsimp [a]
+    . have hs1 : b^2 - 4 * a < 0 := by
+        dsimp [a]
+        calc
+          _ = (b : ℚ) ^ 2 - 4 * (2 * ((↑n - ↑b - ↑r) / ↑m) + ↑b) := by rfl
+          _ = b ^ 2 - 4 * (1 - 2 / m) * b + 8 * ((r - n) / m) := by ring
+        -- Get discriminant of quadratic above (w.r.t. `b`)
+        have hs1' : (4 * (1 - 2 / m)) ^ 2 + 4 * 8 * ((r - n) / m) < 0 := by
+          -- calc
+          --   _ = (4 * (1 - 2 / (m : ℚ))) ^ 2 + 4 * 8 * (((r : ℚ) - (n : ℚ)) / m) := by rfl
+          --   _ = 16 * (1 - 2 / m) ^ 2 + 32 * ((r - n) / m) := by linarith
+          --   _ = 16 * (1 - 4 / m + (4 / m^2)) + 32 * ((r - n) / m) := by rw [sub_pow_two]; ring
+          --   _ = 16 - 64 / m + 64 / m^2 + 32 / m * (r - n):= by ring
+          --   _ = 16 - 32 / m * (2 - 2 / m - (r - n)) := by ring
+          sorry
+        sorry
       sorry
     . dsimp [a]
       sorry
@@ -394,13 +438,16 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2)) :={⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩, ⟨ r, hrp ⟩}
+  let S : Multiset (Polygonal (m+2)) := {⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩, ⟨ r, hrp ⟩}
 
   use S
   constructor
-  . simp [sumPolyToInt] -- Proof it adds to `n`
+  . -- Proof it adds to `n`
+    simp [sumPolyToInt]
     simp [S]
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
     exact corsum
-  . simp [S] -- Proof it has at most 5 elements
+  . -- Proof it has at most 5 elements
+    simp [S]
+    sorry
