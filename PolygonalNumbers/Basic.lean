@@ -231,6 +231,8 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
       := by
   have hmqgeq3 : (m : ℚ) ≥ 3 := by
     exact Nat.ofNat_le_cast.mpr mb
+  have hmgt0 : (m : ℚ) > 0 := by
+    exact gt_of_ge_of_gt hmqgeq3 rfl
   have hmnot0 : (m : ℚ) ≠ 0 := by
     linarith
 
@@ -342,6 +344,18 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     . rw [hb₂]
       exact hbo₂
 
+  have hbub : b < ((2 / 3) + √(8 * (n / m) - 8)) := by
+    have hbleqb₂ : b ≤ (b₂ : ℝ) := by
+      rcases hb₁ohb₂o with hb₁ | hb₂
+      . rw [hb₁]
+        rw [hb₁b₂]
+        refine Int.cast_le.mpr ?_
+        exact Int.le.intro 2 rfl
+      . rw [hb₂]
+    calc
+      b ≤ (b₂ : ℝ) := hbleqb₂
+      _ < ((2 / 3) + √(8 * (n / m) - 8)) := hb₂
+
   let a : ℚ := 2 * ((n - b - r) / m) + b
 
   have hao : Odd a := by
@@ -373,15 +387,58 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
         dsimp [a]
         calc
           _ = (b : ℚ) ^ 2 - 4 * (2 * ((↑n - ↑b - ↑r) / ↑m) + ↑b) := by rfl
-          _ = b ^ 2 - 4 * (1 - 2 / m) * b + 8 * ((r - n) / m) := by ring
+          _ = b ^ 2 - 4 * (1 - 2 / m) * b + 8 * (((r : ℚ) - n) / m) := by ring
         -- Get discriminant of quadratic above (w.r.t. `b`)
-        have hs1' : (4 * (1 - 2 / m)) ^ 2 + 4 * 8 * ((r - n) / m) < 0 := by
-          -- calc
-          --   _ = (4 * (1 - 2 / (m : ℚ))) ^ 2 + 4 * 8 * (((r : ℚ) - (n : ℚ)) / m) := by rfl
-          --   _ = 16 * (1 - 2 / m) ^ 2 + 32 * ((r - n) / m) := by linarith
-          --   _ = 16 * (1 - 4 / m + (4 / m^2)) + 32 * ((r - n) / m) := by rw [sub_pow_two]; ring
-          --   _ = 16 - 64 / m + 64 / m^2 + 32 / m * (r - n):= by ring
-          --   _ = 16 - 32 / m * (2 - 2 / m - (r - n)) := by ring
+        have hdisc : discrim 1 (4 * (1 - 2 / (m :  ℚ))) (8 * ((r - n) / m)) < 0 := by
+          dsimp [discrim]
+          calc ((4 : ℚ) * (1 - 2 / ↑m)) ^ 2 - 4 * 1 * (8 * ((↑r - ↑n) / ↑m))
+            _ = 16 * (1 - 2 / ↑m) ^ 2 - 32 * ((↑r - ↑n) / ↑m) := by linarith
+            _ = 16 * (1 - 4 / ↑m + 4 / (↑m ^ 2)) - 32 * ((↑r - ↑n) / ↑m) := by ring
+            _ = 16 - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) := by ring
+
+          have himps1 : - (64 : ℚ) / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < -16
+                   → (16 : ℚ) - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < 0 := by
+            intro himp
+            rw [add_sub_assoc]
+            rw [← sub_self 16]
+            rw [sub_add]
+            apply sub_lt_sub_left
+            apply neg_lt_neg at himp
+            simp at himp
+            rw [sub_add_eq_sub_sub] at himp
+            rw [neg_div] at himp
+            simp at himp
+            rw [sub_sub_eq_add_sub]
+            rw [add_comm]
+            exact himp
+
+          have himps2 : - (64 : ℚ) / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) = (32 * (-2 + 2 / m - (r - n))) / m := by
+            ring
+
+          have himps3 : (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) < -16 * ↑m
+                      → (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) / ↑m < -16 := by
+            intro himp
+            rw [div_lt_iff₀]
+            exact himp
+            exact hmgt0
+
+          have himps4 : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < (-16 * ↑m) / 32 → (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) < -16 * ↑m := by
+            intro himp
+            exact (lt_div_iff₀' rfl).mp himp
+
+          have himps5 : ((-(16 : ℚ) * ↑m) / 32) = - (↑m / 2)  := by ring
+
+          have hintermedstep : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < - (m / 2) → (16 : ℚ) - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < 0 := by
+            intro himp
+            rw [← himps5] at himp
+            apply himps4 at himp
+            apply himps3 at himp
+            rw [← himps2] at himp
+            exact himps1 himp
+          have hnext1 : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < - (m / 2) := by
+            rw [h₂]
+            simp
+            sorry -- TODO <--------
           sorry
         sorry
       sorry
