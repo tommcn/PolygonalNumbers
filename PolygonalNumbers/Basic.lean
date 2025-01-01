@@ -365,12 +365,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     refine Even.add_odd hae₁ (Odd.intCast hbo)
 
   /-
-    Change to `r ≤ m-3` or whatever
-  -/
-  have hr : r = 0 ∨ r = 1:= by
-    sorry
-
-  /-
     Equation (5)
   -/
   have h₂ : (n : ℚ) = ((m : ℚ) / 2) * (a - b) + b + r := by
@@ -436,8 +430,11 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
             rw [← himps2] at himp
             exact himps1 himp
           have hnext1 : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < - (m / 2) := by
-            rw [h₂]
-            simp
+            -- rw [h₂]
+            -- simp
+            -- rw [sub_add_eq_sub_sub]
+            -- simp
+
             sorry -- TODO <--------
           sorry
         sorry
@@ -477,6 +474,13 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     simp
 
   /- `r` (being `0` or `1`) is polygonal -/
+  /-
+    Change to `r ≤ m-3` or whatever
+  -/
+  let poly1 : Polygonal (m+2) := ⟨ 1, sorry ⟩
+  have hr : r = 0 ∨ r = 1:= by
+    sorry
+  -- let rArr := Multiset.ofList (mkArray r poly1)
   have hrp : IsnPolygonal (m+2) r := by
     rcases hr with hr0 | hr1
     . unfold IsnPolygonal
