@@ -12,3 +12,4 @@ blueprint/print
 *.toc
 *.paux
 *.pdf
+.DS_Store
