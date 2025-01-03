@@ -18,7 +18,7 @@ import Mathlib.Data.Set.Defs
 -/
 
 def IsTriangular (n : ℚ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = a
+def IsnPolygonal (m : ℤ) (n : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
 def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
 
 
@@ -53,27 +53,6 @@ instance : DecidableEq (Polygonal n) :=
     else
       isFalse (by rw [a.eq_iff]; exact h)
 
--- instance : HAdd (Polygonal n) (Polygonal n) ℚ where
---   hAdd a b := a.val + b.val
-
--- instance : HAdd (Polygonal n) ℤ ℚ where
---   hAdd a b := a.val + b
-
--- instance : HAdd (Polygonal n) ℚ ℚ where
---   hAdd a b := a.val + b
-
--- instance : HAdd ℚ (Polygonal n) ℚ where
---   hAdd a b := a + b.val
-
--- instance : HAdd (Polygonal n) ℚ ℚ where
---   hAdd a b := a.val + b
-
--- instance : HAdd (Polygonal n) (Polygonal n) ℚ where
---   hAdd a b := a.val + b.val
-
--- instance : HAdd ℤ (Polygonal n) ℚ where
---   hAdd a b := a + b.val
-
 #check Polygonal
 
 def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ x1.val + x2
@@ -89,7 +68,6 @@ instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
   numbers) into a rational number
 -/
 def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℚ := S.foldr (foldrfun n) 0
-
 
 
 lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
@@ -162,6 +140,14 @@ lemma PolygonalInteger (n : ℤ) (a : Polygonal n) : a.val = ⌊ a.val ⌋ := by
   rw [← Int.cast_mul (n - 2)]
   exact rfl
 
+instance : HAdd Triangular Triangular ℤ where
+  hAdd a b :=  a.val + b.val
+
+instance : HAdd Triangular ℤ ℤ where
+  hAdd a b := a.val + b
+
+instance : HAdd ℤ Triangular ℤ where
+  hAdd a b := a + b.val
 
 
 
@@ -180,6 +166,9 @@ example : IsnPolygonal 3 6 := by
   use 3
   linarith
 
+/--
+  A `Polygonal` number of order $3$
+-/
 lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
   unfold IsnPolygonal
   unfold IsTriangular
@@ -209,10 +198,18 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
 -/
+-- https://proofwiki.org/wiki/Integer_as_Sum_of_Three_Odd_Squares
+lemma IntegerSumThreeOddSquares (r : ℤ) (h : r ≥ 0) : r ≡ 3 [ZMOD 8] ↔ ∃ s t u : ℤ,
+                                  r = s^2 + t^2 + u^2
+                                ∧ Odd (s^2)
+                                ∧ Odd (t^2)
+                                ∧ Odd (u^2) := by
+  sorry
 
-/-
-Proof omitted as it is purely algebraic manipulation, and in the interest of time
--/
+-- https://proofwiki.org/wiki/Integer_is_Sum_of_Three_Triangular_Numbers
+lemma GaussEureka (n : ℤ) (h : n ≥ 0) : ∃ s t v : Triangular, n = s + t + v := by
+  sorry
+
 lemma CauchyLemma (a : ℚ) (b : ℤ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
   sorry
 
@@ -222,10 +219,10 @@ lemma CauchyLemma (a : ℚ) (b : ℤ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 
 -/
 /--
   # Theorem I
-  > Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
-  > order m + 2, at most four of which are different from 0 or 1.
+  Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
+  order m + 2, at most four of which are different from 0 or `1`
 -/
-theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
+theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
       (sumPolyToInt (m+2) S = n)                  -- Sum = n
     ∧ (Multiset.card S ≤ m+1)               -- With at most m+1 elements (as 0 is always a polygonal number, we can always "fill" the multiset with 0's to get the correct cardinality), and so we will only look at the set without the zeros (which, we assert has cardinality at most 4)
       := by
@@ -473,7 +470,6 @@ theorem ThmOne (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 
     use v
     simp
 
-  /- `r` (being `0` or `1`) is polygonal -/
   /-
     Change to `r ≤ m-3` or whatever
   -/

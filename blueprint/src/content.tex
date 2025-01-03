@@ -9,5 +9,17 @@
 \begin{definition}[Polygonal]
     \label{def:polygonal}
     \lean{Polygonal}
-    A polygonal number is here.
+    An integer $n$ is said to be polygonal of order $m$ if:
+
+    \[
+        \exists k \in \Z \quad n = \frac{m-2}{2}\cdot (k \cdot (k-1)) + k
+    \]
 \end{definition}
+
+\begin{theorem}[Cauchy's Polygonal Number Theorem]
+    \label{thm:thmone}
+    \lean{CauchyPolygonalNumberTheorem}
+    \uses{def:polygonal}
+    Let $m\geq 3$ and $n\geq 120\cdot m$ be integers. Then $n$ is the sum of $m+1$ polygonal numbers of order $m+2$, at most $4$ of which are different from $0$ or $1$. 
+    
+\end{theorem}
