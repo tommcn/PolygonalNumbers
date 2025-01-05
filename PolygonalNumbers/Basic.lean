@@ -167,7 +167,7 @@ example : IsnPolygonal 3 6 := by
   linarith
 
 /--
-  A `Polygonal` number of order $3$
+  A `Polygonal` number of order $3$ is triangular.
 -/
 lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
   unfold IsnPolygonal
@@ -210,33 +210,20 @@ lemma IntegerSumThreeOddSquares (r : ℤ) (h : r ≥ 0) : r ≡ 3 [ZMOD 8] ↔ �
 lemma GaussEureka (n : ℤ) (h : n ≥ 0) : ∃ s t v : Triangular, n = s + t + v := by
   sorry
 
-lemma CauchyLemma (a : ℚ) (b : ℤ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
+lemma CauchyLemma (a : ℕ) (b : ℕ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
   sorry
 
-
 /-
-  ==================== Theorem I for Polygonal Numbers ====================
+  ==================== Various Lemmas for Polygonal Numbers ====================
 -/
-/--
-  # Theorem I
-  Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
-  order m + 2, at most four of which are different from 0 or `1`
--/
-theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
-      (sumPolyToInt (m+2) S = n)                  -- Sum = n
-    ∧ (Multiset.card S ≤ m+1)               -- With at most m+1 elements (as 0 is always a polygonal number, we can always "fill" the multiset with 0's to get the correct cardinality), and so we will only look at the set without the zeros (which, we assert has cardinality at most 4)
-      := by
-  have hmqgeq3 : (m : ℚ) ≥ 3 := by
-    exact Nat.ofNat_le_cast.mpr mb
-  have hmgt0 : (m : ℚ) > 0 := by
-    exact gt_of_ge_of_gt hmqgeq3 rfl
-  have hmnot0 : (m : ℚ) ≠ 0 := by
-    linarith
 
-  have hIntervalLength : ((2 / 3) + √(8 * (n / m) - 8)) - (0.5 + √(6 * (n/m) - 3)) > 4 := by
-    sorry
+lemma interval_length (n m : ℕ) (h : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / m) - 8)) - (1 / 2 + √(6 * (n/m) - 3)) > 4 := by
+  sorry
 
-  have hExistsOddPair (ep₁ ep₂ : ℝ) (hfour : ep₂ - ep₁ > 4 ) : ∃ (b₁ b₂ : ℤ),
+lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
+  sorry
+
+lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo : ep₁ > 0) : ∃ (b₁ b₂ : ℕ),
       (Odd b₁)
     ∧ (Odd b₂)
     ∧ (b₁ > ep₁)
@@ -253,16 +240,25 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
       refine lt_or_eq_of_le ?_
       exact Int.le_ceil ep₁
 
+    have hep₁ : ⌈ep₁⌉ = ⌈ep₁⌉.natAbs := by
+      refine Eq.symm (Int.natAbs_of_nonneg ?_)
+      refine Int.ceil_nonneg ?_
+      exact le_of_lt hpo
+
     rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
     <;> rcases hep₁inornot with ep₁lt | ep₁eq
-    . use ⌈ ep₁ ⌉, ⌈ ep₁ ⌉ + 2
+    . use ⌈ ep₁ ⌉.natAbs, ⌈ ep₁ ⌉.natAbs + 2
       and_intros
-      . assumption
+      . simp
+        simp at hep₁
+        assumption
       . contrapose epodd
         simp
         simp at epodd
         have epodd_two : ⌈ ep₁ ⌉ + 2 + -2 = ⌈ ep₁ ⌉ := by simp
         rw [← epodd_two]
+        simp
+        rw [hep₁]
         apply Even.add epodd even_neg_two
       . simp
         linarith
@@ -274,7 +270,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
           _ ≤ ep₁ + 4 := by linarith
           _ ≤ ep₂ := by linarith
       . rfl
-    . use ⌈ ep₁ ⌉ + 2, ⌈ ep₁ ⌉ + 4
+    . use ⌈ ep₁ ⌉.natAbs + 2, ⌈ ep₁ ⌉.natAbs + 4
       and_intros
       . refine Int.odd_add.mpr ?_; simp; assumption
       . refine Int.odd_add.mpr ?_
@@ -283,11 +279,13 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
       . simp
         linarith
       . rw [Int.cast_add, ← ep₁eq]
-        exact lt_tsub_iff_left.mp hfour
+        exact lt_tsub_iff_left.mp h
       . ring
-    . use ⌈ ep₁ ⌉ + 1, ⌈ ep₁ ⌉ + 3
+    . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
       and_intros
-      . assumption
+      . rw [hep₁] at ep1odd
+
+        assumption
       . contrapose ep1odd
         simp
         simp at ep1odd
@@ -305,7 +303,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
           _ ≤ ep₁ + 4 := by linarith
           _ ≤ ep₂ := by linarith
       . ring
-    . use ⌈ ep₁ ⌉ + 1, ⌈ ep₁ ⌉ + 3
+    . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
       and_intros
       . assumption
       . dsimp [Odd]
@@ -319,10 +317,54 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
         linarith
       . ring
 
-  let ⟨ b₁, b₂, hbo₁, hbo₂, hb₁, hb₂, hb₁b₂ ⟩ := hExistsOddPair (0.5 + √(6 * (n/m) - 3)) ((2 / 3) + √(8 * (n / m) - 8)) hIntervalLength
+
+-- Lemma 1.11 (p. 42)
+lemma cauchy_setup (m N : ℕ)
+                   (hm : m ≥ 3)
+                   (hnineq : N ≥ 2 * m)
+                   (a b r : ℕ)
+                   (hr : r < m)
+                   (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
+    : (1 / 2 + √((6 * N) / m - 3)) < b
+        → b < (2 / 3 + √(8 *( N / m) - 8))
+      → b^2 < 4*a ∧ 3*a < b^2 + 2*b + 4 := by
+  sorry
+
+/-
+  ==================== Theorem I for Polygonal Numbers ====================
+-/
+/--
+  # Theorem I
+  Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
+  order m + 2, at most four of which are different from 0 or `1`
+-/
+theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
+      (sumPolyToInt (m+2) S = n)                  -- Sum = n
+    ∧ (Multiset.card S ≤ m+1)
+      := by
+  have hmqgeq3 : (m : ℚ) ≥ 3 := by
+    exact Nat.ofNat_le_cast.mpr mb
+  have hmgt0 : (m : ℚ) > 0 := by
+    exact gt_of_ge_of_gt hmqgeq3 rfl
+  have hmnot0 : (m : ℚ) ≠ 0 := by
+    linarith
+
+  let ⟨ b₁,
+        b₂,
+        hbo₁,
+        hbo₂,
+        hb₁,
+        hb₂,
+        hb₁b₂
+      ⟩
+      := odd_pair_four_interval
+          (1/2 + √(6 * (n/m) - 3))
+          ((2 / 3) + √(8 * (n / m) - 8))
+          (interval_length n m nb)
+          bound_positive
 
 
-  have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r : ℤ) [ZMOD m] := by
+  have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r) [MOD m] := by
     simp
     -- Proof by pigeonhole principle, the set of numbers `b+r` as defined above is larger than the set of residues mod m
     sorry
@@ -353,93 +395,84 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
       b ≤ (b₂ : ℝ) := hbleqb₂
       _ < ((2 / 3) + √(8 * (n / m) - 8)) := hb₂
 
-  let a : ℚ := 2 * ((n - b - r) / m) + b
+  have hblb : ((1 / 2) + √(6 * (n / m) - 3)) < b := by
+    have hbleqb₁ : b ≥ (b₁ : ℝ) := by
+      rcases hb₁ohb₂o with hb₁ | hb₂
+      . rw [hb₁]
+      . rw [hb₂]
+        rw [hb₁b₂]
+        refine Int.cast_le.mpr ?_
+        exact Int.le.intro 2 rfl
+    calc
+      ((1 / 2) + √(6 * (n / m) - 3)) < b₁ := by apply hb₁
+      _ ≤ b := hbleqb₁
+
+  let a : ℕ := 2 * ((n - b - r) / m) + b
+
+  -- have hnbrzq : ↑(n - b - r) = (n : ℚ) - b - r := by
+  --   simp
+
+  have hadivstrict : ∃ g : ℤ, g = (((n : ℚ) - b - r) / m) ∧ a = 2 * g + b := by
+    have hmodcalc : (n - b - r) ≡ 0 [MOD m] := by
+        suffices hn : n ≡ b + r [MOD m]
+          from sorry
+        exact hb.right
+    have hmodcalc' : (m : ℤ) ∣ (n - b - r) := by
+      exact Int.dvd_of_emod_eq_zero hmodcalc
+
+
+    let z := ((n - b - r) / m)
+
+    have hz : m * z = (n - b - r) := by
+      apply?
+      exact Int.mul_tdiv_cancel' hmodcalc'
+
+    have hz' : z = ((n - b - r) / m) := by
+      exact Int.tdiv_eq_ediv_of_dvd hmodcalc'
+
+    use z
+
+    constructor
+    . rw [← hnbrzq]
+      rw [← hz]
+      simp
+      rw [mul_comm]
+      exact Eq.symm (mul_div_cancel_right₀ (↑z) hmnot0)
+    . dsimp [a]
+      rw [hz']
+
+  let ⟨ g, hg ⟩ := hadivstrict
 
   have hao : Odd a := by
-    have hae₁ : Even (2 * (((n : ℚ) - b - ↑r) / ↑m)) := by
-      exact even_two_mul (((n : ℚ) - b - ↑r) / ↑m)
+    have hae₁ : Even (2 * ((n - b - ↑r) / ↑m)) := by
+      exact even_two_mul ((n - b - ↑r) / ↑m)
     dsimp [a]
-    refine Even.add_odd hae₁ (Odd.intCast hbo)
+    exact Even.add_odd hae₁ hbo
 
   /-
     Equation (5)
   -/
-  have h₂ : (n : ℚ) = ((m : ℚ) / 2) * (a - b) + b + r := by
-    dsimp [a]
-    simp
-    rw [← mul_assoc, mul_comm]
-    simp
-    rw [div_mul_cancel₀ ((n : ℚ) - (b : ℚ) - (r : ℚ)) hmnot0]
-    ring
+  -- have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r := by
+  --   dsimp [a]
+  --   simp
+  --   rw [← mul_assoc, mul_comm]
+  --   simp
+  --   rw [← hnbrzq] at hg
+  --   simp at hg
+  --   rw [← hg.left]
+  --   -- rw [div_mul_cancel₀ ((n : ℚ) - (b) - r) hmnot0]
+  --   -- ring
+  --   sorry
 
-  have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
-    constructor
-    . have hs1 : b^2 - 4 * a < 0 := by
-        dsimp [a]
-        calc
-          _ = (b : ℚ) ^ 2 - 4 * (2 * ((↑n - ↑b - ↑r) / ↑m) + ↑b) := by rfl
-          _ = b ^ 2 - 4 * (1 - 2 / m) * b + 8 * (((r : ℚ) - n) / m) := by ring
-        -- Get discriminant of quadratic above (w.r.t. `b`)
-        have hdisc : discrim 1 (4 * (1 - 2 / (m :  ℚ))) (8 * ((r - n) / m)) < 0 := by
-          dsimp [discrim]
-          calc ((4 : ℚ) * (1 - 2 / ↑m)) ^ 2 - 4 * 1 * (8 * ((↑r - ↑n) / ↑m))
-            _ = 16 * (1 - 2 / ↑m) ^ 2 - 32 * ((↑r - ↑n) / ↑m) := by linarith
-            _ = 16 * (1 - 4 / ↑m + 4 / (↑m ^ 2)) - 32 * ((↑r - ↑n) / ↑m) := by ring
-            _ = 16 - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) := by ring
+  -- have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
+  --   -- see cauchy set set up below
+  --   sorry
 
-          have himps1 : - (64 : ℚ) / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < -16
-                   → (16 : ℚ) - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < 0 := by
-            intro himp
-            rw [add_sub_assoc]
-            rw [← sub_self 16]
-            rw [sub_add]
-            apply sub_lt_sub_left
-            apply neg_lt_neg at himp
-            simp at himp
-            rw [sub_add_eq_sub_sub] at himp
-            rw [neg_div] at himp
-            simp at himp
-            rw [sub_sub_eq_add_sub]
-            rw [add_comm]
-            exact himp
 
-          have himps2 : - (64 : ℚ) / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) = (32 * (-2 + 2 / m - (r - n))) / m := by
-            ring
+  let cauchy_setset_up := cauchy_setup m n mb sorry a b r sorry sorry
+  let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up sorry hbub
 
-          have himps3 : (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) < -16 * ↑m
-                      → (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) / ↑m < -16 := by
-            intro himp
-            rw [div_lt_iff₀]
-            exact himp
-            exact hmgt0
-
-          have himps4 : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < (-16 * ↑m) / 32 → (32 * (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n))) < -16 * ↑m := by
-            intro himp
-            exact (lt_div_iff₀' rfl).mp himp
-
-          have himps5 : ((-(16 : ℚ) * ↑m) / 32) = - (↑m / 2)  := by ring
-
-          have hintermedstep : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < - (m / 2) → (16 : ℚ) - 64 / ↑m + 64 / (↑m ^ 2) - 32 * ((↑r - ↑n) / ↑m) < 0 := by
-            intro himp
-            rw [← himps5] at himp
-            apply himps4 at himp
-            apply himps3 at himp
-            rw [← himps2] at himp
-            exact himps1 himp
-          have hnext1 : (-(2 : ℚ) + 2 / ↑m - (↑r - ↑n)) < - (m / 2) := by
-            -- rw [h₂]
-            -- simp
-            -- rw [sub_add_eq_sub_sub]
-            -- simp
-
-            sorry -- TODO <--------
-          sorry
-        sorry
-      sorry
-    . dsimp [a]
-      sorry
-
-  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a b hao hbo h₇.left h₇.right
+  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a b hao hbo clemma_left clemma_right
   let sl : ℚ := (m / 2) * (s^2 - s) + s
   let tl : ℚ := (m / 2) * (t^2 - t) + t
   let ul : ℚ := (m / 2) * (u^2 - u) + u
