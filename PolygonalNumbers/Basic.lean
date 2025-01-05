@@ -245,6 +245,9 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       refine Int.ceil_nonneg ?_
       exact le_of_lt hpo
 
+    have hep₁' : (⌈ep₁⌉ : ℝ) = ⌈ep₁⌉.natAbs := by
+      exact congrArg Int.cast hep₁
+
     rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
     <;> rcases hep₁inornot with ep₁lt | ep₁eq
     . use ⌈ ep₁ ⌉.natAbs, ⌈ ep₁ ⌉.natAbs + 2
@@ -259,11 +262,28 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
         rw [← epodd_two]
         simp
         rw [hep₁]
-        apply Even.add epodd even_neg_two
+        refine (Int.even_coe_nat ⌈ep₁⌉.natAbs).mpr ?_
+        -- refine Int.natAbs_even.mpr ?_
+
+        have even_add_two (a : ℕ) : Even (a + 2) → Even (a) := by
+          dsimp [Even]
+          intro heven
+          let ⟨ r, hr ⟩ := heven
+          use r - 1
+          sorry
+          -- apply?
+
+
+
+        apply even_add_two ⌈ ep₁ ⌉.natAbs epodd
+        -- assumption
+
+        -- apply Even.add epodd even_neg_two
+
       . simp
-        linarith
+        exact lt_of_lt_of_eq ep₁lt (congrArg Int.cast hep₁)
       . calc
-          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp
+          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp; exact Eq.ge (congrArg Int.cast hep₁)
           _ < ep₁ + 1 + 2 := by
             simp
             apply Int.ceil_lt_add_one (ep₁)
@@ -272,31 +292,35 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       . rfl
     . use ⌈ ep₁ ⌉.natAbs + 2, ⌈ ep₁ ⌉.natAbs + 4
       and_intros
-      . refine Int.odd_add.mpr ?_; simp; assumption
-      . refine Int.odd_add.mpr ?_
-        have heven4 : Even (4 : ℤ) := by dsimp [Even]; use 2; simp
-        constructor <;> intro _ <;> assumption
+      . refine Nat.odd_add.mpr ?_; simp; assumption
+      . refine Nat.odd_add.mpr ?_
+        have heven4 : Even (4 : ℕ) := by dsimp [Even]; use 2;
+        constructor <;> intro _
+        . exact heven4
+        . exact Odd.natAbs epodd
       . simp
-        linarith
-      . rw [Int.cast_add, ← ep₁eq]
-        exact lt_tsub_iff_left.mp h
+        sorry
+      . rw [Nat.cast_add]; simp; rw [← hep₁', ← ep₁eq]; linarith
       . ring
     . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
       and_intros
       . rw [hep₁] at ep1odd
-
-        assumption
+        exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 1)).mp ep1odd
       . contrapose ep1odd
         simp
         simp at ep1odd
         have ep1odd_two : ⌈ ep₁ ⌉ + 3 + -2 = ⌈ ep₁ ⌉ + 1 := by linarith
         rw [← ep1odd_two]
-        apply Even.add ep1odd even_neg_two
+
+        apply Even.add ?_ ?_
+        . rw [hep₁]
+          exact Int.natAbs_even.mp ep1odd
+        . simp
       . simp
         linarith
       . simp
         calc
-          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := by simp
+          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := le_of_eq (congrFun (congrArg HAdd.hAdd (id (Eq.symm hep₁'))) 3)
           _ < ep₁ + 1 + 3 := by
             simp
             apply Int.ceil_lt_add_one (ep₁)
@@ -305,12 +329,14 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       . ring
     . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
       and_intros
-      . assumption
+      . refine Even.add_one ?_; sorry
       . dsimp [Odd]
         dsimp [Odd] at ep1odd
         let ⟨ k, hk ⟩ := ep1odd
-        use k + 1
-        linarith
+
+        use (k + 1).natAbs
+        simp
+        sorry
       . simp
         linarith
       . simp
@@ -409,64 +435,11 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
 
   let a : ℕ := 2 * ((n - b - r) / m) + b
 
-  -- have hnbrzq : ↑(n - b - r) = (n : ℚ) - b - r := by
-  --   simp
-
-  have hadivstrict : ∃ g : ℤ, g = (((n : ℚ) - b - r) / m) ∧ a = 2 * g + b := by
-    have hmodcalc : (n - b - r) ≡ 0 [MOD m] := by
-        suffices hn : n ≡ b + r [MOD m]
-          from sorry
-        exact hb.right
-    have hmodcalc' : (m : ℤ) ∣ (n - b - r) := by
-      exact Int.dvd_of_emod_eq_zero hmodcalc
-
-
-    let z := ((n - b - r) / m)
-
-    have hz : m * z = (n - b - r) := by
-      apply?
-      exact Int.mul_tdiv_cancel' hmodcalc'
-
-    have hz' : z = ((n - b - r) / m) := by
-      exact Int.tdiv_eq_ediv_of_dvd hmodcalc'
-
-    use z
-
-    constructor
-    . rw [← hnbrzq]
-      rw [← hz]
-      simp
-      rw [mul_comm]
-      exact Eq.symm (mul_div_cancel_right₀ (↑z) hmnot0)
-    . dsimp [a]
-      rw [hz']
-
-  let ⟨ g, hg ⟩ := hadivstrict
-
   have hao : Odd a := by
     have hae₁ : Even (2 * ((n - b - ↑r) / ↑m)) := by
       exact even_two_mul ((n - b - ↑r) / ↑m)
     dsimp [a]
     exact Even.add_odd hae₁ hbo
-
-  /-
-    Equation (5)
-  -/
-  -- have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r := by
-  --   dsimp [a]
-  --   simp
-  --   rw [← mul_assoc, mul_comm]
-  --   simp
-  --   rw [← hnbrzq] at hg
-  --   simp at hg
-  --   rw [← hg.left]
-  --   -- rw [div_mul_cancel₀ ((n : ℚ) - (b) - r) hmnot0]
-  --   -- ring
-  --   sorry
-
-  -- have h₇ : b^2 < 4 * a ∧ 3 * a < b^2 + 2 * b + 4 := by
-  --   -- see cauchy set set up below
-  --   sorry
 
 
   let cauchy_setset_up := cauchy_setup m n mb sorry a b r sorry sorry
@@ -520,6 +493,24 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
       rw [hr1]
       use 1
       simp
+
+
+  /-
+    Equation (5)
+  -/
+  have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r := by
+    dsimp [a]
+    simp
+    rw [← mul_assoc, mul_comm]
+    simp
+    -- apply?
+    sorry
+    -- rw [← hnbrzq] at hg
+    -- simp at hg
+    -- rw [← hg.left]
+    -- -- rw [div_mul_cancel₀ ((n : ℚ) - (b) - r) hmnot0]
+    -- -- ring
+    -- sorry
 
   /- The sum of the numbers is `n` -/
   have corsum : sl + tl + ul + vl + r = n := by
