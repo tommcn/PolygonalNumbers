@@ -12,6 +12,7 @@
 
 import Mathlib.Tactic
 import Mathlib.Data.Set.Defs
+import Init.Data.List.Basic
 
 /-
   ==================== Support for Polygonal Numbers ====================
@@ -195,21 +196,14 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
     rw [← hk]
     ring
 
+lemma polygonal_m_one (m : ℕ) : IsnPolygonal m 1 := by
+  unfold IsnPolygonal
+  use 1
+  ring
+
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
 -/
--- https://proofwiki.org/wiki/Integer_as_Sum_of_Three_Odd_Squares
-lemma IntegerSumThreeOddSquares (r : ℤ) (h : r ≥ 0) : r ≡ 3 [ZMOD 8] ↔ ∃ s t u : ℤ,
-                                  r = s^2 + t^2 + u^2
-                                ∧ Odd (s^2)
-                                ∧ Odd (t^2)
-                                ∧ Odd (u^2) := by
-  sorry
-
--- https://proofwiki.org/wiki/Integer_is_Sum_of_Three_Triangular_Numbers
-lemma GaussEureka (n : ℤ) (h : n ≥ 0) : ∃ s t v : Triangular, n = s + t + v := by
-  sorry
-
 lemma CauchyLemma (a : ℕ) (b : ℕ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
   sorry
 
@@ -262,23 +256,20 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
         rw [← epodd_two]
         simp
         rw [hep₁]
+
         refine (Int.even_coe_nat ⌈ep₁⌉.natAbs).mpr ?_
         -- refine Int.natAbs_even.mpr ?_
 
         have even_add_two (a : ℕ) : Even (a + 2) → Even (a) := by
           dsimp [Even]
           intro heven
-          let ⟨ r, hr ⟩ := heven
-          use r - 1
+          let ⟨ k, hk ⟩ := heven
+
+          use k - 1
           sorry
           -- apply?
 
-
-
-        apply even_add_two ⌈ ep₁ ⌉.natAbs epodd
-        -- assumption
-
-        -- apply Even.add epodd even_neg_two
+        exact even_add_two ⌈ep₁⌉.natAbs epodd
 
       . simp
         exact lt_of_lt_of_eq ep₁lt (congrArg Int.cast hep₁)
@@ -479,20 +470,27 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
   /-
     Change to `r ≤ m-3` or whatever
   -/
-  let poly1 : Polygonal (m+2) := ⟨ 1, sorry ⟩
-  have hr : r = 0 ∨ r = 1:= by
+  let poly1 : Polygonal (m+2) := ⟨ 1, polygonal_m_one (m+2) ⟩
+
+  let l₁ : List (Polygonal (m+2)) := []
+
+  let ms₁ := Multiset.ofList (List.replicate r poly1 ++ l₁)
+
+  have ms₁sum : sumPolyToInt (m+2) ms₁ = r := by
+    unfold ms₁
     sorry
-  -- let rArr := Multiset.ofList (mkArray r poly1)
-  have hrp : IsnPolygonal (m+2) r := by
-    rcases hr with hr0 | hr1
-    . unfold IsnPolygonal
-      rw [hr0]
-      use 0
-      simp
-    . unfold IsnPolygonal
-      rw [hr1]
-      use 1
-      simp
+
+
+  -- have hrp : IsnPolygonal (m+2) r := by
+  --   rcases hr with hr0 | hr1
+  --   . unfold IsnPolygonal
+  --     rw [hr0]
+  --     use 0
+  --     simp
+  --   . unfold IsnPolygonal
+  --     rw [hr1]
+  --     use 1
+  --     simp
 
 
   /-
@@ -512,6 +510,8 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     -- -- ring
     -- sorry
 
+
+
   /- The sum of the numbers is `n` -/
   have corsum : sl + tl + ul + vl + r = n := by
     dsimp [sl, tl, ul, vl]
@@ -519,7 +519,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2)) := {⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩, ⟨ r, hrp ⟩}
+  let S : Multiset (Polygonal (m+2)) := {⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩} + ms₁
 
   use S
   constructor
@@ -528,6 +528,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp [S]
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
+
     exact corsum
   . -- Proof it has at most 5 elements
     simp [S]
