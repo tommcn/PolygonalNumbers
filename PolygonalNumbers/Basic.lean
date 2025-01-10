@@ -41,6 +41,21 @@ lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
   rw [hk]
   ring
 
+lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
+  have h : Even (r * (r - 1)) := by
+    apply Int.even_mul_pred_self
+
+  dsimp [Even] at h
+  let ⟨ k, hk ⟩ := h
+  use k
+  have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
+  rw [oneratint]
+  rw [← Int.cast_sub r 1]
+  rw [← Int.cast_mul r (r - 1)]
+  rw [hk]
+  simp
+  exact Eq.symm (two_mul (k : ℚ))
+
 lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
   ring
 
@@ -176,7 +191,9 @@ lemma interval_length (n m : ℕ) (h : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / 
   sorry
 
 lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
-  sorry
+  have hsqrtpos : √(6 * (↑n / ↑m) - 3) ≥ 0 := by exact Real.sqrt_nonneg (6 * (n / m) - 3)
+  have hhalfpos : (1 : ℝ) / 2 > 0 := by exact one_half_pos
+  exact Right.add_pos_of_pos_of_nonneg hhalfpos hsqrtpos
 
 /--
   In an interval of length strictly greater than 4, there exists two odd numbers in the interval
@@ -282,12 +299,12 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
 
 
 -- Lemma 1.11 (p. 42)
-lemma cauchy_setup_a (m N : ℕ)
+lemma cauchy_setup_a
+                   (m n : ℕ)
                    (hm : m ≥ 3)
-                  --  (hnineq : N ≥ 2 * m)
                    (a b r : ℕ)
                    (hr : r < m)
-                  --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
+                   (ha : (a) = (1 - (2/m)) * b + 2 * ((n - r) / m))
     : b < ((2 / 3) + √(8 * (n / m) - 8))
       → b^2 < 4*a := by
   sorry
@@ -304,14 +321,19 @@ lemma cauchy_setup_b (m N : ℕ)
 
 lemma cauchy_setup (m N : ℕ)
                    (hm : m ≥ 3)
-                   (hnineq : N ≥ 2 * m)
+                  --  (hnineq : N ≥ 2 * m)
                    (a b r : ℕ)
-                   (hr : r < m)
-                   (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
-    : (1 / 2 + √((6 * N) / m - 3)) < b
-        → b < (2 / 3 + √(8 *( N / m) - 8))
+                  --  (hr : r < m)
+                  --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
+    : (1 / 2 + √(6 * (N / m) - 3)) < b
+        → b < (2 / 3 + √(8 * (N / m) - 8))
       → b^2 < 4*a ∧ 3*a < b^2 + 2*b + 4 := by
+  intro h₁
+  intro h₂
   sorry
+  -- constructor
+  -- . exact cauchy_setup_a m m hm a b 2 hm h₂
+  -- . exact cauchy_setup_b m m hm a b 2 hm h₂
 
 
 /-
@@ -322,7 +344,12 @@ lemma cauchy_setup (m N : ℕ)
   Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
   order m + 2, at most four of which are different from 0 or `1`
 -/
-theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb : m ≥ 3) (nb : n ≥ 120*m) : ∃ (S : Multiset (Polygonal (m+2))),
+theorem CauchyPolygonalNumberTheorem
+          (m n: ℕ)
+          (nmpos : n ≥ 1)
+          (mb : m ≥ 3)
+          (nb : n ≥ 120*m)
+    : ∃ (S : Multiset (Polygonal (m+2))),
       (sumPolyToInt (m+2) S = n)                  -- Sum = n
     ∧ (Multiset.card S ≤ m+1)
       := by
@@ -331,6 +358,8 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
   have hmgt0 : (m : ℚ) > 0 := by
     exact gt_of_ge_of_gt hmqgeq3 rfl
   have hmnot0 : (m : ℚ) ≠ 0 := by
+    linarith
+  have ngeq2m : n ≥ 2 * m := by
     linarith
 
   let ⟨ b₁,
@@ -353,8 +382,21 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     -- Proof by pigeonhole principle, the set of numbers `b+r` as defined above is larger than the set of residues mod m
     sorry
 
+
+
   let ⟨ r, hr ⟩ := h₁
   let ⟨ b, hb ⟩ := hr.right
+
+  have hrb : r < (m - 3 + 1) := by
+    let hrrange := hr.left
+    apply List.mem_range.mp hrrange
+  have hrb' : r ≤ m - 3 := by exact Nat.le_of_lt_succ hrb
+  have hrltm : r < m := by
+    calc r
+      _ < m - 3 + 1 := by exact hrb
+      _ < m := by refine Nat.add_lt_of_lt_sub ?_; refine Nat.sub_lt_sub_left ?_ ?_; exact
+        Nat.lt_of_succ_lt mb; exact Nat.one_lt_succ_succ 1
+
 
   have hb₁ohb₂o : b = b₁ ∨ b = b₂ := by
     rw [← List.mem_pair]
@@ -399,9 +441,14 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     dsimp [a]
     exact Even.add_odd hae₁ hbo
 
+  have hn : (n : ℚ) = ↑m / 2 * (↑a - ↑b) + ↑b + ↑r := by
+    dsimp [a]
+    simp
+    sorry
 
-  let cauchy_setset_up := cauchy_setup m n mb sorry a b r sorry sorry
-  let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up sorry hbub
+
+  let cauchy_setset_up := cauchy_setup m n mb a b r
+  let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
 
   let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a b hao hbo clemma_left clemma_right
   let sl : ℚ := (m / 2) * (s^2 - s) + s
@@ -409,13 +456,23 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
   let ul : ℚ := (m / 2) * (u^2 - u) + u
   let vl : ℚ := (m / 2) * (v^2 - v) + v
 
-  have slint : sl = ⌈ sl ⌉ := by
-    dsimp [sl]
+  have polyform (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉ := by
     simp
-    rw [← (kfactq s)]
-    sorry
+    rw [← (kfactq r)]
+    let ⟨ e, he ⟩ := revenk' r
+    simp at he
+    rw [he]
+    rw [← mul_assoc]
+    simp
+    have hms : (m : ℚ) = ((m : ℤ) : ℚ) := rfl
+    rw [hms]
+    rw [← Int.cast_mul m e]
+    rw [@Int.ceil_intCast]
 
-
+  have slint : sl = ⌈ sl ⌉ := by exact polyform s
+  have tlint : tl = ⌈ tl ⌉ := by exact polyform t
+  have ulint : ul = ⌈ ul ⌉ := by exact polyform u
+  have vlint : vl = ⌈ vl ⌉ := by exact polyform v
 
   /- `s`, `t`, `u`, `v` are polygonal -/
   have ps : IsnPolygonal (m+2) ⌈ sl ⌉ := by
@@ -426,50 +483,52 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     dsimp [sl]
     simp
 
-  have pt : IsnPolygonal (m+2) tl := by
+  have pt : IsnPolygonal (m+2) ⌈ tl ⌉ := by
+    rw [← tlint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use t
     simp
 
-  have pu : IsnPolygonal (m+2) ul := by
+  have pu : IsnPolygonal (m+2) ⌈ ul ⌉ := by
+    rw [← ulint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use u
     simp
 
-  have pv : IsnPolygonal (m+2) vl := by
+  have pv : IsnPolygonal (m+2) ⌈ vl ⌉ := by
+    rw [← vlint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use v
     simp
 
-  /-
-    Change to `r ≤ m-3` or whatever
-  -/
+
   let poly1 : Polygonal (m+2) := ⟨ 1, polygonal_m_one (m+2) ⟩
 
   let l₁ : List (Polygonal (m+2)) := []
 
-  let ms₁ := Multiset.ofList (List.replicate r poly1 ++ l₁)
+  let ms₁ := Multiset.replicate r poly1
 
-  have ms₁sum : sumPolyToInt (m+2) ms₁ = r := by
-    unfold ms₁
-    sorry
+  have ms₃repl (r : ℕ) : Multiset.replicate (r + 1) poly1 = poly1 ::ₘ Multiset.replicate r poly1 := rfl
 
+  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) (Multiset.replicate r poly1) = r := by
+    induction' r with r hr
+    . simp [sumPolyToInt]
+    . rw [ms₃repl]
+      simp [sumPolyToInt]
+      simp [foldrfun]
 
-  -- have hrp : IsnPolygonal (m+2) r := by
-  --   rcases hr with hr0 | hr1
-  --   . unfold IsnPolygonal
-  --     rw [hr0]
-  --     use 0
-  --     simp
-  --   . unfold IsnPolygonal
-  --     rw [hr1]
-  --     use 1
-  --     simp
+      simp [sumPolyToInt] at hr
+      rw [hr]
+      ring
 
+  have ms₁sum' : Multiset.foldr (foldrfun (↑m + 2)) 0 ms₁ = r := by
+    exact ms₁induc r
 
+  have ms₁card : ms₁.card = r := by
+    exact Multiset.card_replicate r poly1
   /-
     Equation (5)
   -/
@@ -478,14 +537,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp
     rw [← mul_assoc, mul_comm]
     simp
-    -- apply?
     sorry
-    -- rw [← hnbrzq] at hg
-    -- simp at hg
-    -- rw [← hg.left]
-    -- -- rw [div_mul_cancel₀ ((n : ℚ) - (b) - r) hmnot0]
-    -- -- ring
-    -- sorry
 
 
 
@@ -496,7 +548,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2)) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, sorry ⟩, ⟨ ⌈ul⌉, sorry ⟩, ⟨ ⌈vl⌉, sorry ⟩} + ms₁
+  let S : Multiset (Polygonal (m+2)) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, pt ⟩, ⟨ ⌈ul⌉, pu ⟩, ⟨ ⌈vl⌉, pv ⟩} + ms₁
 
   use S
   constructor
@@ -505,10 +557,11 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp [S]
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
-
-
+    rw [ms₁sum']
     sorry
     --exact corsum
   . -- Proof it has at most 5 elements
     simp [S]
+    rw [ms₁card]
+
     sorry
