@@ -23,3 +23,4 @@ require «doc-gen4» from git
 
 -- Custom files
 lean_lib PolygonalNumbers.Polygonal
+lean_lib PolygonalNumbers.Lemmas

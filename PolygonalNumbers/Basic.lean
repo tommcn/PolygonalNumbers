@@ -16,6 +16,7 @@ import Mathlib.Data.Fin.Parity
 import Init.Data.List.Basic
 
 import PolygonalNumbers.Polygonal
+import PolygonalNumbers.Lemmas
 
 def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℤ) ↦ x1.val + x2
 
@@ -80,42 +81,6 @@ lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
     rw [kfactq k]
     exact hk
 
-/--
-  `Polygonal` numbers, despite being a subtype of `ℚ`, are equal to their integer part.
--/
--- lemma PolygonalInteger (n : ℤ) (a : Polygonal n) : a.val = ⌊ a.val ⌋ := by
---   dsimp [Polygonal, IsnPolygonal] at a
---   let ⟨ k, hk ⟩ := a
---   let ⟨ r, hr ⟩ := hk
---   simp
-
---   rw [← hr]
---   simp
-
---   let ⟨ e, he ⟩ := revenk r
---   let e' := (e : ℚ)
-
---   have tworatint : (2 : ℚ) = (2 : ℤ) := rfl
---   have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
-
-
---   have he' : (r : ℚ) * ((r : ℚ) - 1) = 2 * e' := by
---     rw [oneratint]
---     rw [← Int.cast_sub r 1]
---     rw [← Int.cast_mul r (r - 1)]
---     rw [he]
---     simp
-
---   rw [he']
---   have htwoassoc : (n - 2) / 2 * (2 * e') = (n - 2) * e' := by
---     ring
---   rw [htwoassoc]
---   dsimp [e']
-
---   rw [tworatint]
---   rw [← Int.cast_sub n 2]
---   rw [← Int.cast_mul (n - 2)]
---   exact rfl
 
 instance : HAdd Triangular Triangular ℤ where
   hAdd a b :=  a.val + b.val
@@ -187,115 +152,6 @@ lemma CauchyLemma (a : ℕ) (b : ℕ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 
   ==================== Various Lemmas for Polygonal Numbers ====================
 -/
 
-lemma interval_length (n m : ℕ) (h : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / m) - 8)) - (1 / 2 + √(6 * (n/m) - 3)) > 4 := by
-  sorry
-
-lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
-  have hsqrtpos : √(6 * (↑n / ↑m) - 3) ≥ 0 := by exact Real.sqrt_nonneg (6 * (n / m) - 3)
-  have hhalfpos : (1 : ℝ) / 2 > 0 := by exact one_half_pos
-  exact Right.add_pos_of_pos_of_nonneg hhalfpos hsqrtpos
-
-/--
-  In an interval of length strictly greater than 4, there exists two odd numbers in the interval
--/
-lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo : ep₁ > 0) : ∃ (b₁ b₂ : ℕ),
-      (Odd b₁)
-    ∧ (Odd b₂)
-    ∧ (b₁ > ep₁)
-    ∧ (b₂ < ep₂)
-    ∧ (b₂ = b₁ + 2) := by
-    have heiorarb (a : ℤ) : (Odd a) ∨ (Odd (a + 1)) := by
-      have hoddornot : (Odd a) ∨ ¬ Odd (a) := Decidable.em (Odd a)
-
-      rcases (hoddornot) with hodd₁ | hnotodd₁
-      . left; exact hodd₁
-      . right; rw [Int.not_odd_iff_even] at hnotodd₁; apply Even.add_one at hnotodd₁; exact hnotodd₁
-
-    have hep₁inornot : ep₁ < ⌈ ep₁ ⌉ ∨ ep₁ = ⌈ ep₁ ⌉  := by
-      refine lt_or_eq_of_le ?_
-      exact Int.le_ceil ep₁
-
-    have hep₁ : ⌈ep₁⌉ = ⌈ep₁⌉.natAbs := by
-      refine Eq.symm (Int.natAbs_of_nonneg ?_)
-      refine Int.ceil_nonneg ?_
-      exact le_of_lt hpo
-
-    have hep₁' : (⌈ep₁⌉ : ℝ) = ⌈ep₁⌉.natAbs := by
-      exact congrArg Int.cast hep₁
-
-    rcases (heiorarb ⌈ ep₁ ⌉) with epodd | ep1odd
-    <;> rcases hep₁inornot with ep₁lt | ep₁eq
-    . use ⌈ ep₁ ⌉.natAbs, ⌈ ep₁ ⌉.natAbs + 2
-      and_intros
-      . simp
-        simp at hep₁
-        assumption
-      . have epodd' : Odd (⌈ ep₁ ⌉.natAbs) := Odd.natAbs epodd
-        refine Nat.odd_add_one.mpr ?_
-        simp
-        exact Odd.add_one epodd'
-      . simp
-        exact lt_of_lt_of_eq ep₁lt (congrArg Int.cast hep₁)
-      . calc
-          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 2 := by simp; exact Eq.ge (congrArg Int.cast hep₁)
-          _ < ep₁ + 1 + 2 := by
-            simp
-            apply Int.ceil_lt_add_one (ep₁)
-          _ ≤ ep₁ + 4 := by linarith
-          _ ≤ ep₂ := by linarith
-      . rfl
-    . use ⌈ ep₁ ⌉.natAbs + 2, ⌈ ep₁ ⌉.natAbs + 4
-      and_intros
-      . refine Nat.odd_add.mpr ?_; simp; assumption
-      . refine Nat.odd_add.mpr ?_
-        have heven4 : Even (4 : ℕ) := by dsimp [Even]; use 2;
-        constructor <;> intro _
-        . exact heven4
-        . exact Odd.natAbs epodd
-      . simp
-        linarith
-      . rw [Nat.cast_add]; simp; rw [← hep₁', ← ep₁eq]; linarith
-      . ring
-    . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
-      and_intros
-      . rw [hep₁] at ep1odd
-        exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 1)).mp ep1odd
-      . contrapose ep1odd
-        simp
-        simp at ep1odd
-        have ep1odd_two : ⌈ ep₁ ⌉ + 3 + -2 = ⌈ ep₁ ⌉ + 1 := by linarith
-        rw [← ep1odd_two]
-        apply Even.add ?_ ?_
-        . rw [hep₁]
-          exact Int.natAbs_even.mp ep1odd
-        . simp
-      . simp
-        linarith
-      . simp
-        calc
-          _ ≤ (⌈ ep₁ ⌉ : ℝ) + 3 := le_of_eq (congrFun (congrArg HAdd.hAdd (id (Eq.symm hep₁'))) 3)
-          _ < ep₁ + 1 + 3 := by
-            simp
-            apply Int.ceil_lt_add_one (ep₁)
-          _ ≤ ep₁ + 4 := by linarith
-          _ ≤ ep₂ := by linarith
-      . ring
-    . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
-      and_intros
-      . have hepabs : ⌈ ep₁ ⌉.natAbs = ⌈ ep₁ ⌉ := by exact id (Eq.symm hep₁)
-        have hoddimp : Odd (⌈ ep₁ ⌉ + 1) → Odd (⌈ ep₁ ⌉.natAbs + 1) := by
-          intro h; rw [← hepabs] at h; exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 1)).mp h
-        exact hoddimp ep1odd
-      . have hepabs : ⌈ ep₁ ⌉.natAbs = ⌈ ep₁ ⌉ := by exact id (Eq.symm hep₁)
-        rw [← hepabs] at ep1odd
-        have heven : Even ((⌈ep₁⌉.natAbs : ℤ) + 1 + 1) := by exact Odd.add_one ep1odd
-        have hodd : Odd ((⌈ep₁⌉.natAbs : ℤ) + 1 + 1 + 1) := by exact Even.add_one heven
-        exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 3)).mp hodd
-      . simp
-        linarith
-      . simp
-        linarith
-      . ring
 
 
 -- Lemma 1.11 (p. 42)
