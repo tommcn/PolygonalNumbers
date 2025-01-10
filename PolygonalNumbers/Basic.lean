@@ -5,7 +5,7 @@
 
   Also Proved in Isabelle: https://www.isa-afp.org/entries/Polygonal_Number_Theorem.html#
 
-  Lean (version 4.15.0-rc1, arm64-apple-darwin23.6.0, commit ffac974dba79, Release)
+  Lean (version 4.15.0-rc1, aarch64-unknown-linux-gnu, commit ffac974dba79, Release)
 
   Tomas McNamer
 -/
@@ -14,51 +14,14 @@ import Mathlib.Tactic
 import Mathlib.Data.Set.Defs
 import Init.Data.List.Basic
 
-/-
-  ==================== Support for Polygonal Numbers ====================
--/
+import PolygonalNumbers.Polygonal
 
-def IsTriangular (n : ℚ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (n : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
-def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
-
-
-def Triangular := Subtype (fun (n : ℤ) ↦ IsTriangular n)
-def Polygonal (n : ℤ) := Subtype (fun (m : ℚ) ↦ IsnPolygonal n m)
-
-instance : BEq (Polygonal n) where
-  beq a b := if (a.val == b.val)
-             then true
-             else false
-
-instance : LawfulBEq (Polygonal n) where
-  rfl := by
-    intro a
-    rw [BEq.beq]
-    dsimp [instBEqPolygonal]
-    simp
-
-  eq_of_beq := by
-    intro a b
-    intro h₁
-    rw [BEq.beq] at h₁
-    dsimp [instBEqPolygonal] at h₁
-    simp at h₁
-    rw [a.eq_iff]
-    exact h₁
-
-instance : DecidableEq (Polygonal n) :=
-  fun a b =>
-    if h : a.val = b.val then
-      isTrue (by rw [a.eq_iff]; exact h)
-    else
-      isFalse (by rw [a.eq_iff]; exact h)
 
 #check Polygonal
 
-def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℚ) ↦ x1.val + x2
+def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℤ) ↦ x1.val + x2
 
-instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
+instance : LeftCommutative (foldrfun n : Polygonal n → ℤ → ℤ) where
   left_comm := by
     intro a b c
     simp [foldrfun]
@@ -68,7 +31,7 @@ instance : LeftCommutative (foldrfun n : Polygonal n → ℚ → ℚ) where
   Sum of a multiset of polygonal numbers of same order `n` (i.e., rational
   numbers) into a rational number
 -/
-def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℚ := S.foldr (foldrfun n) 0
+def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℤ := S.foldr (foldrfun n) 0
 
 
 lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
@@ -80,14 +43,14 @@ lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
   rw [hk]
   ring
 
+lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
+  ring
+
 
 /--
   Both conditions `IsnPolygonal` and `IsnPolygonal'` are equivalent.
 -/
 lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
-  have kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
-    ring
-
   unfold IsnPolygonal IsnPolygonal'
   funext m a
   apply propext
@@ -107,39 +70,39 @@ lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
 /--
   `Polygonal` numbers, despite being a subtype of `ℚ`, are equal to their integer part.
 -/
-lemma PolygonalInteger (n : ℤ) (a : Polygonal n) : a.val = ⌊ a.val ⌋ := by
-  dsimp [Polygonal, IsnPolygonal] at a
-  let ⟨ k, hk ⟩ := a
-  let ⟨ r, hr ⟩ := hk
-  simp
+-- lemma PolygonalInteger (n : ℤ) (a : Polygonal n) : a.val = ⌊ a.val ⌋ := by
+--   dsimp [Polygonal, IsnPolygonal] at a
+--   let ⟨ k, hk ⟩ := a
+--   let ⟨ r, hr ⟩ := hk
+--   simp
 
-  rw [← hr]
-  simp
+--   rw [← hr]
+--   simp
 
-  let ⟨ e, he ⟩ := revenk r
-  let e' := (e : ℚ)
+--   let ⟨ e, he ⟩ := revenk r
+--   let e' := (e : ℚ)
 
-  have tworatint : (2 : ℚ) = (2 : ℤ) := rfl
-  have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
+--   have tworatint : (2 : ℚ) = (2 : ℤ) := rfl
+--   have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
 
 
-  have he' : (r : ℚ) * ((r : ℚ) - 1) = 2 * e' := by
-    rw [oneratint]
-    rw [← Int.cast_sub r 1]
-    rw [← Int.cast_mul r (r - 1)]
-    rw [he]
-    simp
+--   have he' : (r : ℚ) * ((r : ℚ) - 1) = 2 * e' := by
+--     rw [oneratint]
+--     rw [← Int.cast_sub r 1]
+--     rw [← Int.cast_mul r (r - 1)]
+--     rw [he]
+--     simp
 
-  rw [he']
-  have htwoassoc : (n - 2) / 2 * (2 * e') = (n - 2) * e' := by
-    ring
-  rw [htwoassoc]
-  dsimp [e']
+--   rw [he']
+--   have htwoassoc : (n - 2) / 2 * (2 * e') = (n - 2) * e' := by
+--     ring
+--   rw [htwoassoc]
+--   dsimp [e']
 
-  rw [tworatint]
-  rw [← Int.cast_sub n 2]
-  rw [← Int.cast_mul (n - 2)]
-  exact rfl
+--   rw [tworatint]
+--   rw [← Int.cast_sub n 2]
+--   rw [← Int.cast_mul (n - 2)]
+--   exact rfl
 
 instance : HAdd Triangular Triangular ℤ where
   hAdd a b :=  a.val + b.val
@@ -217,6 +180,9 @@ lemma interval_length (n m : ℕ) (h : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / 
 lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
   sorry
 
+/--
+  In an interval of length strictly greater than 4, there exists two odd numbers in the interval
+-/
 lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo : ep₁ > 0) : ∃ (b₁ b₂ : ℕ),
       (Odd b₁)
     ∧ (Odd b₂)
@@ -336,6 +302,26 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
 
 
 -- Lemma 1.11 (p. 42)
+lemma cauchy_setup_a (m N : ℕ)
+                   (hm : m ≥ 3)
+                  --  (hnineq : N ≥ 2 * m)
+                   (a b r : ℕ)
+                   (hr : r < m)
+                  --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
+    : b < ((2 / 3) + √(8 * (n / m) - 8))
+      → b^2 < 4*a := by
+  sorry
+
+lemma cauchy_setup_b (m N : ℕ)
+                   (hm : m ≥ 3)
+                  --  (hnineq : N ≥ 2 * m)
+                   (a b r : ℕ)
+                   (hr : r < m)
+                  --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
+    : b < ((2 / 3) + √(8 * (n / m) - 8))
+      → 3*a < b^2 + 2*b + 4 := by
+  sorry
+
 lemma cauchy_setup (m N : ℕ)
                    (hm : m ≥ 3)
                    (hnineq : N ≥ 2 * m)
@@ -347,11 +333,12 @@ lemma cauchy_setup (m N : ℕ)
       → b^2 < 4*a ∧ 3*a < b^2 + 2*b + 4 := by
   sorry
 
+
 /-
   ==================== Theorem I for Polygonal Numbers ====================
 -/
 /--
-  # Theorem I
+  Theorem I
   Let m ≥ 3 and n ≥ 120*m. Then n is the sum of m + 1 polygonal numbers of
   order m + 2, at most four of which are different from 0 or `1`
 -/
@@ -442,11 +429,21 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
   let ul : ℚ := (m / 2) * (u^2 - u) + u
   let vl : ℚ := (m / 2) * (v^2 - v) + v
 
+  have slint : sl = ⌈ sl ⌉ := by
+    dsimp [sl]
+    simp
+    rw [← (kfactq s)]
+    sorry
+
+
+
   /- `s`, `t`, `u`, `v` are polygonal -/
-  have ps : IsnPolygonal (m+2) sl := by
+  have ps : IsnPolygonal (m+2) ⌈ sl ⌉ := by
+    rw [← slint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use s
+    dsimp [sl]
     simp
 
   have pt : IsnPolygonal (m+2) tl := by
@@ -519,7 +516,7 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2)) := {⟨ sl, ps ⟩, ⟨ tl, pt ⟩, ⟨ ul, pu ⟩, ⟨ vl, pv ⟩} + ms₁
+  let S : Multiset (Polygonal (m+2)) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, sorry ⟩, ⟨ ⌈ul⌉, sorry ⟩, ⟨ ⌈vl⌉, sorry ⟩} + ms₁
 
   use S
   constructor
@@ -529,7 +526,9 @@ theorem CauchyPolygonalNumberTheorem (m : ℕ) (n : ℕ) (nmpos : n ≥ 1) (mb :
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
 
-    exact corsum
+
+    sorry
+    --exact corsum
   . -- Proof it has at most 5 elements
     simp [S]
     sorry

@@ -20,3 +20,6 @@ require checkdecls from git "https://github.com/urkud/checkdecls" @ "YK-fix-supe
 meta if get_config? env = some "dev" then
 require «doc-gen4» from git
   "https://github.com/leanprover/doc-gen4" @ "main"
+
+-- Custom files
+lean_lib PolygonalNumbers.Polygonal
