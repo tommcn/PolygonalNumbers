@@ -12,12 +12,10 @@
 
 import Mathlib.Tactic
 import Mathlib.Data.Set.Defs
+import Mathlib.Data.Fin.Parity
 import Init.Data.List.Basic
 
 import PolygonalNumbers.Polygonal
-
-
-#check Polygonal
 
 def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℤ) ↦ x1.val + x2
 
@@ -215,28 +213,10 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       . simp
         simp at hep₁
         assumption
-      . contrapose epodd
+      . have epodd' : Odd (⌈ ep₁ ⌉.natAbs) := Odd.natAbs epodd
+        refine Nat.odd_add_one.mpr ?_
         simp
-        simp at epodd
-        have epodd_two : ⌈ ep₁ ⌉ + 2 + -2 = ⌈ ep₁ ⌉ := by simp
-        rw [← epodd_two]
-        simp
-        rw [hep₁]
-
-        refine (Int.even_coe_nat ⌈ep₁⌉.natAbs).mpr ?_
-        -- refine Int.natAbs_even.mpr ?_
-
-        have even_add_two (a : ℕ) : Even (a + 2) → Even (a) := by
-          dsimp [Even]
-          intro heven
-          let ⟨ k, hk ⟩ := heven
-
-          use k - 1
-          sorry
-          -- apply?
-
-        exact even_add_two ⌈ep₁⌉.natAbs epodd
-
+        exact Odd.add_one epodd'
       . simp
         exact lt_of_lt_of_eq ep₁lt (congrArg Int.cast hep₁)
       . calc
@@ -256,7 +236,7 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
         . exact heven4
         . exact Odd.natAbs epodd
       . simp
-        sorry
+        linarith
       . rw [Nat.cast_add]; simp; rw [← hep₁', ← ep₁eq]; linarith
       . ring
     . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
@@ -268,7 +248,6 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
         simp at ep1odd
         have ep1odd_two : ⌈ ep₁ ⌉ + 3 + -2 = ⌈ ep₁ ⌉ + 1 := by linarith
         rw [← ep1odd_two]
-
         apply Even.add ?_ ?_
         . rw [hep₁]
           exact Int.natAbs_even.mp ep1odd
@@ -286,14 +265,15 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       . ring
     . use ⌈ ep₁ ⌉.natAbs + 1, ⌈ ep₁ ⌉.natAbs + 3
       and_intros
-      . refine Even.add_one ?_; sorry
-      . dsimp [Odd]
-        dsimp [Odd] at ep1odd
-        let ⟨ k, hk ⟩ := ep1odd
-
-        use (k + 1).natAbs
-        simp
-        sorry
+      . have hepabs : ⌈ ep₁ ⌉.natAbs = ⌈ ep₁ ⌉ := by exact id (Eq.symm hep₁)
+        have hoddimp : Odd (⌈ ep₁ ⌉ + 1) → Odd (⌈ ep₁ ⌉.natAbs + 1) := by
+          intro h; rw [← hepabs] at h; exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 1)).mp h
+        exact hoddimp ep1odd
+      . have hepabs : ⌈ ep₁ ⌉.natAbs = ⌈ ep₁ ⌉ := by exact id (Eq.symm hep₁)
+        rw [← hepabs] at ep1odd
+        have heven : Even ((⌈ep₁⌉.natAbs : ℤ) + 1 + 1) := by exact Odd.add_one ep1odd
+        have hodd : Odd ((⌈ep₁⌉.natAbs : ℤ) + 1 + 1 + 1) := by exact Even.add_one heven
+        exact (Int.odd_coe_nat (⌈ep₁⌉.natAbs + 3)).mp hodd
       . simp
         linarith
       . simp
