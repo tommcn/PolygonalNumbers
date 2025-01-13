@@ -62,7 +62,9 @@ lemma sqrt_geq_four (x : ℕ) (hx : x ≥ 120) : √(8*x-8) - √(6*x-3) > 4 := 
   have sqrt_add_lt : (√(8*x-8) + √(6*x-3)) < (√(8*x-4) + √(6*x-3)) := by
     exact (add_lt_add_iff_right √(6 * (x : ℝ) - 3)).mpr sqrt_lt_sqrt_eight_four
 
-  have sqrt_add_ne_zero : (√(8*x-8) + √(6*x-3)) ≠ 0 := by sorry
+  have sqrt_add_ne_zero : (√(8*x-8) + √(6*x-3)) ≠ 0 := by
+    apply ne_of_gt
+    apply add_pos sqrt_pos sqrt_pos'
   have sqrt_four_two : √4 = 2 := by
     refine Real.sqrt_eq_cases.mpr ?_
     constructor
@@ -147,12 +149,26 @@ lemma sqrt_geq_four (x : ℕ) (hx : x ≥ 120) : √(8*x-8) - √(6*x-3) > 4 := 
         exact le_of_lt zero_lt_two_sqrt
       . simp
         refine (Real.le_sqrt' ?_).mpr ?_
+        . apply div_pos
+          . linarith
+          . exact sqrt_two_x
         . sorry
-        . sorry
+    _ ≥ (1 / (2 + √(3))) * (√(2 * 120 - 1) - 4 / (√(2*120 - 1))) := by
+      sorry
+    _ > 4 := by sorry -- apply? --sorry --norm_num
 
-  sorry
+lemma interval_length (n m : ℕ) (hm : m > 0) (hn : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / m) - 8)) - (1 / 2 + √(6 * (n/m) - 3)) > 4 := by
+  let x := (n :ℚ) / m
 
-lemma interval_length (n m : ℕ) (h : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / m) - 8)) - (1 / 2 + √(6 * (n/m) - 3)) > 4 := by
+  have hnq : (n : ℚ) ≥ 120 * (m : ℚ) := by sorry
+
+  have x_geq : x ≥ 120 := by
+    calc (n : ℚ) / (m)
+      _ ≥ 120 * m / m := by
+        refine (div_le_div_iff_of_pos_right ?_).mpr hnq
+        exact Nat.cast_pos'.mpr hm
+      _ = 120 * (m / m) := by ring
+      _ = 120 := by simp; sorry
   sorry
 
 lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
