@@ -5,9 +5,9 @@ import Mathlib.Tactic
 import Mathlib.Data.Set.Defs
 import Init.Data.List.Basic
 
-def IsTriangular (n : ℚ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (n : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
-def IsnPolygonal' (m : ℤ) (a : ℚ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
+def IsTriangular (n : ℤ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
+def IsnPolygonal (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
+def IsnPolygonal' (m : ℤ) (a : ℤ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = a
 
 
 def Triangular := Subtype (fun (n : ℤ) ↦ IsTriangular n)
@@ -40,3 +40,7 @@ instance : DecidableEq (Polygonal n) :=
       isTrue (by rw [a.eq_iff]; exact h)
     else
       isFalse (by rw [a.eq_iff]; exact h)
+
+-- instance (m n : ℕ) : Decidable (IsnPolygonal m n) := by
+
+--   unfold IsnPolygonal

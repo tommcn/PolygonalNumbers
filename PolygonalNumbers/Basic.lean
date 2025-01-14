@@ -101,7 +101,6 @@ example : IsTriangular 6 := by
   unfold IsTriangular
   use 3
   simp
-  linarith
 
 example : IsnPolygonal 3 6 := by
   unfold IsnPolygonal
@@ -117,12 +116,25 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
   simp
   funext a
   apply propext
+  have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
   constructor
   . intro h
     let ⟨ k, hk ⟩ := h
+    use k
+    have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
+      constructor
+      . intro h
+        rw [htwoa]
+        rw [← h]
+        simp
+      . intro h
+        have hkq : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
+          simp
+        rw [hkq, htwoa] at h
+        exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm h)))
+    apply hiff.mpr
     rw [← hk]
     ring_nf
-    use k
   . intro h
     let ⟨ k, hk ⟩ := h
     ring_nf
@@ -134,8 +146,11 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
       apply mul_left_cancel₀ two_ne_zero hone
 
     apply honetwo
+
+    rw [htwoa]
     rw [← hk]
-    ring
+    ring_nf
+    simp
 
 lemma polygonal_m_one (m : ℕ) : IsnPolygonal m 1 := by
   unfold IsnPolygonal
@@ -211,8 +226,10 @@ theorem CauchyPolygonalNumberTheorem
       := by
   have hmqgeq3 : (m : ℚ) ≥ 3 := by
     exact Nat.ofNat_le_cast.mpr mb
-  have hmgt0 : (m : ℚ) > 0 := by
+  have hmgtq0 : (m : ℚ) > 0 := by
     exact gt_of_ge_of_gt hmqgeq3 rfl
+  have hmgtn0 : m  > 0 := by
+    exact Nat.zero_lt_of_lt mb
   have hmnot0 : (m : ℚ) ≠ 0 := by
     linarith
   have ngeq2m : n ≥ 2 * m := by
@@ -229,7 +246,7 @@ theorem CauchyPolygonalNumberTheorem
       := odd_pair_four_interval
           (1/2 + √(6 * (n/m) - 3))
           ((2 / 3) + √(8 * (n / m) - 8))
-          (interval_length n m nb)
+          (interval_length n m hmgtn0 nb)
           bound_positive
 
 
@@ -332,32 +349,31 @@ theorem CauchyPolygonalNumberTheorem
 
   /- `s`, `t`, `u`, `v` are polygonal -/
   have ps : IsnPolygonal (m+2) ⌈ sl ⌉ := by
-    rw [← slint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use s
-    dsimp [sl]
+    rw [← slint]
     simp
 
   have pt : IsnPolygonal (m+2) ⌈ tl ⌉ := by
-    rw [← tlint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use t
+    rw [← tlint]
     simp
 
   have pu : IsnPolygonal (m+2) ⌈ ul ⌉ := by
-    rw [← ulint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
+    rw [← ulint]
     use u
     simp
 
   have pv : IsnPolygonal (m+2) ⌈ vl ⌉ := by
-    rw [← vlint]
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use v
+    rw [← vlint]
     simp
 
 
