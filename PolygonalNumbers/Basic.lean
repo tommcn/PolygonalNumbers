@@ -49,7 +49,7 @@ lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
   dsimp [Even] at h
   let ⟨ k, hk ⟩ := h
   use k
-  have oneratint : (1 : ℚ) = (1 : ℤ) := rfl
+  have oneratint : (1 : ℚ) = (1 : ℤ) := by simp
   rw [oneratint]
   rw [← Int.cast_sub r 1]
   rw [← Int.cast_mul r (r - 1)]
@@ -57,29 +57,6 @@ lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
   simp
   exact Eq.symm (two_mul (k : ℚ))
 
-lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
-  ring
-
-
-/--
-  Both conditions `IsnPolygonal` and `IsnPolygonal'` are equivalent.
--/
-lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
-  unfold IsnPolygonal IsnPolygonal'
-  funext m a
-  apply propext
-  constructor
-  . intro h
-    let ⟨ k, hk ⟩ := h
-    use k
-    rw [kfactq k] at hk
-    exact hk
-
-  . intro h
-    let ⟨ k, hk ⟩ := h
-    use k
-    rw [kfactq k]
-    exact hk
 
 
 instance : HAdd Triangular Triangular ℤ where
@@ -128,10 +105,11 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
         rw [← h]
         simp
       . intro h
-        have hkq : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
+        have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
           simp
-        rw [hkq, htwoa] at h
-        exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm h)))
+        rw [hkr, htwoa] at h
+        sorry
+        -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
     apply hiff.mpr
     rw [← hk]
     ring_nf
@@ -352,8 +330,8 @@ theorem CauchyPolygonalNumberTheorem
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use s
-    rw [← slint]
     simp
+    rw [← slint]
 
   have pt : IsnPolygonal (m+2) ⌈ tl ⌉ := by
     rw [PolyEquiv]
