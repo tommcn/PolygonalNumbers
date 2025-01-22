@@ -3,6 +3,30 @@ import Mathlib.Data.Set.Defs
 import Mathlib.Data.Fin.Parity
 import Init.Data.List.Basic
 
+lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
+  have h : Even (r * (r - 1)) := by
+    apply Int.even_mul_pred_self
+  dsimp [Even] at h
+  let ⟨ k, hk ⟩ := h
+  use k
+  rw [hk]
+  ring
+
+lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
+  have h : Even (r * (r - 1)) := by
+    apply Int.even_mul_pred_self
+
+  dsimp [Even] at h
+  let ⟨ k, hk ⟩ := h
+  use k
+  have oneratint : (1 : ℚ) = (1 : ℤ) := by simp
+  rw [oneratint]
+  rw [← Int.cast_sub r 1]
+  rw [← Int.cast_mul r (r - 1)]
+  rw [hk]
+  simp
+  exact Eq.symm (two_mul (k : ℚ))
+
 lemma sqrt_geq_four (x : ℕ) (hx : x ≥ 120) : √(8*x-8) - √(6*x-3) > 4 := by
   have sqrt_in_gt_zero : (8 * (x : ℝ) - 8) > 0 := by
     calc 8 * (x : ℝ) - 8
@@ -171,7 +195,7 @@ lemma interval_length (n m : ℕ) (hm : m > 0) (hn : n ≥ 120 * m) : ((2 / 3) +
       _ = 120 := by simp; sorry
   sorry
 
-lemma bound_positive :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
+lemma bound_positive (hn : n / m ≥ 120) :  1 / 2 + √(6 * (↑n / ↑m) - 3) > 0 := by
   have hsqrtpos : √(6 * (↑n / ↑m) - 3) ≥ 0 := by exact Real.sqrt_nonneg (6 * (n / m) - 3)
   have hhalfpos : (1 : ℝ) / 2 > 0 := by exact one_half_pos
   exact Right.add_pos_of_pos_of_nonneg hhalfpos hsqrtpos

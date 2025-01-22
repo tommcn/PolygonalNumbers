@@ -33,29 +33,7 @@ instance : LeftCommutative (foldrfun n : Polygonal n → ℤ → ℤ) where
 def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℤ := S.foldr (foldrfun n) 0
 
 
-lemma revenk (r : ℤ) : ∃ k : ℤ, r * (r - 1) = 2 * k := by
-  have h : Even (r * (r - 1)) := by
-    apply Int.even_mul_pred_self
-  dsimp [Even] at h
-  let ⟨ k, hk ⟩ := h
-  use k
-  rw [hk]
-  ring
 
-lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
-  have h : Even (r * (r - 1)) := by
-    apply Int.even_mul_pred_self
-
-  dsimp [Even] at h
-  let ⟨ k, hk ⟩ := h
-  use k
-  have oneratint : (1 : ℚ) = (1 : ℤ) := by simp
-  rw [oneratint]
-  rw [← Int.cast_sub r 1]
-  rw [← Int.cast_mul r (r - 1)]
-  rw [hk]
-  simp
-  exact Eq.symm (two_mul (k : ℚ))
 
 
 
@@ -212,6 +190,8 @@ theorem CauchyPolygonalNumberTheorem
     linarith
   have ngeq2m : n ≥ 2 * m := by
     linarith
+  have hnmr : (n : ℝ) / m ≥ 120 := by
+    sorry
 
   let ⟨ b₁,
         b₂,
@@ -225,7 +205,7 @@ theorem CauchyPolygonalNumberTheorem
           (1/2 + √(6 * (n/m) - 3))
           ((2 / 3) + √(8 * (n / m) - 8))
           (interval_length n m hmgtn0 nb)
-          bound_positive
+          (bound_positive hnmr)
 
 
   have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r) [MOD m] := by
@@ -307,23 +287,23 @@ theorem CauchyPolygonalNumberTheorem
   let ul : ℚ := (m / 2) * (u^2 - u) + u
   let vl : ℚ := (m / 2) * (v^2 - v) + v
 
-  have polyform (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉ := by
-    simp
-    rw [← (kfactq r)]
-    let ⟨ e, he ⟩ := revenk' r
-    simp at he
-    rw [he]
-    rw [← mul_assoc]
-    simp
-    have hms : (m : ℚ) = ((m : ℤ) : ℚ) := rfl
-    rw [hms]
-    rw [← Int.cast_mul m e]
-    rw [@Int.ceil_intCast]
+  -- have polyform (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉ := by
+  --   simp
+  --   rw [← (kfactq r)]
+  --   let ⟨ e, he ⟩ := revenk' r
+  --   simp at he
+  --   rw [he]
+  --   rw [← mul_assoc]
+  --   simp
+  --   have hms : (m : ℚ) = ((m : ℤ) : ℚ) := rfl
+  --   rw [hms]
+  --   rw [← Int.cast_mul m e]
+  --   rw [@Int.ceil_intCast]
 
-  have slint : sl = ⌈ sl ⌉ := by exact polyform s
-  have tlint : tl = ⌈ tl ⌉ := by exact polyform t
-  have ulint : ul = ⌈ ul ⌉ := by exact polyform u
-  have vlint : vl = ⌈ vl ⌉ := by exact polyform v
+  have slint : sl = ⌈ sl ⌉ := by exact polyform m s
+  have tlint : tl = ⌈ tl ⌉ := by exact polyform m t
+  have ulint : ul = ⌈ ul ⌉ := by exact polyform m u
+  have vlint : vl = ⌈ vl ⌉ := by exact polyform m v
 
   /- `s`, `t`, `u`, `v` are polygonal -/
   have ps : IsnPolygonal (m+2) ⌈ sl ⌉ := by
