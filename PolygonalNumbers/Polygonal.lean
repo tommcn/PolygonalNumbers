@@ -18,7 +18,7 @@ def IsnPolygonal' (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * 
 def IsnPolygonal'' (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n
 -- def IsnPolygonal₀ (m : ℤ) (n : ℤ) := (√(8*(m-2)*n + (m-4)^2) + (m - 4)) / (2 * (m - 2))
 def IsnPolygonal₀ (m : ℤ) (n : ℤ) := IsSquare (8*(m-2)*n + (m-4)^2)
-                        → (Int.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0
+                        ∧ (Int.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0
                      --   ∧ (∃ (k : ℕ), (k ^ 2 = (8*(m-2)*n + (m-4)^2) ∧ (k + (m - 4)) % (2 * (m - 2)) = 0))
                      -- Rat.sqrt
 
@@ -66,21 +66,23 @@ lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
     ring
 
 lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
-  unfold IsnPolygonal IsnPolygonal₀
+  rw [PolyEquiv']
+  unfold IsnPolygonal'' IsnPolygonal₀
   funext m x
   apply propext
   constructor
   . intro h
     let ⟨ k, hk ⟩ := h
+    dsimp [IsSquare]
+    constructor
+    . sorry
+    . sorry
+  . intro ⟨ ⟨ r, hr ⟩, h₂ ⟩
 
-    intro hsq
-    dsimp [IsSquare] at hsq
-    let ⟨ r, hr ⟩ := hsq
-    rw [hr]
+    -- dsimp [IsSquare] at h₁
+    -- let ⟨ r, hr ⟩ := h₁
+    rw [hr] at h₂
 
-    rw [Int.sqrt_eq]
-    sorry
-  . intro h₁
     sorry
 
 
@@ -190,6 +192,7 @@ theorem ismnpoly_correctness (m n : ℤ) : ismnpoly m n ↔ IsnPolygonal m n := 
   constructor
   . dsimp [ismnpoly]
     intro h
+
     -- rw [ismnapoly_helper.eq_def]
 
 
@@ -197,3 +200,24 @@ theorem ismnpoly_correctness (m n : ℤ) : ismnpoly m n ↔ IsnPolygonal m n := 
   . sorry
 
 #eval ismnpoly 3 15
+
+
+--
+-- Given `s` and `x`, if `x` is an s-gonal number, returns
+-- `some n` so that x is the nth s-gonal number. Otherwise
+-- returns `none`.
+def nthPolygonal (s x : Nat) : Option Nat :=
+  let sq := if (s < 4) then 8 * (s - 2) * x + (4 - s) ^ 2 else 8 * (s - 2) * x + (s - 4) ^ 2
+  if IsSquare sq then
+    let r := dbgTraceVal <| Nat.sqrt sq
+    let d := 2 * (s - 2)
+    if (r + s - 4) % d == 0 then
+      some <| (r + s - 4) / d
+    else
+      none
+  else
+    none
+
+#eval nthPolygonal 3 55 -- some 10
+#eval nthPolygonal 4 17 -- none
+#eval nthPolygonal 6 66 -- some 6
