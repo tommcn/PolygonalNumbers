@@ -13,18 +13,18 @@ import PolygonalNumbers.Lemmas
 -- Wikipedia definitions
 -- `m` -> order
 def IsTriangular (n : ℤ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
-def IsnPolygonal' (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = n
-def IsnPolygonal'' (m : ℤ) (n : ℤ) := ∃ (k : ℤ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n
+def IsnPolygonal (m : ℤ) (n : ℤ) (_ : m ≥ 3) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
+def IsnPolygonal' (m : ℤ) (n : ℤ) (_ : m ≥ 3) := ∃ (k : ℤ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = n
+def IsnPolygonal'' (m : ℤ) (n : ℤ) (_ : m ≥ 3) := ∃ (k : ℤ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n
 -- def IsnPolygonal₀ (m : ℤ) (n : ℤ) := (√(8*(m-2)*n + (m-4)^2) + (m - 4)) / (2 * (m - 2))
-def IsnPolygonal₀ (m : ℤ) (n : ℤ) := IsSquare (8*(m-2)*n + (m-4)^2)
+def IsnPolygonal₀ (m : ℤ) (n : ℤ) (_ : m ≥ 3) := IsSquare (8*(m-2)*n + (m-4)^2)
                         ∧ (Int.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0
                      --   ∧ (∃ (k : ℕ), (k ^ 2 = (8*(m-2)*n + (m-4)^2) ∧ (k + (m - 4)) % (2 * (m - 2)) = 0))
                      -- Rat.sqrt
 
 
 def Triangular := Subtype (fun (n : ℤ) ↦ IsTriangular n)
-def Polygonal (m : ℤ) := Subtype (fun (n : ℤ) ↦ IsnPolygonal m n)
+def Polygonal (m : ℤ) (hm : m ≥ 3) := Subtype (fun (n : ℤ) ↦ IsnPolygonal m n hm)
 
 /--
   Both conditions `IsnPolygonal` and `IsnPolygonal'` are equivalent.
@@ -34,7 +34,7 @@ lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
 
 lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
   unfold IsnPolygonal IsnPolygonal'
-  funext m a
+  funext m a hm
   apply propext
   constructor
   . intro h
@@ -51,7 +51,7 @@ lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
 
 lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
   unfold IsnPolygonal IsnPolygonal''
-  funext m a
+  funext m a hm
   apply propext
   constructor
   . intro h
@@ -68,30 +68,59 @@ lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
 lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
   rw [PolyEquiv']
   unfold IsnPolygonal'' IsnPolygonal₀
-  funext m x
+  funext m x hm
   apply propext
   constructor
   . intro h
     let ⟨ k, hk ⟩ := h
     dsimp [IsSquare]
     constructor
-    . sorry
+    .
+
+
+      sorry
     . sorry
   . intro ⟨ ⟨ r, hr ⟩, h₂ ⟩
 
     -- dsimp [IsSquare] at h₁
     -- let ⟨ r, hr ⟩ := h₁
     rw [hr] at h₂
+    rw [Int.sqrt_eq] at h₂
+    use ((r + (m - 4)) / (2 * (m - 2)))
+    -- simp
+
+    have h : x = (r * r - (m-4)^2) / (8 *(m-2)) := by
+      rw [← hr]
+      simp
+      apply Eq.symm
+      have h : (m - 2) / (m - 2) = 1 := by
+        refine Int.ediv_self ?_
+        linarith
+
+      calc
+        _ = (((8*(m-2))) * x ) / (8*(m-2)) := by simp
+        _ = (x * ((8*(m-2)))) / (8*(m-2)) := by rw [mul_comm]
+        _ = x * ((8*(m-2)) / (8*(m-2))) := by refine Int.mul_ediv_assoc x (by simp)
+        _ = x * 1 := by
+          refine Lean.Omega.Int.mul_congr rfl ?_
+          simp
+          exact h
+        _ = x := by simp
+
+    rw [h]
+
+
+
 
     sorry
 
 
-instance : BEq (Polygonal n) where
+instance : BEq (Polygonal m hm) where
   beq a b := if (a.val == b.val)
              then true
              else false
 
-instance : LawfulBEq (Polygonal n) where
+instance : LawfulBEq (Polygonal m hm) where
   rfl := by
     intro a
     rw [BEq.beq]
@@ -107,27 +136,27 @@ instance : LawfulBEq (Polygonal n) where
     rw [a.eq_iff]
     exact h₁
 
-instance : DecidableEq (Polygonal n) :=
+instance : DecidableEq (Polygonal n hm) :=
   fun a b =>
     if h : a.val = b.val then
       isTrue (by rw [a.eq_iff]; exact h)
     else
       isFalse (by rw [a.eq_iff]; exact h)
 
-lemma Polyrw (n m : ℤ) : IsnPolygonal n m ↔ IsnPolygonal' n m := by
+lemma Polyrw (m n : ℤ) (hm : m ≥ 3) : IsnPolygonal m n hm ↔ IsnPolygonal' m n hm := by
   rw [PolyEquiv]
 
-lemma IsnPolygonalIffInt (m n : ℤ) : IsnPolygonal m n ↔ IsSquare (8*(m-2)*n + (m-4)^2) ∧ (Rat.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0 := by
-  constructor
-  . rw [PolyEquiv₀]
-    sorry
-    -- apply?
-    -- exact fun a ↦ a
-  . intro h
-    let ⟨ hsqu, hmod ⟩ := h
-    rw [PolyEquiv₀]
-    sorry
-    -- exact ⟨ hsqu, hmod ⟩
+-- lemma IsnPolygonalIffInt (m n : ℤ) : IsnPolygonal m n ↔ IsSquare (8*(m-2)*n + (m-4)^2) ∧ (Rat.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0 := by
+--   constructor
+--   . rw [PolyEquiv₀]
+--     sorry
+--     -- apply?
+--     -- exact fun a ↦ a
+--   . intro h
+--     let ⟨ hsqu, hmod ⟩ := h
+--     rw [PolyEquiv₀]
+--     sorry
+--     -- exact ⟨ hsqu, hmod ⟩
 
 -- instance (m : ℤ) : DecidablePred (IsnPolygonal m) :=
 --   fun n ↦
@@ -150,7 +179,7 @@ lemma polyform (m : ℤ) (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m :
   rw [@Int.ceil_intCast]
 
 
-def getnthpoly (m : ℤ) (n : ℕ) : Polygonal m :=
+def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
   let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
   have hnum : num  = ⌈ num ⌉ := by
     dsimp [num]
@@ -158,7 +187,7 @@ def getnthpoly (m : ℤ) (n : ℕ) : Polygonal m :=
     rw [h]
     apply polyform (((m - 2) : ℤ)) n
 
-  have h : IsnPolygonal m ⌈ num ⌉ := by
+  have h : IsnPolygonal m ⌈ num ⌉ hm := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use n
@@ -168,38 +197,38 @@ def getnthpoly (m : ℤ) (n : ℕ) : Polygonal m :=
   ⟨ ⌈ num ⌉, h ⟩
 
 
-#eval getnthpoly 4 1
+#eval getnthpoly 4 1 (by simp)
 
 /--
  Test whether the a'th polygonal number is equal to n.
 -/
-def ismnapoly_helper (m n : ℤ) (a : ℕ) : Bool :=
+def ismnapoly_helper (m n : ℤ) (a : ℕ) (hm : m ≥ 3) : Bool :=
   match a with
   | 0 => false
-  | k + 1 => if ((getnthpoly m (k + 1)).val == n) then true else (ismnapoly_helper m n k)
+  | k + 1 => if ((getnthpoly m (k + 1) hm).val== n) then true else (ismnapoly_helper m n k hm)
 
 /--
   Test whether n is a polygonal number of order m, by checking if it's the
   k'th polygonal number, decrementing k until it reaches 0
   (here k is n, but there are probably better upper bounds for a)
 -/
-def ismnpoly (m n : ℤ) : Bool := ismnapoly_helper m n n.natAbs
+def ismnpoly (m n : ℤ) (hm : m ≥ 3) : Bool := ismnapoly_helper m n n.natAbs hm
 
 
-theorem ismnpoly_correctness (m n : ℤ) : ismnpoly m n ↔ IsnPolygonal m n := by
-  -- rw [PolyEquiv]
+-- theorem ismnpoly_correctness (m n : ℤ) : ismnpoly m n ↔ IsnPolygonal m n := by
+--   -- rw [PolyEquiv]
 
-  constructor
-  . dsimp [ismnpoly]
-    intro h
+--   constructor
+--   . dsimp [ismnpoly]
+--     intro h
 
-    -- rw [ismnapoly_helper.eq_def]
+--     -- rw [ismnapoly_helper.eq_def]
 
 
-    sorry
-  . sorry
+--     sorry
+--   . sorry
 
-#eval ismnpoly 3 15
+#eval ismnpoly 3 15 (by simp)
 
 
 --

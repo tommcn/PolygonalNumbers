@@ -18,9 +18,9 @@ import Init.Data.List.Basic
 import PolygonalNumbers.Polygonal
 import PolygonalNumbers.Lemmas
 
-def foldrfun (n : ℤ) := fun (x1 : Polygonal n) (x2 : ℤ) ↦ x1.val + x2
+def foldrfun (m : ℤ) (hm : m ≥ 3) := fun (x1 : Polygonal m hm) (x2 : ℤ) ↦ x1.val + x2
 
-instance : LeftCommutative (foldrfun n : Polygonal n → ℤ → ℤ) where
+instance : LeftCommutative (foldrfun n hm : Polygonal n hm → ℤ → ℤ) where
   left_comm := by
     intro a b c
     simp [foldrfun]
@@ -30,7 +30,7 @@ instance : LeftCommutative (foldrfun n : Polygonal n → ℤ → ℤ) where
   Sum of a multiset of polygonal numbers of same order `n` (i.e., rational
   numbers) into a rational number
 -/
-def sumPolyToInt (n : ℤ) (S : Multiset (Polygonal n)) : ℤ := S.foldr (foldrfun n) 0
+def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : Multiset (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
 
 
 
@@ -57,7 +57,7 @@ example : IsTriangular 6 := by
   use 3
   simp
 
-example : IsnPolygonal 3 6 := by
+example : IsnPolygonal 3 6 (by simp) := by
   unfold IsnPolygonal
   use 3
   linarith
@@ -65,12 +65,10 @@ example : IsnPolygonal 3 6 := by
 /--
   A `Polygonal` number of order $3$ is triangular.
 -/
-lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
+lemma PolyThreeIsTriangular (a : ℤ): IsnPolygonal 3 a hm = (IsTriangular a) := by
   unfold IsnPolygonal
   unfold IsTriangular
   simp
-  funext a
-  apply propext
   have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
   constructor
   . intro h
@@ -108,7 +106,7 @@ lemma PolyThreeIsTriangular : IsnPolygonal 3 = IsTriangular := by
     ring_nf
     simp
 
-lemma polygonal_m_one (m : ℕ) : IsnPolygonal m 1 := by
+lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := by
   unfold IsnPolygonal
   use 1
   ring
@@ -176,12 +174,13 @@ theorem CauchyPolygonalNumberTheorem
           (nmpos : n ≥ 1)
           (mb : m ≥ 3)
           (nb : n ≥ 120*m)
-    : ∃ (S : Multiset (Polygonal (m+2))),
-      (sumPolyToInt (m+2) S = n)                  -- Sum = n
+    : ∃ (S : Multiset (Polygonal (m+2) (by linarith))),
+      (sumPolyToInt (m+2) (by linarith) S  = n)                  -- Sum = n
     ∧ (Multiset.card S ≤ m+1)
       := by
   have hmqgeq3 : (m : ℚ) ≥ 3 := by
     exact Nat.ofNat_le_cast.mpr mb
+  have hm2geq3 : ((m : ℤ) + 2) ≥ 3 := by linarith
   have hmgtq0 : (m : ℚ) > 0 := by
     exact gt_of_ge_of_gt hmqgeq3 rfl
   have hmgtn0 : m  > 0 := by
@@ -306,28 +305,28 @@ theorem CauchyPolygonalNumberTheorem
   have vlint : vl = ⌈ vl ⌉ := by exact polyform m v
 
   /- `s`, `t`, `u`, `v` are polygonal -/
-  have ps : IsnPolygonal (m+2) ⌈ sl ⌉ := by
+  have ps : IsnPolygonal (m+2) ⌈ sl ⌉ (hm2geq3) := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use s
     simp
     rw [← slint]
 
-  have pt : IsnPolygonal (m+2) ⌈ tl ⌉ := by
+  have pt : IsnPolygonal (m+2) ⌈ tl ⌉ (hm2geq3) := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use t
     rw [← tlint]
     simp
 
-  have pu : IsnPolygonal (m+2) ⌈ ul ⌉ := by
+  have pu : IsnPolygonal (m+2) ⌈ ul ⌉ (hm2geq3) := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     rw [← ulint]
     use u
     simp
 
-  have pv : IsnPolygonal (m+2) ⌈ vl ⌉ := by
+  have pv : IsnPolygonal (m+2) ⌈ vl ⌉ (hm2geq3) := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use v
@@ -335,15 +334,15 @@ theorem CauchyPolygonalNumberTheorem
     simp
 
 
-  let poly1 : Polygonal (m+2) := ⟨ 1, polygonal_m_one (m+2) ⟩
+  let poly1 : Polygonal (m+2) (by linarith) := ⟨ 1, polygonal_m_one (m+2) (hm2geq3)⟩
 
-  let l₁ : List (Polygonal (m+2)) := []
+  let l₁ : List (Polygonal (m+2) (by linarith)) := []
 
   let ms₁ := Multiset.replicate r poly1
 
   have ms₃repl (r : ℕ) : Multiset.replicate (r + 1) poly1 = poly1 ::ₘ Multiset.replicate r poly1 := rfl
 
-  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) (Multiset.replicate r poly1) = r := by
+  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) hm2geq3 (Multiset.replicate r poly1)  = r := by
     induction' r with r hr
     . simp [sumPolyToInt]
     . rw [ms₃repl]
@@ -354,7 +353,7 @@ theorem CauchyPolygonalNumberTheorem
       rw [hr]
       ring
 
-  have ms₁sum' : Multiset.foldr (foldrfun (↑m + 2)) 0 ms₁ = r := by
+  have ms₁sum' : Multiset.foldr (foldrfun (↑m + 2) hm2geq3) 0 ms₁ = r := by
     exact ms₁induc r
 
   have ms₁card : ms₁.card = r := by
@@ -378,7 +377,7 @@ theorem CauchyPolygonalNumberTheorem
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2)) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, pt ⟩, ⟨ ⌈ul⌉, pu ⟩, ⟨ ⌈vl⌉, pv ⟩} + ms₁
+  let S : Multiset (Polygonal (m+2) hm2geq3) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, pt ⟩, ⟨ ⌈ul⌉, pu ⟩, ⟨ ⌈vl⌉, pv ⟩} + ms₁
 
   use S
   constructor
