@@ -133,7 +133,26 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
 
     use (rm₄ / (2 * (m - 2)))
 
-    have h : x = (r * r - (m-4)^2) / (8 *(m-2)) := by
+    have hrn : r.natAbs * r.natAbs = r * r := by simp
+    have hrnq : (r.natAbs : ℚ) * r.natAbs = r * r := by
+      sorry
+    have habs : abs r = r.natAbs := by
+      simp
+    have habsq : abs (r : ℚ) = r.natAbs := by
+      sorry
+    have hrnq : (r.natAbs : ℚ) * r.natAbs = r * r := by
+      ring
+      refine sq_eq_sq_iff_eq_or_eq_neg.mpr ?_
+      rcases abs_choice (r : ℚ) with hp | hn
+      . left
+        rw [← hp]
+        rw [← habsq]
+      . right
+        rw [← hn]
+        rw [← habsq]
+
+    have h : x = (r.natAbs * r.natAbs - (m-4)^2) / (8 *(m-2)) := by
+      rw [hrn]
       rw [← hr]
       simp
       apply Eq.symm
@@ -186,8 +205,13 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (((r.natAbs + (m - 4)) : ℤ) * (r.natAbs - m + 4)) := by dsimp [rm₄]
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * ((r.natAbs + (m - 4)) * (r.natAbs - m + 4)) := by rw [heq']
       -- _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (((r.natAbs + (m - 4))) * (r.natAbs - m + 4)) := by sorry
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs * r.natAbs - m * r.natAbs + 4 * r.natAbs - (m - 4) * m + (m - 4) * 4) := by sorry
-
+      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m * r.natAbs + 4 * r.natAbs + (m - 4) * r.natAbs - (m - 4) * m + (m - 4) * 4) := by ring
+      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m ^ 2 + 8 * m - 16) := by ring
+      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs * r.natAbs - (m - 4) ^ 2) := by ring
+      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r * r - (m - 4) ^ 2) := by rw [hrnq]
+    simp
+    calc 4⁻¹ * (((m : ℚ) - 2)⁻¹ * 2⁻¹) * (r * r - (↑m - 4) ^ 2)
+      _ = 8⁻¹ * ((m : ℚ) - 2)⁻¹ * (r * r - (↑m - 4) ^ 2) := by ring
 
 
 
@@ -317,6 +341,7 @@ def nthPolygonal (s x : Nat) : Option Nat :=
       none
   else
     none
+
 
 #eval nthPolygonal 3 55 -- some 10
 #eval nthPolygonal 4 17 -- none
