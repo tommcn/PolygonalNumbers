@@ -71,11 +71,92 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
   apply propext
   constructor
   . intro h
-    let ⟨ k, hk ⟩ := h
     dsimp [IsSquare]
+    let ⟨ k, hk ⟩ := h
+    have hsqrtsq : 8 * (m - 2) * x + (m - 4) ^ 2 = (2 * k * (m - 2) - (m - 4)) * (2 * k * (m - 2) - (m - 4)) := by
+      have hev : Even ((m - 2) * k ^ 2 - (m - 4) * k) := by
+        refine Int.even_sub.mpr ?_
+        constructor
+        . intro heven
+          refine Int.even_mul.mpr ?_
+          apply Int.even_mul.mp at heven
+          rcases heven with h₁ | h₁
+          . left
+            refine Int.even_sub.mpr ?_
+            constructor
+            . intro _
+              dsimp [Even]
+              use 2
+              simp
+            . intro _
+              dsimp [Even] at h₁
+              let ⟨ r, hr ⟩ := h₁
+              use r + 1
+              linarith
+          . right
+            rw [@sq] at h₁
+            apply Int.even_mul.mp at h₁
+            simp at h₁
+            assumption
+        . intro heven
+          refine Int.even_mul.mpr ?_
+          apply Int.even_mul.mp at heven
+          rcases heven with h₁ | h₁
+          . left
+            refine Int.even_sub.mpr ?_
+            constructor
+            . intro _
+              dsimp [Even]
+              use 1
+              simp
+            . intro _
+              dsimp [Even] at h₁
+              let ⟨ r, hr ⟩ := h₁
+              use r + 2
+              linarith
+          . right
+            rw [@sq]
+            refine Int.even_mul.mpr ?_
+            simp
+            assumption
+      have hint : ((m - 2) * k ^ 2 - (↑m - 4) * k) / 2 = x := by
+        refine Eq.symm (Int.eq_ediv_of_mul_eq_right ?_ ?_)
+        linarith
+        have hq : (((m : ℚ) - 2) * k ^ 2 - (m - 4) * k) = 2 * x := by
+          rw [← hk]
+          ring
+        apply Eq.symm
+        have htx : (2 * (x : ℚ)) = (((2 * x) : ℤ) : ℚ) := by
+          simp
+
+        have htmk : ((m : ℚ) - 2) * k ^ 2 - (m - 4) * k = ((((m - 2) * k ^ 2 - (m - 4) * k) : ℤ) : ℚ) := by
+          simp
+        rw [htx, htmk] at hq
+        exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm hq)))
+
+      rw [← hint]
+      have hexr : ∃ (r : ℤ), ((m - 2) * k ^ 2 - (m - 4) * k) = 2 * r := by
+        exact Even.exists_two_nsmul ((m - 2) * k ^ 2 - (m - 4) * k) hev
+      let ⟨ r, hr ⟩ := hexr
+      calc 8 * (m - 2) * (((m - 2) * k ^ 2 - (m - 4) * k) / 2) + (m - 4) ^ 2
+        _ = 4 * (m - 2) * (((m - 2) * k ^ 2 - (m - 4) * k)) + (m - 4) ^ 2 := by
+          rw [hr]
+          simp
+          ring
+        _ = ((2 * (m - 2) * k) - (m - 4))^2 := by ring
+      ring
+
     constructor
-    . sorry
-    . sorry
+    . rw [PolyEquiv'] at h
+      use (2 * k * (m - 2) - (m - 4))
+    . rw [hsqrtsq]
+      have hintsqrt : Int.sqrt ((2 * k * (m - 2) - (m - 4)) * (2 * k * (m - 2) - (m - 4))) = (2 * k * (m - 2) - (m - 4)).natAbs := by
+        rw [Int.sqrt_eq]
+
+      rw [hintsqrt]
+      simp
+      use k
+      sorry
   . intro ⟨ ⟨ r, hr ⟩, h₂ ⟩
     rw [hr] at h₂
     rw [Int.sqrt_eq] at h₂
@@ -85,8 +166,11 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
     have hf : 2 * ((m : ℝ) - 2) > 0 := by
         refine mul_pos ?_ ?_
         simp
-        have hmr : (m : ℝ) ≥ 3 := by
-          sorry
+        ring_nf
+        suffices h : 2 < m by
+          have ht : (2 : ℝ) < m := by
+            exact Int.cast_lt.mpr h
+          exact lt_neg_add_iff_lt.mpr ht
         linarith
     have hf₂ : 2 * ((m : ℝ) - 2) ≠ 0 := by exact Ne.symm (ne_of_lt hf)
     have hfq : 2 * ((m : ℚ) - 2) > 0 := by
@@ -296,6 +380,11 @@ lemma polyform (m : ℤ) (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m :
   rw [@Int.ceil_intCast]
 
 
+/--
+  ==================== Helper Functions ====================
+  The following are helper functions **not formally verified** in Lean4
+--/
+
 def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
   let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
   have hnum : num  = ⌈ num ⌉ := by
@@ -330,20 +419,6 @@ def ismnapoly_helper (m n : ℤ) (a : ℕ) (hm : m ≥ 3) : Bool :=
   (here k is n, but there are probably better upper bounds for a)
 -/
 def ismnpoly (m n : ℤ) (hm : m ≥ 3) : Bool := ismnapoly_helper m n n.natAbs hm
-
-
--- theorem ismnpoly_correctness (m n : ℤ) : ismnpoly m n ↔ IsnPolygonal m n := by
---   -- rw [PolyEquiv]
-
---   constructor
---   . dsimp [ismnpoly]
---     intro h
-
---     -- rw [ismnapoly_helper.eq_def]
-
-
---     sorry
---   . sorry
 
 #eval ismnpoly 3 15 (by simp)
 
