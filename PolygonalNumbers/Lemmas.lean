@@ -436,6 +436,7 @@ lemma lemma2 (x : ℝ) (hx : x ≥ 120) :  √(8 * x - 8) - √(6 * x - 3) > 4 :
         have hgt : (2 * x - 1) > 0 := by
           linarith
         exact Ne.symm (ne_of_lt hgt)
+    ring
   have hnez : √(2 * x - 1) ≠ 0 := by
             refine Real.sqrt_ne_zero'.mpr ?_
             linarith
