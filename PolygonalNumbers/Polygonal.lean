@@ -119,12 +119,21 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
         simp at hf₃
       refine eq_div_of_mul_eq ?_ ?_
       . exact hf₂q
-      . have hex : ∃ (k : ℤ), ((2 * (m - 2)) * k = rm₄) := by
+      . have hex : ∃ (k : ℤ), rm₄ = (2 * (m - 2)) * k := by
           dsimp [rm₄]
-          sorry
+          refine exists_eq_mul_right_of_dvd ?_
+          exact Int.dvd_of_emod_eq_zero h₂
+
+        have hmodrm : rm₄ % (2 * (m - 2)) = 0 := by
+          dsimp [rm₄]
+          assumption
+
+        have hexrm : ∃ (k : ℤ), rm₄ = 2 * (m - 2) * k := by
+          refine dvd_iff_exists_eq_mul_right.mp ?_
+          exact Int.dvd_of_emod_eq_zero h₂
 
         let ⟨ k, hk ⟩ := hex
-        rw [← hk]
+        rw [hk]
         simp
         calc 2 * ((m : ℚ) - 2) * k / (2 * (m - 2)) * (2 * (m - 2))
           _ = k * ((2 * ((m : ℚ) - 2)) / (2 * (m - 2))) * (2 * (m - 2)) := by ring
@@ -135,11 +144,25 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
 
     have hrn : r.natAbs * r.natAbs = r * r := by simp
     have hrnq : (r.natAbs : ℚ) * r.natAbs = r * r := by
-      sorry
+      apply Eq.symm
+      calc (r : ℚ) * r
+        _ = ((r * r) : ℤ) := by exact Eq.symm (Rat.intCast_mul r r)
+      rw [← hrn]
+      apply Eq.symm
+      exact Eq.symm (Rat.intCast_mul ↑r.natAbs ↑r.natAbs)
+
+    have hrq : 8 * (m - 2) * x + (m - 4) ^ 2 = (r : ℚ) * r := by
+      apply Eq.symm
+      calc (r : ℚ) * r
+        _ = ((r * r) : ℤ) := by exact Eq.symm (Rat.intCast_mul r r)
+      rw [← hr]
+      simp
+
     have habs : abs r = r.natAbs := by
       simp
     have habsq : abs (r : ℚ) = r.natAbs := by
-      sorry
+      rw [@Int.cast_natAbs]
+      exact Eq.symm Int.cast_abs
     have hrnq : (r.natAbs : ℚ) * r.natAbs = r * r := by
       ring
       refine sq_eq_sq_iff_eq_or_eq_neg.mpr ?_
@@ -151,25 +174,29 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
         rw [← hn]
         rw [← habsq]
 
-    have h : x = (r.natAbs * r.natAbs - (m-4)^2) / (8 *(m-2)) := by
-      rw [hrn]
-      rw [← hr]
+    have h : x = ((r.natAbs : ℚ) * r.natAbs - (m-4)^2) / (8 *(m-2)) := by
+      rw [hrnq]
+      rw [← hrq]
       simp
       apply Eq.symm
       have h : (m - 2) / (m - 2) = 1 := by
         refine Int.ediv_self ?_
         linarith
 
-      calc
-        _ = (((8*(m-2))) * x ) / (8*(m-2)) := by simp
-        _ = (x * ((8*(m-2)))) / (8*(m-2)) := by rw [mul_comm]
-        _ = x * ((8*(m-2)) / (8*(m-2))) := by refine Int.mul_ediv_assoc x (by simp)
-        _ = x * 1 := by
-          refine Lean.Omega.Int.mul_congr rfl ?_
-          simp
-          exact h
-        _ = x := by simp
+      have hemtq : (8*((m : ℚ)-2)) / ((8*(m-2))) = 1 := by
+        refine div_self ?_
+        simp
+        have hmt : (m : ℚ) - 2 > 0 := by
+          linarith
+        exact right_ne_zero_of_mul hf₂q
 
+
+      calc
+        _ = (((8*(m-2))) * (x : ℚ) ) / (8*(m-2)) := by ring
+        _ = (x * ((8*(m-2)))) / (8*(m-2)) := by rw [mul_comm]
+        _ = x * ((8*(m-2)) / (8*(m-2))) := by ring
+        _ = x * 1 := by rw [hemtq]
+      simp
     rw [h]
     rw [heq]
 
@@ -193,10 +220,6 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((rm₄ - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by ring
       _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((((r.natAbs + (m - 4)) : ℤ) - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by dsimp [rm₄]
       _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((((r.natAbs + (m - 4))) - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by rw [heq']
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((r.natAbs - m) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by ring
-      _ = ((m - 2) / 2) * (1 / (2 * (m - 2))) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + (rm₄ / (2 * (m - 2))) := by ring
-      _ = ((m - 2) / 2) * (1 / (2 * (m - 2))) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + (rm₄ / (2 * (m - 2))) := by ring
-      _ = (1 / (2 * (m - 2))) * ((m - 2) / 2) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + (1 / (2 * (m - 2))) * (rm₄) := by ring
       _ = (1 / (2 * (m - 2))) * (((m - 2) / 2) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + rm₄) := by ring
       _ = (1 / (2 * (m - 2))) * ((1 / 2) * ((m - 2)) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + ((2 * (m - 2)) / (2 * (m - 2)) * rm₄)) := by rw [htwo]; ring
       _ = (1 / (2 * (m - 2))) * (((1 / 2) * ((rm₄ * r.natAbs - m * rm₄ + 4 * rm₄)) * ((m - 2) / (2 * (m - 2))))) := by ring
@@ -204,21 +227,20 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (rm₄ * (r.natAbs - m + 4)) := by ring
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (((r.natAbs + (m - 4)) : ℤ) * (r.natAbs - m + 4)) := by dsimp [rm₄]
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * ((r.natAbs + (m - 4)) * (r.natAbs - m + 4)) := by rw [heq']
-      -- _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (((r.natAbs + (m - 4))) * (r.natAbs - m + 4)) := by sorry
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m * r.natAbs + 4 * r.natAbs + (m - 4) * r.natAbs - (m - 4) * m + (m - 4) * 4) := by ring
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m ^ 2 + 8 * m - 16) := by ring
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs * r.natAbs - (m - 4) ^ 2) := by ring
       _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r * r - (m - 4) ^ 2) := by rw [hrnq]
     simp
     calc 4⁻¹ * (((m : ℚ) - 2)⁻¹ * 2⁻¹) * (r * r - (↑m - 4) ^ 2)
-      _ = 8⁻¹ * ((m : ℚ) - 2)⁻¹ * (r * r - (↑m - 4) ^ 2) := by ring
+      _ = (r * r - (↑m - 4) ^ 2) * ((8)⁻¹ * ((m : ℚ) - 2)⁻¹)  := by ring
+      _ = (r * r - (↑m - 4) ^ 2) * (8 * ((m : ℚ) - 2))⁻¹  := by
+        simp
+        left
+        linarith
+      _ = (r * r - (m - 4)^2) / (8 * (m - 2)) := by ring
 
-
-
-      -- _ = (1/2) * ((rm₄ / 2) * (rm₄ / (2 * (m - 2)) - 1)) := by sorry
-
-
-    sorry
+    rw [hrnq]
 
 
 instance : BEq (Polygonal m hm) where

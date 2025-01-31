@@ -27,159 +27,159 @@ lemma revenk' (r : ℤ) : ∃ k : ℤ, (r : ℚ) * (r - 1) = 2 * k := by
   simp
   exact Eq.symm (two_mul (k : ℚ))
 
-lemma sqrt_geq_four (x : ℕ) (hx : x ≥ 120) : √(8*x-8) - √(6*x-3) > 4 := by
-  have sqrt_in_gt_zero : (8 * (x : ℝ) - 8) > 0 := by
-    calc 8 * (x : ℝ) - 8
-      _ = 8* (x - 1):= by exact Eq.symm (mul_sub_one 8 (x : ℝ))
-      _ ≥ 8 * (120 - 1) := by
-        refine mul_le_mul_of_nonneg ?_ ?_ ?_ ?_
-        simp
-        simp
-        exact hx
-        simp
-        calc (x : ℝ) - 1
-          _ ≥ 120 - 1 := by simp; exact hx
-          _ ≥ 0 := by linarith
-      _ = 8 * 119 := by simp; ring
-      _ > 0 := by linarith
-  have sqrt_ne_zero : √(8*x-8) ≠ 0 := by
-    refine Real.sqrt_ne_zero'.mpr ?_;
-    exact sqrt_in_gt_zero
-  have sqrt_in_gt_zero' : 6 * (x : ℝ) - 3 > 0 := by
-    calc 6 * (x : ℝ) - 3
-      _ = 6 * (x - 1) + 3 := by ring
-      _ ≥ 6 * (120 - 1) + 3 := by
-        refine add_le_add ?_ ?_
-        . refine mul_le_mul_of_nonneg ?_ ?_ ?_ ?_
-          simp
-          simp
-          exact hx
-          simp
-          calc (x : ℝ) - 1
-            _ ≥ 120 - 1 := by simp; exact hx
-            _ ≥ 0 := by linarith
-        . linarith
-      _ = 6 * 119 + 3 := by ring
-      _ > 0 := by linarith
-  have sqrt_in_geq_zero : (8 * (x : ℝ) - 8) ≥ 0 := by exact le_of_lt sqrt_in_gt_zero
-  have sqrt_in_geq_zero' : (6 * (x : ℝ) - 3) ≥ 0 := by exact le_of_lt sqrt_in_gt_zero'
-  have sqrt_ne_zero' : √(6*x-3) ≠ 0 := by
-    refine Real.sqrt_ne_zero'.mpr ?_;
-    exact sqrt_in_gt_zero'
-  have sqrt_pos : √(8*x-8) > 0 := by
-    apply lt_iff_le_and_ne.mpr
-    constructor
-    . exact Real.sqrt_nonneg (8*x-8)
-    . apply Ne.symm; exact sqrt_ne_zero
-  have sqrt_pos' : √(6*x-3) > 0 := by
-    apply lt_iff_le_and_ne.mpr
-    constructor
-    . exact Real.sqrt_nonneg (6*x-3)
-    . apply Ne.symm; exact sqrt_ne_zero'
+-- lemma sqrt_geq_four (x : ℕ) (hx : x ≥ 120) : √(8*x-8) - √(6*x-3) > 4 := by
+--   have sqrt_in_gt_zero : (8 * (x : ℝ) - 8) > 0 := by
+--     calc 8 * (x : ℝ) - 8
+--       _ = 8* (x - 1):= by exact Eq.symm (mul_sub_one 8 (x : ℝ))
+--       _ ≥ 8 * (120 - 1) := by
+--         refine mul_le_mul_of_nonneg ?_ ?_ ?_ ?_
+--         simp
+--         simp
+--         exact hx
+--         simp
+--         calc (x : ℝ) - 1
+--           _ ≥ 120 - 1 := by simp; exact hx
+--           _ ≥ 0 := by linarith
+--       _ = 8 * 119 := by simp; ring
+--       _ > 0 := by linarith
+--   have sqrt_ne_zero : √(8*x-8) ≠ 0 := by
+--     refine Real.sqrt_ne_zero'.mpr ?_;
+--     exact sqrt_in_gt_zero
+--   have sqrt_in_gt_zero' : 6 * (x : ℝ) - 3 > 0 := by
+--     calc 6 * (x : ℝ) - 3
+--       _ = 6 * (x - 1) + 3 := by ring
+--       _ ≥ 6 * (120 - 1) + 3 := by
+--         refine add_le_add ?_ ?_
+--         . refine mul_le_mul_of_nonneg ?_ ?_ ?_ ?_
+--           simp
+--           simp
+--           exact hx
+--           simp
+--           calc (x : ℝ) - 1
+--             _ ≥ 120 - 1 := by simp; exact hx
+--             _ ≥ 0 := by linarith
+--         . linarith
+--       _ = 6 * 119 + 3 := by ring
+--       _ > 0 := by linarith
+--   have sqrt_in_geq_zero : (8 * (x : ℝ) - 8) ≥ 0 := by exact le_of_lt sqrt_in_gt_zero
+--   have sqrt_in_geq_zero' : (6 * (x : ℝ) - 3) ≥ 0 := by exact le_of_lt sqrt_in_gt_zero'
+--   have sqrt_ne_zero' : √(6*x-3) ≠ 0 := by
+--     refine Real.sqrt_ne_zero'.mpr ?_;
+--     exact sqrt_in_gt_zero'
+--   have sqrt_pos : √(8*x-8) > 0 := by
+--     apply lt_iff_le_and_ne.mpr
+--     constructor
+--     . exact Real.sqrt_nonneg (8*x-8)
+--     . apply Ne.symm; exact sqrt_ne_zero
+--   have sqrt_pos' : √(6*x-3) > 0 := by
+--     apply lt_iff_le_and_ne.mpr
+--     constructor
+--     . exact Real.sqrt_nonneg (6*x-3)
+--     . apply Ne.symm; exact sqrt_ne_zero'
 
-  have x_sub_sub : ((8*(x : ℝ)-8) < (8*x-4)) := by linarith
+--   have x_sub_sub : ((8*(x : ℝ)-8) < (8*x-4)) := by linarith
 
-  have sqrt_lt_sqrt_eight_four : (√(8*x-8) < √(8*x-4)) := by
-    apply Real.sqrt_lt_sqrt;
-    exact sqrt_in_geq_zero; exact x_sub_sub
+--   have sqrt_lt_sqrt_eight_four : (√(8*x-8) < √(8*x-4)) := by
+--     apply Real.sqrt_lt_sqrt;
+--     exact sqrt_in_geq_zero; exact x_sub_sub
 
-  have sqrt_add_lt : (√(8*x-8) + √(6*x-3)) < (√(8*x-4) + √(6*x-3)) := by
-    exact (add_lt_add_iff_right √(6 * (x : ℝ) - 3)).mpr sqrt_lt_sqrt_eight_four
+--   have sqrt_add_lt : (√(8*x-8) + √(6*x-3)) < (√(8*x-4) + √(6*x-3)) := by
+--     exact (add_lt_add_iff_right √(6 * (x : ℝ) - 3)).mpr sqrt_lt_sqrt_eight_four
 
-  have sqrt_add_ne_zero : (√(8*x-8) + √(6*x-3)) ≠ 0 := by
-    apply ne_of_gt
-    apply add_pos sqrt_pos sqrt_pos'
-  have sqrt_four_two : √4 = 2 := by
-    refine Real.sqrt_eq_cases.mpr ?_
-    constructor
-    constructor
-    . ring
-    . linarith
+--   have sqrt_add_ne_zero : (√(8*x-8) + √(6*x-3)) ≠ 0 := by
+--     apply ne_of_gt
+--     apply add_pos sqrt_pos sqrt_pos'
+--   have sqrt_four_two : √4 = 2 := by
+--     refine Real.sqrt_eq_cases.mpr ?_
+--     constructor
+--     constructor
+--     . ring
+--     . linarith
 
-  have sqrt_sq_two_one : (√(2 * x - 1))^2 = 2 * x - 1 := by
-    refine Real.sq_sqrt ?_
-    calc 2 * (x : ℝ) - 1
-      _ ≥ 2 * 120  - 1 := by simp; exact hx
-      _ ≥ 0 := by linarith
+--   have sqrt_sq_two_one : (√(2 * x - 1))^2 = 2 * x - 1 := by
+--     refine Real.sq_sqrt ?_
+--     calc 2 * (x : ℝ) - 1
+--       _ ≥ 2 * 120  - 1 := by simp; exact hx
+--       _ ≥ 0 := by linarith
 
-  have sqrt_sq_sqrt_div : (√(2*x-1))^2 / (√(2*x - 1)) = (√(2*x-1)) := by
-    calc (√(2*x-1))^2 / (√(2*x - 1))
-      _ = (√(2*x-1)) * (√(2*x - 1)) / (√(2*x - 1)) := by rw [@sq]
-      _ = (√(2*x-1)) := by exact mul_self_div_self √(2 * (x : ℝ) - 1)
+--   have sqrt_sq_sqrt_div : (√(2*x-1))^2 / (√(2*x - 1)) = (√(2*x-1)) := by
+--     calc (√(2*x-1))^2 / (√(2*x - 1))
+--       _ = (√(2*x-1)) * (√(2*x - 1)) / (√(2*x - 1)) := by rw [@sq]
+--       _ = (√(2*x-1)) := by exact mul_self_div_self √(2 * (x : ℝ) - 1)
 
-  have sqrt_sub_four_lt : (√(2*x - 1) - 4 / (√(2*x - 1))) ≥ (√(2 * 120 - 1) - 4/ (√(2*x - 1))) := by
-    refine tsub_le_tsub_right ?_ (4 / √(2 * ↑x - 1))
-    refine (Real.sqrt_le_sqrt_iff ?_).mpr ?_
-    linarith
-    simp
-    exact hx
+--   have sqrt_sub_four_lt : (√(2*x - 1) - 4 / (√(2*x - 1))) ≥ (√(2 * 120 - 1) - 4/ (√(2*x - 1))) := by
+--     refine tsub_le_tsub_right ?_ (4 / √(2 * ↑x - 1))
+--     refine (Real.sqrt_le_sqrt_iff ?_).mpr ?_
+--     linarith
+--     simp
+--     exact hx
 
-  have sqrt_three_pos : √3 > 0 := by
-    refine Real.sqrt_pos_of_pos ?_
-    linarith
-  have zero_lt_two_sqrt : 0 < 2 + √3 := by
-    apply add_pos ?_ sqrt_three_pos
-    linarith
+--   have sqrt_three_pos : √3 > 0 := by
+--     refine Real.sqrt_pos_of_pos ?_
+--     linarith
+--   have zero_lt_two_sqrt : 0 < 2 + √3 := by
+--     apply add_pos ?_ sqrt_three_pos
+--     linarith
 
-  have sqrt_two_x : √(2 * (x : ℝ) - 1) > 0 := by
-    refine Real.sqrt_pos_of_pos ?_
-    calc 2 * (x : ℝ) - 1
-      _ ≥ 2 * 120 - 1 := by
-        refine sub_le_sub_right ?_ 1
-        simp
-        exact hx
-      _ > 0 := by linarith
+--   have sqrt_two_x : √(2 * (x : ℝ) - 1) > 0 := by
+--     refine Real.sqrt_pos_of_pos ?_
+--     calc 2 * (x : ℝ) - 1
+--       _ ≥ 2 * 120 - 1 := by
+--         refine sub_le_sub_right ?_ 1
+--         simp
+--         exact hx
+--       _ > 0 := by linarith
 
 
-  calc √(8*x-8) - √(6*x-3)
-    _ = (√(8*x-8) - √(6*x-3)) * (√(8*x-8) + √(6*x-3)) / (√(8*x-8) + √(6*x-3)) := by
-      apply Eq.symm;
-      exact mul_div_cancel_right₀ (√(8 * ↑x - 8) - √(6 * ↑x - 3)) sqrt_add_ne_zero
-    _ = (√(8*x-8) + √(6*x-3)) * (√(8*x-8) - √(6*x-3)) / (√(8*x-8) + √(6*x-3)) := by ring
-    _ = ((√(8*x-8))^2 - (√(6*x-3))^2)  / (√(8*x-8) + √(6*x-3)) := by
-      rw [← sq_sub_sq (√(8*x-8)) (√(6*x-3))]
-    _ = (8*x-8 - (6*x-3)) / (√(8*x-8) + √(6*x-3)) := by
-      rw [Real.sq_sqrt, Real.sq_sqrt]
-      . exact le_of_lt sqrt_in_gt_zero'
-      . exact le_of_lt sqrt_in_gt_zero
-    _ = ((2*x - 1) - 4) / (√(8*x-8) + √(6*x-3)) := by ring
-    _ > ((2*x - 1) - 4) / (√(8*x-4) + √(6*x-3)) := by
-      refine div_lt_div_of_pos_left ?_ ?_ sqrt_add_lt
-      . calc 2 * (x : ℝ) - 1 - 4
-          _ = 2 * ↑x - 5 := by linarith
-          _ ≥ 2 * 120 - 5 := by
-            refine tsub_le_tsub ?_ ?_
-            simp
-            exact hx
-            simp
-          _ > 0 := by linarith
-      . exact Right.add_pos' sqrt_pos sqrt_pos'
-    _ = ((2*x - 1) - 4) / (√(4 * (2*x - 1)) + √(3*(2*x - 1))) := by ring_nf
-    _ = ((2*x - 1) - 4) / ((√(4) * √(2*x - 1)) + √(3)*√(2*x - 1)) := by simp
-    _ = ((2*x - 1) - 4) / ((2 * √(2*x - 1)) + √(3)*√(2*x - 1)) := by rw [sqrt_four_two]
-    _ = ((2*x - 1) - 4) / ((2 + √3) * √(2*x - 1)) := by ring
-    _ = (1 / (2 + √(3))) * (((2*x - 1) - 4) / (√(2*x - 1))) := by
-      calc ((2*x - 1) - 4) / ((2 + √3) * √(2*x - 1))
-        _ = (((2*x - 1) - 4) / (2 + √3)) / √(2*x - 1) := by
-          exact div_mul_eq_div_div (2 * (x : ℝ) - 1 - 4) (2 + √3) √(2 * (x : ℝ) - 1)
-        _ = (1 / (2 + √3)) * ((2*x - 1 - 4) / √(2*x - 1)) := by ring
-    _ = (1 / (2 + √(3))) * ((2*x - 1) / (√(2*x - 1)) - 4 / (√(2*x - 1))) := by ring
-    _ = (1 / (2 + √(3))) * ((√(2*x-1))^2 / (√(2*x - 1)) - 4 / (√(2*x - 1))) := by rw [sqrt_sq_two_one]
-    _ = (1 / (2 + √(3))) * (√(2*x - 1) - 4 / (√(2*x - 1))) := by rw [sqrt_sq_sqrt_div]
-    _ ≥ (1 / (2 + √(3))) * (√(2 * 120 - 1) - 4/ (√(2*x - 1))) := by
-      refine mul_le_mul_of_nonneg ?_ sqrt_sub_four_lt ?_ ?_
-      . rfl
-      . refine one_div_nonneg.mpr ?_
-        exact le_of_lt zero_lt_two_sqrt
-      . simp
-        refine (Real.le_sqrt' ?_).mpr ?_
-        . apply div_pos
-          . linarith
-          . exact sqrt_two_x
-        . sorry
-    _ ≥ (1 / (2 + √(3))) * (√(2 * 120 - 1) - 4 / (√(2*120 - 1))) := by
-      sorry
-    _ > 4 := by sorry -- apply? --sorry --norm_num
+  -- calc √(8*x-8) - √(6*x-3)
+  --   _ = (√(8*x-8) - √(6*x-3)) * (√(8*x-8) + √(6*x-3)) / (√(8*x-8) + √(6*x-3)) := by
+  --     apply Eq.symm;
+  --     exact mul_div_cancel_right₀ (√(8 * ↑x - 8) - √(6 * ↑x - 3)) sqrt_add_ne_zero
+  --   _ = (√(8*x-8) + √(6*x-3)) * (√(8*x-8) - √(6*x-3)) / (√(8*x-8) + √(6*x-3)) := by ring
+  --   _ = ((√(8*x-8))^2 - (√(6*x-3))^2)  / (√(8*x-8) + √(6*x-3)) := by
+  --     rw [← sq_sub_sq (√(8*x-8)) (√(6*x-3))]
+  --   _ = (8*x-8 - (6*x-3)) / (√(8*x-8) + √(6*x-3)) := by
+  --     rw [Real.sq_sqrt, Real.sq_sqrt]
+  --     . exact le_of_lt sqrt_in_gt_zero'
+  --     . exact le_of_lt sqrt_in_gt_zero
+  --   _ = ((2*x - 1) - 4) / (√(8*x-8) + √(6*x-3)) := by ring
+  --   _ > ((2*x - 1) - 4) / (√(8*x-4) + √(6*x-3)) := by
+  --     refine div_lt_div_of_pos_left ?_ ?_ sqrt_add_lt
+  --     . calc 2 * (x : ℝ) - 1 - 4
+  --         _ = 2 * ↑x - 5 := by linarith
+  --         _ ≥ 2 * 120 - 5 := by
+  --           refine tsub_le_tsub ?_ ?_
+  --           simp
+  --           exact hx
+  --           simp
+  --         _ > 0 := by linarith
+  --     . exact Right.add_pos' sqrt_pos sqrt_pos'
+  --   _ = ((2*x - 1) - 4) / (√(4 * (2*x - 1)) + √(3*(2*x - 1))) := by ring_nf
+  --   _ = ((2*x - 1) - 4) / ((√(4) * √(2*x - 1)) + √(3)*√(2*x - 1)) := by simp
+  --   _ = ((2*x - 1) - 4) / ((2 * √(2*x - 1)) + √(3)*√(2*x - 1)) := by rw [sqrt_four_two]
+  --   _ = ((2*x - 1) - 4) / ((2 + √3) * √(2*x - 1)) := by ring
+  --   _ = (1 / (2 + √(3))) * (((2*x - 1) - 4) / (√(2*x - 1))) := by
+  --     calc ((2*x - 1) - 4) / ((2 + √3) * √(2*x - 1))
+  --       _ = (((2*x - 1) - 4) / (2 + √3)) / √(2*x - 1) := by
+  --         exact div_mul_eq_div_div (2 * (x : ℝ) - 1 - 4) (2 + √3) √(2 * (x : ℝ) - 1)
+  --       _ = (1 / (2 + √3)) * ((2*x - 1 - 4) / √(2*x - 1)) := by ring
+  --   _ = (1 / (2 + √(3))) * ((2*x - 1) / (√(2*x - 1)) - 4 / (√(2*x - 1))) := by ring
+  --   _ = (1 / (2 + √(3))) * ((√(2*x-1))^2 / (√(2*x - 1)) - 4 / (√(2*x - 1))) := by rw [sqrt_sq_two_one]
+  --   _ = (1 / (2 + √(3))) * (√(2*x - 1) - 4 / (√(2*x - 1))) := by rw [sqrt_sq_sqrt_div]
+  --   _ ≥ (1 / (2 + √(3))) * (√(2 * 120 - 1) - 4/ (√(2*x - 1))) := by
+  --     refine mul_le_mul_of_nonneg ?_ sqrt_sub_four_lt ?_ ?_
+  --     . rfl
+  --     . refine one_div_nonneg.mpr ?_
+  --       exact le_of_lt zero_lt_two_sqrt
+  --     . simp
+  --       refine (Real.le_sqrt' ?_).mpr ?_
+  --       . apply div_pos
+  --         . linarith
+  --         . exact sqrt_two_x
+  --       . sorry
+  --   _ ≥ (1 / (2 + √(3))) * (√(2 * 120 - 1) - 4 / (√(2*120 - 1))) := by
+  --     sorry
+  --   _ > 4 := by sorry -- apply? --sorry --norm_num
 
 lemma interval_length (n m : ℕ) (hm : m > 0) (hn : n ≥ 120 * m) : ((2 / 3) + √(8 * (n / m) - 8)) - (1 / 2 + √(6 * (n/m) - 3)) > 4 := by
   let x := (n :ℚ) / m
@@ -301,3 +301,185 @@ lemma odd_pair_four_interval (ep₁ ep₂ : ℝ) (h : ep₂ - ep₁ > 4 ) (hpo :
       . simp
         linarith
       . ring
+
+
+
+/- EXTRA -/
+lemma ab {a b : ℝ} (ha : a > 0) (hb : b > 0) : √a - √b = (a - b) / (√a + √b) := by
+  have : (√a - √b) * (√a + √b) = a - b := by
+    ring_nf
+    simp [Real.sq_sqrt, le_of_lt ha, le_of_lt hb]
+  rw [← this, ← mul_div]
+  have : √a + √b > 0 := Right.add_pos' (Real.sqrt_pos_of_pos ha) (Real.sqrt_pos_of_pos hb)
+  simp [div_self (Ne.symm (ne_of_lt this))]
+
+lemma nn : (1 : ℝ) / (2 + √3) > 0.267 := by
+  have : √3 < 1.733 := by
+    apply (Real.sqrt_lt' _).mpr
+    . ring_nf; linarith
+    . ring_nf; linarith
+  have dd : 2 + √3 < 2 + 1.733 := by exact (Real.add_lt_add_iff_left 2).mpr this
+  have h1 : (1 : ℝ) / (2 + √3) > (1 : ℝ) / (2 + 1.733) := by
+    rw [gt_iff_lt]
+    apply (one_div_lt_one_div ?ha ?hb).mpr dd
+    . ring_nf; linarith
+    . have : √3 > 0 := by refine Real.sqrt_pos_of_pos ?_; linarith
+      ring_nf at this
+      rw [← gt_iff_lt]
+      exact Right.add_pos' zero_lt_two this
+  have h2 : (1 : ℝ)  / (2 + 1.733) > 0.267 := by
+    rw [gt_iff_lt]
+    ring_nf; linarith
+  exact gt_trans h1 h2
+
+lemma nn' : (1 : ℝ) / (2 + √3) > 0 := by
+  have : 0.267 > (0 : ℝ) := by ring_nf; linarith
+  exact gt_trans nn this
+
+lemma g239 : √239 > 15.459 := by
+  apply Real.lt_sqrt_of_sq_lt; ring_nf; linarith
+
+lemma gz239 : √239 > (0 : ℝ) := by
+  apply Real.sqrt_pos_of_pos; linarith
+
+lemma l239 : (4 : ℝ) / √239 < 0.259 := by
+  refine (div_lt_iff₀' ?hc).mpr ?_
+  exact gz239
+  have h1 : 15.459 * 0.259 < √239 * 0.259 := by
+    refine mul_lt_mul_of_pos_of_nonneg' ?h₁ ?h₂ ?c0 (le_of_lt gz239)
+    exact g239
+    linarith
+    ring_nf;
+    linarith
+  have h2 : (4 : ℝ) < 15.459 * 0.259 := by
+    ring_nf; linarith
+  exact gt_trans h1 h2
+
+lemma f239 : √239 - 4 / √239 > 15.2 := by
+  have : √239 - 4/√239 > 15.459 - 0.259 := by
+    refine sub_lt_sub ?hab ?hcd
+    exact g239
+    exact l239
+  have g : (15.459 : ℝ) - 0.259 = 15.2 := by
+    ring_nf
+  exact lt_of_eq_of_lt (id (Eq.symm g)) this
+
+lemma f239gt0 : √239 - 4 / √239 > (0 : ℝ) := by
+  have : 15.2 > (0 : ℝ) := by ring_nf; linarith
+  exact gt_trans f239 this
+
+lemma lemma1 (a x : ℝ) (ha : a > 0) (hx : x ≥ a) : √x - 4 / √x ≥ √a - 4 /√a := by
+  have g1 : √x - √a ≥ 0 := sub_nonneg_of_le (Real.sqrt_le_sqrt hx)
+  have g2 : (1 : ℝ) + 4 / √(a * x) > 0 := by
+    have : √(a * x) > 0 := Real.sqrt_pos_of_pos (mul_pos ha (gt_of_ge_of_gt hx ha))
+    have h : 4 / √(a * x) > 0 := by
+      rw [gt_iff_lt, div_eq_mul_inv]
+      apply mul_pos (by linarith) (inv_pos_of_pos this)
+    exact Right.add_pos' (by linarith) h
+  have addfrac : 1 / √a - 1 / √x = (√x - √a ) / (√a * √x) := by
+    rw [div_sub_div]
+    . rw [one_mul, mul_one]
+    . exact Real.sqrt_ne_zero'.mpr ha
+    . exact Real.sqrt_ne_zero'.mpr (gt_of_ge_of_gt hx ha)
+  have : √x - 4 / √x - ( √a - 4 /√a ) ≥ 0 := by
+    calc
+      _ = √x - √a + 4 / √a - 4 /√x := by ring
+      _ = √x - √a + 4 * ( 1 / √a - 1 / √x ) := by ring
+      _ = √x - √a + 4 * ( √x - √a ) / (√a * √x) := by rw [addfrac]; ring
+      _ = √x - √a + 4 * ( √x - √a ) / √(a * x) := by rw [← (Real.sqrt_mul (le_of_lt ha) x)]
+      _ = (√x - √a) * ( 1 + 4 / √(a * x) ) := by have : √x - √a = (√x - √a) * 1 := by ring_nf
+                                                 nth_rw 1 [this]; rw [mul_comm 4]; ring_nf
+      _ >= (√x - √a) * 0 := mul_le_mul_of_nonneg_left (le_of_lt g2) g1
+      _ >= 0 := Left.mul_nonneg g1 (by rfl)
+  exact sub_nonneg.mp this
+
+lemma lemma2 (x : ℝ) (hx : x ≥ 120) :  √(8 * x - 8) - √(6 * x - 3) > 4 := by
+  have t1 : 8 * x - 8 > 0 := by linarith
+  have t2 : 6 * x - 3 > 0 := by linarith
+  have g : 1 / (√(8 * x - 8) + √(6 * x - 3)) > 1 / (√(8 * x - 4)  + √(6 * x - 3)) := by
+    apply one_div_lt_one_div_of_lt ?ha ?ga
+    exact Right.add_pos' (Real.sqrt_pos_of_pos t1) (Real.sqrt_pos_of_pos t2)
+    field_simp; linarith
+  have g' :   (( 2 * x - 1) - 4) / (√(8 * x - 8) + √(6 * x - 3))
+            > (( 2 * x - 1) - 4) / (√(8 * x - 4)  + √(6 * x - 3)) := by
+    rw [gt_iff_lt, div_eq_mul_inv, div_eq_mul_inv]
+    rw [mul_lt_mul_iff_of_pos_left]
+    simp [← one_div, g]
+    linarith
+  have lb : (√( 2 * x - 1 ) - 4 / √(2 * x - 1)) ≥ (√239 - 4 / √239) := by
+    apply lemma1 239 (2 * x - 1)
+    . linarith
+    . linarith
+  have hsqrtf : √4 = 2 := by
+    refine Real.sqrt_eq_cases.mpr ?_
+    simp
+    linarith
+  have hsqrtsq : (√(2 * x - 1) * √(2 * x - 1)) = 2 * x - 1 := by
+    refine Real.mul_self_sqrt ?_
+    linarith
+
+  have hstep : ((√(2 * x - 1))) / ((2 + √3) * √(2 * x - 1)) * √(2 * x - 1) =
+    ((√(2 * x - 1))) / ((2 + √3)) := by
+    calc ((√(2 * x - 1))) / ((2 + √3) * √(2 * x - 1)) * √(2 * x - 1)
+      _ = √(2 * x - 1) * (1 / ((2 + √3) * √(2 * x - 1))) * √(2 * x - 1) := by ring
+      _ = √(2 * x - 1) * ((1 / ((2 + √3))) * (1 / √(2 * x - 1))) * √(2 * x - 1) := by
+        simp
+        left
+        ring
+      _ = √(2 * x - 1) * ((1 / ((2 + √3))) * (√(2 * x - 1) / √(2 * x - 1))) := by ring
+      _ = √(2 * x - 1) * ((1 / ((2 + √3))) * 1) := by
+        simp
+        rw [div_self]
+        simp
+        refine (Real.sqrt_ne_zero ?_).mpr ?_
+        linarith
+        have hgt : (2 * x - 1) > 0 := by
+          linarith
+        exact Ne.symm (ne_of_lt hgt)
+  have hnez : √(2 * x - 1) ≠ 0 := by
+            refine Real.sqrt_ne_zero'.mpr ?_
+            linarith
+  calc
+    _ = ( (8 * x - 8) - (6 * x - 3)) / (√(8 * x - 8) + √(6 * x - 3)) := ab t1 t2
+    _ = (( 2 * x - 1 ) - 4) / (√(8 * x - 8) + √(6 * x - 3)) := by field_simp; ring
+    _ > (( 2 * x - 1 ) - 4) / (√(8 * x - 4) + √(6 * x - 3)) := by exact g'
+    _ = (( 2 * x - 1 ) - 4) / (√(4 *(2* x - 1)) + √(3 * (2*x - 1))) := by ring_nf
+    _ = (( 2 * x - 1 ) - 4) / (√(4) *√(2* x - 1) + √(3 * (2*x - 1))) := by rw [Real.sqrt_mul]; simp
+    _ = (( 2 * x - 1 ) - 4) / (√(4) *√(2* x - 1) + √(3) * √((2*x - 1))) := by rw [Real.sqrt_mul]; simp
+    _ = (( 2 * x - 1 ) - 4) / (2 *√(2* x - 1) + √(3) * √((2*x - 1))) := by rw [hsqrtf] -- sqrt 4 = 2
+    _ = (( 2 * x - 1 ) - 4) / ((2 + √3) * √(2 * x - 1)) := by ring
+    _ = (( 2 * x - 1 )) / ((2 + √3) * √(2 * x - 1)) - 4 / ((2 + √3) * √(2 * x - 1)) := by ring
+    _ = ((√(2 * x - 1) * √(2 * x - 1))) / ((2 + √3) * √(2 * x - 1)) - 4 / ((2 + √3) * √(2 * x - 1)) := by rw [hsqrtsq]
+    _ = ((√(2 * x - 1))) / ((2 + √3) * √(2 * x - 1)) * √(2 * x - 1) - 4 / ((2 + √3) * √(2 * x - 1)) := by ring
+    _ = √(2 * x - 1) / ((2 + √3)) * (1 / √(2 * x - 1)) * √(2 * x - 1) - 4 / ((2 + √3) * √(2 * x - 1)) := by
+      rw [hstep]
+      simp
+      apply Eq.symm
+      calc √(2 * x - 1) / (2 + √3) * (√(2 * x - 1))⁻¹ * √(2 * x - 1)
+        _ = √(2 * x - 1) / (2 + √3) * (√(2 * x - 1) * (√(2 * x - 1))⁻¹) := by ring
+        _ = √(2 * x - 1) / (2 + √3) * 1 := by
+          rw [mul_inv_cancel₀ hnez]
+      simp
+    _ = √(2 * x - 1) / ((2 + √3)) * (√(2 * x - 1) / √(2 * x - 1)) - 4 / ((2 + √3) * √(2 * x - 1)) := by ring
+    _ = √(2 * x - 1) / ((2 + √3)) * 1 - 4 / ((2 + √3) * √(2 * x - 1)) := by
+      simp
+      exact div_mul_div_cancel₀' hnez (2 + √3) √(2 * x - 1)
+    _ = √(2 * x - 1) * 1 / ((2 + √3)) - 4 / ((2 + √3) * √(2 * x - 1)) := by ring
+    _ = 1 / ((2 + √3)) * √(2 * x - 1) - 4 * (1 / ((2 + √3) * √(2 * x - 1))) := by ring
+    _ = 1 / ((2 + √3)) * √(2 * x - 1) - 4 * (1 / ((2 + √3)) *  1 / √(2 * x - 1)) := by simp; ring
+    _ = 1 / ((2 + √3)) * √(2 * x - 1) - 4 * (1 / ((2 + √3))) *  1 / √(2 * x - 1) := by ring
+    _ = (1 : ℝ) / (2 + √3) * (√( 2 * x - 1 ) - 4 / √(2 * x - 1)) := by ring
+    _ ≥ (1 : ℝ) / (2 + √3) * (√239 - 4 / √239) := by
+          refine (mul_le_mul_iff_of_pos_left ?a0).mpr lb
+          exact nn'
+    _ ≥ 0.267 * (√239 - 4 / √239) := by
+         apply mul_le_mul_of_nonneg_right
+         exact le_of_lt nn
+         exact le_of_lt f239gt0
+    _ ≥ 0.267 * 15.2 := by
+         apply mul_le_mul_of_nonneg_left
+         exact le_of_lt f239
+         ring_nf; linarith
+    _ > 4 := by ring_nf; linarith
+
+def sqrt_geq_four := lemma2
