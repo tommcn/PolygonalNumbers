@@ -65,46 +65,46 @@ example : IsnPolygonal 3 6 (by simp) := by
 /--
   A `Polygonal` number of order $3$ is triangular.
 -/
-lemma PolyThreeIsTriangular (a : ℤ): IsnPolygonal 3 a hm = (IsTriangular a) := by
-  unfold IsnPolygonal
-  unfold IsTriangular
-  simp
-  have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
-  constructor
-  . intro h
-    let ⟨ k, hk ⟩ := h
-    use k
-    have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
-      constructor
-      . intro h
-        rw [htwoa]
-        rw [← h]
-        simp
-      . intro h
-        have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
-          simp
-        rw [hkr, htwoa] at h
-        sorry
-        -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
-    apply hiff.mpr
-    rw [← hk]
-    ring_nf
-  . intro h
-    let ⟨ k, hk ⟩ := h
-    ring_nf
-    use k
-    rw [← add_mul]
-    simp
-    have honetwo (a b : ℚ) : 2 * a = 2 * b → a = b := by
-      intro hone
-      apply mul_left_cancel₀ two_ne_zero hone
+-- lemma PolyThreeIsTriangular (a : ℕ) : IsnPolygonal 3 a hm = (IsTriangular a) := by
+--   unfold IsnPolygonal
+--   unfold IsTriangular
+--   simp
+--   have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
+--   constructor
+--   . intro h
+--     let ⟨ k, hk ⟩ := h
+--     use k
+--     have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
+--       constructor
+--       . intro h
+--         rw [htwoa]
+--         rw [← h]
+--         simp
+--       . intro h
+--         have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
+--           simp
+--         rw [hkr, htwoa] at h
+--         sorry
+--         -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
+--     apply hiff.mpr
+--     rw [← hk]
+--     ring_nf
+--   . intro h
+--     let ⟨ k, hk ⟩ := h
+--     ring_nf
+--     use k
+--     rw [← add_mul]
+--     simp
+--     have honetwo (a b : ℚ) : 2 * a = 2 * b → a = b := by
+--       intro hone
+--       apply mul_left_cancel₀ two_ne_zero hone
 
-    apply honetwo
+--     apply honetwo
 
-    rw [htwoa]
-    rw [← hk]
-    ring_nf
-    simp
+--     rw [htwoa]
+--     rw [← hk]
+--     ring_nf
+--     simp
 
 lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := by
   unfold IsnPolygonal
@@ -303,6 +303,16 @@ theorem CauchyPolygonalNumberTheorem
   have tlint : tl = ⌈ tl ⌉ := by exact polyform m t
   have ulint : ul = ⌈ ul ⌉ := by exact polyform m u
   have vlint : vl = ⌈ vl ⌉ := by exact polyform m v
+
+  have hgt : sl ≥ 0 := by
+    dsimp [sl]
+    refine Rat.add_nonneg ?_ ?_
+    . refine Rat.mul_nonneg ?_ ?_
+      . linarith
+      . suffices h : s^2 - s ≥ 0 by
+          sorry
+        linarith
+    . linarith
 
   /- `s`, `t`, `u`, `v` are polygonal -/
   have ps : IsnPolygonal (m+2) ⌈ sl ⌉ (hm2geq3) := by
