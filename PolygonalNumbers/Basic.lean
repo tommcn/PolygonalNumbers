@@ -60,7 +60,9 @@ example : IsTriangular 6 := by
 example : IsnPolygonal 3 6 (by simp) := by
   unfold IsnPolygonal
   use 3
-  linarith
+  constructor
+  repeat linarith
+
 
 /--
   A `Polygonal` number of order $3$ is triangular.
@@ -110,6 +112,7 @@ lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := 
   unfold IsnPolygonal
   use 1
   ring
+  simp
 
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
@@ -310,17 +313,22 @@ theorem CauchyPolygonalNumberTheorem
     . refine Rat.mul_nonneg ?_ ?_
       . linarith
       . suffices h : s^2 - s ≥ 0 by
-          sorry
+          have hconv : (s : ℚ) ^ 2 - s = (s^2 - s : ℕ) := by sorry
+          rw [hconv]
+          exact Nat.cast_nonneg' (s ^ 2 - s)
         linarith
     . linarith
+  have hgtabs : ⌈ sl ⌉ ≥ 0 := by
+    exact Int.ceil_nonneg hgt
+  have hgtabs' : ⌈ sl ⌉.natAbs = ⌈ sl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
 
   /- `s`, `t`, `u`, `v` are polygonal -/
-  have ps : IsnPolygonal (m+2) ⌈ sl ⌉ (hm2geq3) := by
+  have ps : IsnPolygonal (m+2) ⌈ sl ⌉.natAbs (hm2geq3) := by
     rw [PolyEquiv]
     unfold IsnPolygonal'
     use s
     simp
-    rw [← slint]
+    rw [hgtabs', ← slint]
 
   have pt : IsnPolygonal (m+2) ⌈ tl ⌉ (hm2geq3) := by
     rw [PolyEquiv]
