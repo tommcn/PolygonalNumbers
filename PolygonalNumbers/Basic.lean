@@ -33,10 +33,6 @@ instance : LeftCommutative (foldrfun n hm : Polygonal n hm → ℤ → ℤ) wher
 def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : Multiset (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
 
 
-
-
-
-
 instance : HAdd Triangular Triangular ℤ where
   hAdd a b :=  a.val + b.val
 
@@ -59,9 +55,9 @@ example : IsTriangular 6 := by
 
 example : IsnPolygonal 3 6 (by simp) := by
   unfold IsnPolygonal
+  right
   use 3
-  constructor
-  repeat linarith
+  linarith
 
 
 /--
@@ -110,9 +106,9 @@ example : IsnPolygonal 3 6 (by simp) := by
 
 lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := by
   unfold IsnPolygonal
+  right
   use 1
   ring
-  simp
 
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
@@ -307,49 +303,132 @@ theorem CauchyPolygonalNumberTheorem
   have ulint : ul = ⌈ ul ⌉ := by exact polyform m u
   have vlint : vl = ⌈ vl ⌉ := by exact polyform m v
 
-  have hgt : sl ≥ 0 := by
-    dsimp [sl]
-    refine Rat.add_nonneg ?_ ?_
-    . refine Rat.mul_nonneg ?_ ?_
-      . linarith
-      . suffices h : s^2 - s ≥ 0 by
-          have hconv : (s : ℚ) ^ 2 - s = (s^2 - s : ℕ) := by sorry
-          rw [hconv]
-          exact Nat.cast_nonneg' (s ^ 2 - s)
-        linarith
-    . linarith
-  have hgtabs : ⌈ sl ⌉ ≥ 0 := by
-    exact Int.ceil_nonneg hgt
-  have hgtabs' : ⌈ sl ⌉.natAbs = ⌈ sl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+  have hposconv (k : ℕ) : (k : ℚ) ^ 2 - k = (k^2 - k : ℕ) := by
+    have hsgt : k^2 ≥ k := by
+      refine Nat.le_self_pow ?_ k
+      simp
+    have hsq : (k : ℚ) ^ 2 = (k^2 : ℕ) := by
+      simp
+    rw [hsq]
+    rw [← Nat.cast_sub hsgt]
 
   /- `s`, `t`, `u`, `v` are polygonal -/
   have ps : IsnPolygonal (m+2) ⌈ sl ⌉.natAbs (hm2geq3) := by
+    have hgt : sl ≥ 0 := by
+      dsimp [sl]
+      refine Rat.add_nonneg ?_ ?_
+      . refine Rat.mul_nonneg ?_ ?_
+        . linarith
+        . suffices h : s^2 - s ≥ 0 by
+            have hconv : (s : ℚ) ^ 2 - s = (s^2 - s : ℕ) := hposconv s
+            rw [hconv]
+            exact Nat.cast_nonneg' (s ^ 2 - s)
+          linarith
+
+      . linarith
+    have hgtabs : ⌈ sl ⌉ ≥ 0 := by
+      exact Int.ceil_nonneg hgt
+    have hgtabs' : ⌈ sl ⌉.natAbs = ⌈ sl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+    have hgtabs₀ : (⌈ sl ⌉.natAbs : ℚ) = ⌈ sl ⌉ := by exact Rat.ext hgtabs' rfl
+
     rw [PolyEquiv]
     unfold IsnPolygonal'
+    have hzeroornot : ⌈ sl ⌉.natAbs = 0 ∨ ⌈ sl ⌉.natAbs ≠ 0 := by
+      exact Or.symm (ne_or_eq ⌈sl⌉.natAbs 0)
+    rcases hzeroornot with hzero | hnonzero
+    . left; exact hzero
+    right
     use s
     simp
-    rw [hgtabs', ← slint]
+    rw [hgtabs₀]
+    rw [← slint]
 
-  have pt : IsnPolygonal (m+2) ⌈ tl ⌉ (hm2geq3) := by
+  have pt : IsnPolygonal (m+2) ⌈ tl ⌉.natAbs (hm2geq3) := by
+    have hgt : tl ≥ 0 := by
+      dsimp [tl]
+      refine Rat.add_nonneg ?_ ?_
+      . refine Rat.mul_nonneg ?_ ?_
+        . linarith
+        . suffices h : t^2 - t ≥ 0 by
+            have hconv : (t : ℚ) ^ 2 - t = (t^2 - t : ℕ) := hposconv t
+            rw [hconv]
+            exact Nat.cast_nonneg' (t ^ 2 - t)
+          linarith
+      . linarith
+    have hgtabs : ⌈ tl ⌉ ≥ 0 := by
+      exact Int.ceil_nonneg hgt
+    have hgtabs' : ⌈ tl ⌉.natAbs = ⌈ tl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+    have hgtabs₀ : (⌈ tl ⌉.natAbs : ℚ) = ⌈ tl ⌉ := by exact Rat.ext hgtabs' rfl
+
     rw [PolyEquiv]
     unfold IsnPolygonal'
+    have hzeroornot : ⌈ tl ⌉.natAbs = 0 ∨ ⌈ tl ⌉.natAbs ≠ 0 := by
+      exact Or.symm (ne_or_eq ⌈tl⌉.natAbs 0)
+    rcases hzeroornot with hzero | hnonzero
+    . left; exact hzero
+    right
     use t
-    rw [← tlint]
     simp
+    rw [hgtabs₀]
+    rw [← tlint]
 
-  have pu : IsnPolygonal (m+2) ⌈ ul ⌉ (hm2geq3) := by
+  have pu : IsnPolygonal (m+2) ⌈ ul ⌉.natAbs (hm2geq3) := by
+    have hgt : ul ≥ 0 := by
+      dsimp [ul]
+      refine Rat.add_nonneg ?_ ?_
+      . refine Rat.mul_nonneg ?_ ?_
+        . linarith
+        . suffices h : u^2 - u ≥ 0 by
+            have hconv : (u : ℚ) ^ 2 - u = (u^2 - u : ℕ) := hposconv u
+            rw [hconv]
+            exact Nat.cast_nonneg' (u ^ 2 - u)
+          linarith
+      . linarith
+    have hgtabs : ⌈ ul ⌉ ≥ 0 := by
+      exact Int.ceil_nonneg hgt
+    have hgtabs' : ⌈ ul ⌉.natAbs = ⌈ ul ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+    have hgtabs₀ : (⌈ ul ⌉.natAbs : ℚ) = ⌈ ul ⌉ := by exact Rat.ext hgtabs' rfl
+
     rw [PolyEquiv]
     unfold IsnPolygonal'
-    rw [← ulint]
+    have hzeroornot : ⌈ ul ⌉.natAbs = 0 ∨ ⌈ ul ⌉.natAbs ≠ 0 := by
+      exact Or.symm (ne_or_eq ⌈ul⌉.natAbs 0)
+    rcases hzeroornot with hzero | hnonzero
+    . left; exact hzero
+    right
     use u
     simp
+    rw [hgtabs₀]
+    rw [← ulint]
 
-  have pv : IsnPolygonal (m+2) ⌈ vl ⌉ (hm2geq3) := by
+  have pv : IsnPolygonal (m+2) ⌈ vl ⌉.natAbs (hm2geq3) := by
+    have hgt : vl ≥ 0 := by
+      dsimp [vl]
+      refine Rat.add_nonneg ?_ ?_
+      . refine Rat.mul_nonneg ?_ ?_
+        . linarith
+        . suffices h : v^2 - v ≥ 0 by
+            have hconv : (v : ℚ) ^ 2 - v = (v^2 - v : ℕ) := hposconv v
+            rw [hconv]
+            exact Nat.cast_nonneg' (v ^ 2 - v)
+          linarith
+      . linarith
+    have hgtabs : ⌈ vl ⌉ ≥ 0 := by
+      exact Int.ceil_nonneg hgt
+    have hgtabs' : ⌈ vl ⌉.natAbs = ⌈ vl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+    have hgtabs₀ : (⌈ vl ⌉.natAbs : ℚ) = ⌈ vl ⌉ := by exact Rat.ext hgtabs' rfl
+
     rw [PolyEquiv]
     unfold IsnPolygonal'
+    have hzeroornot : ⌈ vl ⌉.natAbs = 0 ∨ ⌈ vl ⌉.natAbs ≠ 0 := by
+      exact Or.symm (ne_or_eq ⌈vl⌉.natAbs 0)
+    rcases hzeroornot with hzero | hnonzero
+    . left; exact hzero
+    right
     use v
-    rw [← vlint]
     simp
+    rw [hgtabs₀]
+    rw [← vlint]
 
 
   let poly1 : Polygonal (m+2) (by linarith) := ⟨ 1, polygonal_m_one (m+2) (hm2geq3)⟩
@@ -395,7 +474,11 @@ theorem CauchyPolygonalNumberTheorem
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2) hm2geq3) := {⟨ ⌈sl⌉, ps ⟩, ⟨ ⌈tl⌉, pt ⟩, ⟨ ⌈ul⌉, pu ⟩, ⟨ ⌈vl⌉, pv ⟩} + ms₁
+  let S : Multiset (Polygonal (m+2) hm2geq3) := {
+    ⟨ ⌈sl⌉.natAbs, ps ⟩,
+    ⟨ ⌈tl⌉.natAbs, pt ⟩,
+    ⟨ ⌈ul⌉.natAbs, pu ⟩,
+    ⟨ ⌈vl⌉.natAbs, pv ⟩} + ms₁
 
   use S
   constructor
