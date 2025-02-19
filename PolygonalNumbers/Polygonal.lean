@@ -679,7 +679,7 @@ instance : Decidable (IsnPolygonal m n h) := by
 #eval decide <| IsnPolygonal 14 53 (by simp) -- false
 #eval decide <| IsnPolygonal 14 0 (by simp) -- true
 
-lemma polyform (m : ℤ) (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉ := by
+lemma polyform (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : ((m : ℚ) / 2) * (r^2 - r) + r = |⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉| := by
   simp
   rw [← (kfactq r)]
   let ⟨ e, he ⟩ := revenk' r
@@ -692,6 +692,103 @@ lemma polyform (m : ℤ) (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m :
   rw [← Int.cast_mul m e]
   rw [@Int.ceil_intCast]
 
+  have hepos : e ≥ 0 := by
+    contrapose he
+    simp at he
+    have hr : r * (r - 1) ≥ 0 := by
+      exact Nat.zero_le (r * (r - 1))
+    have he₂ : 2 * e < 0 := by
+      refine Int.mul_neg_of_pos_of_neg ?_ he
+      simp
+
+    have hrpos : (r : ℚ) * (r - 1) ≥ 0 := by
+      have hrzorpos : r = 0 ∨ r > 0 := by
+        exact Or.symm (LE.le.gt_or_eq (Nat.zero_le r))
+      rcases hrzorpos with hrzero | hrpos
+      . rw [hrzero]
+        simp
+      . have hgeq : r ≥ 1 := by
+          exact Nat.succ_le_iff.mpr hrpos
+        have hgeq' : (r : ℚ) ≥ 1 := by
+          exact Nat.one_le_cast.mpr hrpos
+        refine Rat.mul_nonneg ?_ ?_
+        linarith
+        linarith
+
+    have hneq : 2 * (e : ℚ) < (r : ℚ) * (r - 1) := by
+      calc 2 * (e : ℚ)
+        _ < 0 := by
+          refine mul_neg_of_pos_of_neg rfl ?_
+          exact Rat.num_neg.mp he
+        _ ≤ r * (r - 1) := by exact hrpos
+    exact ne_of_gt hneq
+
+  have hempos : (((m * e) : ℤ) : ℚ) + r ≥ 0 := by
+    simp
+    have hem : (m * e) ≥ 0 := by
+      refine mul_nonneg ?_ ?_
+      linarith
+      exact hepos
+    refine Rat.add_nonneg ?_ ?_
+    . refine Rat.mul_nonneg ?_ ?_
+      . refine Int.cast_nonneg.mpr ?_
+        linarith
+      . exact Rat.num_nonneg.mp hepos
+    . exact Nat.cast_nonneg' r
+
+  exact Eq.symm (abs_of_nonneg hempos)
+
+lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (m+2) ⌈ (((m / 2) * (r^2 - r) + r) : ℚ) ⌉.natAbs (hm2geq3) := by
+  let rl : ℚ := (m / 2) * (r^2 - r) + r
+  have rleq : rl = (m / 2) * (r^2 - r) + r := by exact rfl
+
+  have hposconv (k : ℕ) : (k : ℚ) ^ 2 - k = (k^2 - k : ℕ) := by
+    have hsgt : k^2 ≥ k := by
+      refine Nat.le_self_pow ?_ k
+      simp
+    have hsq : (k : ℚ) ^ 2 = (k^2 : ℕ) := by
+      simp
+    rw [hsq]
+    rw [← Nat.cast_sub hsgt]
+
+  have hmpos : m ≥ 0 := by
+    linarith
+  have hmpos' : (m : ℚ) ≥ 0 := by
+    exact Rat.num_nonneg.mp hmpos
+
+  have hgt : rl ≥ 0 := by
+    dsimp [rl]
+    refine Rat.add_nonneg ?_ ?_
+    . refine Rat.mul_nonneg ?_ ?_
+      . refine Rat.div_nonneg ?_ rfl
+        exact hmpos'
+      . suffices h : r^2 - r ≥ 0 by
+          have hconv : (r : ℚ) ^ 2 - r = (r^2 - r: ℕ) := hposconv r
+          rw [hconv]
+          exact Nat.cast_nonneg' (r ^ 2 - r)
+        linarith
+    . linarith
+  rw [← rleq]
+
+  have hgtabs : ⌈ rl ⌉ ≥ 0 := by
+    exact Int.ceil_nonneg hgt
+  have hgtabs' : ⌈ rl ⌉.natAbs = ⌈ rl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
+  have hgtabs₀ : (⌈ rl ⌉.natAbs : ℚ) = ⌈ rl ⌉ := by exact Rat.ext hgtabs' rfl
+
+  rw [PolyEquiv]
+  unfold IsnPolygonal'
+  have hzeroornot : ⌈ rl ⌉.natAbs = 0 ∨ ⌈ rl ⌉.natAbs ≠ 0 := by
+    exact Or.symm (ne_or_eq ⌈rl⌉.natAbs 0)
+  rcases hzeroornot with hzero | hnonzero
+  . left; dsimp [rl] at hzero; exact hzero
+  right
+  use r
+  simp
+  dsimp [rl]
+  suffices hl : (m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r = |⌈ (m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r ⌉| by
+    nth_rewrite 1 [hl]
+    exact Eq.symm (Nat.cast_natAbs ⌈(m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r⌉)
+  exact polyform m r hm2geq3
 
 /-
   ==================== Helper Functions ====================

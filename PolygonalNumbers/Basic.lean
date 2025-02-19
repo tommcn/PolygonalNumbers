@@ -27,10 +27,10 @@ instance : LeftCommutative (foldrfun n hm : Polygonal n hm → ℤ → ℤ) wher
     ring
 
 /--
-  Sum of a multiset of polygonal numbers of same order `n` (i.e., rational
+  Sum of a List of polygonal numbers of same order `n` (i.e., rational
   numbers) into a rational number
 -/
-def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : Multiset (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
+def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : List (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
 
 
 instance : HAdd Triangular Triangular ℤ where
@@ -113,7 +113,11 @@ lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := 
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
 -/
-lemma CauchyLemma (a : ℕ) (b : ℕ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
+lemma CauchyLemma
+  (a : ℤ)
+  (ha : a ≥ 0)
+  (b : ℕ)
+  (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 < 4*a) (h₂ : 3*a < b^2 + 2*b + 4) : ∃ s t v u : ℕ, (a = s^2 + t^2 + v^2 + u^2) ∧ (b = s + t + v + u) := by
   sorry
 
 /-
@@ -123,20 +127,39 @@ lemma CauchyLemma (a : ℕ) (b : ℕ) (aOdd : Odd a) (bOdd : Odd b) (h₁ : b^2 
 
 
 -- Lemma 1.11 (p. 42)
+-- i.e., Lemma 5
 lemma cauchy_setup_a
                    (m n : ℕ)
                    (hm : m ≥ 3)
-                   (a b r : ℕ)
+                   (a : ℤ)
+                   (ha : a ≥ 0)
+                   (b r : ℕ)
                    (hr : r < m)
                    (ha : (a) = (1 - (2/m)) * b + 2 * ((n - r) / m))
     : b < ((2 / 3) + √(8 * (n / m) - 8))
       → b^2 < 4*a := by
+  intro h
+
+  -- have hsub : (b - 2/3) ^ 2 < 8 * n/m - 8 := by
+  --   sorry
+  -- suffices (b)^2 - 4 * a < 0 by
+  --   linarith
+
+  -- calc (b : ℚ)^2 - 4 * a
+  --   _ = (b - 2/3) ^ 2 + 4/3 * b - 4/9 - 4 * a := by
+  --     rw [ha]
+  --     ring
+
+
   sorry
 
+-- i.e., Lemma 6
 lemma cauchy_setup_b (m N : ℕ)
                    (hm : m ≥ 3)
                   --  (hnineq : N ≥ 2 * m)
-                   (a b r : ℕ)
+                   (a : ℤ)
+                   (ha : a ≥ 0)
+                   (b r : ℕ)
                    (hr : r < m)
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
     : b < ((2 / 3) + √(8 * (n / m) - 8))
@@ -146,7 +169,9 @@ lemma cauchy_setup_b (m N : ℕ)
 lemma cauchy_setup (m N : ℕ)
                    (hm : m ≥ 3)
                   --  (hnineq : N ≥ 2 * m)
-                   (a b r : ℕ)
+                   (a : ℤ)
+                   (ha : a ≥ 0)
+                   (b r : ℕ)
                   --  (hr : r < m)
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
     : (1 / 2 + √(6 * (N / m) - 3)) < b
@@ -156,8 +181,8 @@ lemma cauchy_setup (m N : ℕ)
   intro h₂
   sorry
   -- constructor
-  -- . exact cauchy_setup_a m m hm a b 2 hm h₂
-  -- . exact cauchy_setup_b m m hm a b 2 hm h₂
+  -- . exact cauchy_setup_a m m hm a ha b 2 hm h₁
+  -- . exact cauchy_setup_b m m hm a ha b 2 hm h₂
 
 
 /-
@@ -173,9 +198,9 @@ theorem CauchyPolygonalNumberTheorem
           (nmpos : n ≥ 1)
           (mb : m ≥ 3)
           (nb : n ≥ 120*m)
-    : ∃ (S : Multiset (Polygonal (m+2) (by linarith))),
+    : ∃ (S : List (Polygonal (m+2) (by linarith))),
       (sumPolyToInt (m+2) (by linarith) S  = n)                  -- Sum = n
-    ∧ (Multiset.card S ≤ m+1)
+    ∧ (S.length ≤ m+1)
       := by
   have hmqgeq3 : (m : ℚ) ≥ 3 := by
     exact Nat.ofNat_le_cast.mpr mb
@@ -189,7 +214,14 @@ theorem CauchyPolygonalNumberTheorem
   have ngeq2m : n ≥ 2 * m := by
     linarith
   have hnmr : (n : ℝ) / m ≥ 120 := by
-    sorry
+    have hypr : (n : ℝ) ≥ (((120 * m) : ℕ) : ℝ) := by
+      exact Nat.cast_le.mpr nb
+    simp at hypr
+    apply ge_iff_le.mp at hypr
+    apply ge_iff_le.mpr
+    ring_nf
+    refine (le_mul_inv_iff₀ ?_).mpr hypr
+    exact Nat.cast_pos'.mpr hmgtn0
 
   let ⟨ b₁,
         b₂,
@@ -210,8 +242,6 @@ theorem CauchyPolygonalNumberTheorem
     simp
     -- Proof by pigeonhole principle, the set of numbers `b+r` as defined above is larger than the set of residues mod m
     sorry
-
-
 
   let ⟨ r, hr ⟩ := h₁
   let ⟨ b, hb ⟩ := hr.right
@@ -262,184 +292,105 @@ theorem CauchyPolygonalNumberTheorem
       ((1 / 2) + √(6 * (n / m) - 3)) < b₁ := by apply hb₁
       _ ≤ b := hbleqb₁
 
-  let a : ℕ := 2 * ((n - b - r) / m) + b
+  let a : ℤ := 2 * ((n - b - r) / m) + b
 
-  have hao : Odd a := by
-    have hae₁ : Even (2 * ((n - b - ↑r) / ↑m)) := by
-      exact even_two_mul ((n - b - ↑r) / ↑m)
-    dsimp [a]
-    exact Even.add_odd hae₁ hbo
 
-  have hn : (n : ℚ) = ↑m / 2 * (↑a - ↑b) + ↑b + ↑r := by
+  have hazq : (a : ℚ) = 2 * (((n : ℚ) - b - r) / m) + b := by
     dsimp [a]
     simp
-    sorry
+    have hex : ∃ (k : ℤ), (n - b - r) = m * k := by
+      let hmod := hb.right
+      have hnpm : (n : ℤ) - b - r = n - (b + r) := by linarith
+      apply Nat.ModEq.symm at hmod
+      rw [hnpm]
+      apply Nat.ModEq.dvd at hmod
+      let ⟨ k, hk ⟩ := hmod
+      use k
+      simp at hk
+      rw [hk]
+    let ⟨ k, hk ⟩ := hex
+    have hzdiv : ((n - b - r) / m) = k := by
+      rw [hk]
+      refine Int.mul_ediv_cancel_left k ?_
+      linarith
+    have hqdiv : (((n : ℚ) - b - r) / m) = k := by
+      have hnzq : (n : ℚ) - b - r = ((n - b - r) : ℤ) := by
+        simp
+      rw [hnzq]
+      rw [hk]
+      simp
+      exact mul_div_cancel_left₀ (↑k) hmnot0
+    rw [hzdiv]
+    rw [hqdiv]
+
+  have haalt : a = ((1 : ℚ) - 2 / m) * b + 2 * (n - r) / m := by
+    rw [hazq]
+    ring
+
+  have hapos : a ≥ 0 := by
+    suffices hapos' : (a : ℚ) ≥ 0 by
+      exact (Mathlib.Tactic.Qify.intCast_le 0 a).mpr hapos'
+
+    rw [haalt]
+    refine Rat.add_nonneg ?_ ?_
+    . refine Rat.mul_nonneg ?_ ?_
+      . refine (Rat.le_iff_sub_nonneg (2 / ↑m) 1).mp ?_
+        refine (div_le_one₀ hmgtq0).mpr (by linarith)
+      . linarith
+    . refine Rat.div_nonneg ?_ ?_
+      . have hmnq : (n : ℚ) ≥ 120 * (m : ℕ) := by
+          let m' : ℚ := n
+          let n' : ℕ := 120 * m
+          suffices hmn' : m' ≥ n' by
+            dsimp [m', n'] at hmn'
+            simp at hmn'
+            exact hmn'
+          apply Rat.cast_le_natCast.mpr
+          simp
+          dsimp [n']
+          exact nb
+        refine Rat.mul_nonneg rfl ?_
+        refine (Rat.le_iff_sub_nonneg ↑r ↑n).mp ?_
+        calc (r : ℚ)
+          _ ≤ m := by refine Nat.cast_le.mpr (by linarith)
+          _ ≤ 120 * m := by exact (le_mul_iff_one_le_left hmgtq0).mpr rfl
+          _ ≤ n := by exact hmnq
+      . linarith
+
+  have hao : Odd a := by
+    have hae₁ : Even ((2 : ℤ) * ((n - b - r) / m)) := by
+      exact even_two_mul (((n : ℤ) - b - r) / m)
+    dsimp [a]
+    have hboz : Odd (b : ℤ) := by
+      exact (Int.odd_coe_nat b).mpr hbo
+    exact Even.add_odd hae₁ hboz
 
 
-  let cauchy_setset_up := cauchy_setup m n mb a b r
+  let cauchy_setset_up := cauchy_setup m n mb a hapos b r
   let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
 
-  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a b hao hbo clemma_left clemma_right
+  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b hao hbo clemma_left clemma_right
+  /- Probably rewrite to one-two lines to not overpopulate state -/
   let sl : ℚ := (m / 2) * (s^2 - s) + s
   let tl : ℚ := (m / 2) * (t^2 - t) + t
   let ul : ℚ := (m / 2) * (u^2 - u) + u
   let vl : ℚ := (m / 2) * (v^2 - v) + v
 
-  -- have polyform (r : ℕ) : ((m : ℚ) / 2) * (r^2 - r) + r = ⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉ := by
-  --   simp
-  --   rw [← (kfactq r)]
-  --   let ⟨ e, he ⟩ := revenk' r
-  --   simp at he
-  --   rw [he]
-  --   rw [← mul_assoc]
-  --   simp
-  --   have hms : (m : ℚ) = ((m : ℤ) : ℚ) := rfl
-  --   rw [hms]
-  --   rw [← Int.cast_mul m e]
-  --   rw [@Int.ceil_intCast]
-
-  have slint : sl = ⌈ sl ⌉ := by exact polyform m s
-  have tlint : tl = ⌈ tl ⌉ := by exact polyform m t
-  have ulint : ul = ⌈ ul ⌉ := by exact polyform m u
-  have vlint : vl = ⌈ vl ⌉ := by exact polyform m v
-
-  have hposconv (k : ℕ) : (k : ℚ) ^ 2 - k = (k^2 - k : ℕ) := by
-    have hsgt : k^2 ≥ k := by
-      refine Nat.le_self_pow ?_ k
-      simp
-    have hsq : (k : ℚ) ^ 2 = (k^2 : ℕ) := by
-      simp
-    rw [hsq]
-    rw [← Nat.cast_sub hsgt]
-
-  /- `s`, `t`, `u`, `v` are polygonal -/
-  have ps : IsnPolygonal (m+2) ⌈ sl ⌉.natAbs (hm2geq3) := by
-    have hgt : sl ≥ 0 := by
-      dsimp [sl]
-      refine Rat.add_nonneg ?_ ?_
-      . refine Rat.mul_nonneg ?_ ?_
-        . linarith
-        . suffices h : s^2 - s ≥ 0 by
-            have hconv : (s : ℚ) ^ 2 - s = (s^2 - s : ℕ) := hposconv s
-            rw [hconv]
-            exact Nat.cast_nonneg' (s ^ 2 - s)
-          linarith
-
-      . linarith
-    have hgtabs : ⌈ sl ⌉ ≥ 0 := by
-      exact Int.ceil_nonneg hgt
-    have hgtabs' : ⌈ sl ⌉.natAbs = ⌈ sl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
-    have hgtabs₀ : (⌈ sl ⌉.natAbs : ℚ) = ⌈ sl ⌉ := by exact Rat.ext hgtabs' rfl
-
-    rw [PolyEquiv]
-    unfold IsnPolygonal'
-    have hzeroornot : ⌈ sl ⌉.natAbs = 0 ∨ ⌈ sl ⌉.natAbs ≠ 0 := by
-      exact Or.symm (ne_or_eq ⌈sl⌉.natAbs 0)
-    rcases hzeroornot with hzero | hnonzero
-    . left; exact hzero
-    right
-    use s
-    simp
-    rw [hgtabs₀]
-    rw [← slint]
-
-  have pt : IsnPolygonal (m+2) ⌈ tl ⌉.natAbs (hm2geq3) := by
-    have hgt : tl ≥ 0 := by
-      dsimp [tl]
-      refine Rat.add_nonneg ?_ ?_
-      . refine Rat.mul_nonneg ?_ ?_
-        . linarith
-        . suffices h : t^2 - t ≥ 0 by
-            have hconv : (t : ℚ) ^ 2 - t = (t^2 - t : ℕ) := hposconv t
-            rw [hconv]
-            exact Nat.cast_nonneg' (t ^ 2 - t)
-          linarith
-      . linarith
-    have hgtabs : ⌈ tl ⌉ ≥ 0 := by
-      exact Int.ceil_nonneg hgt
-    have hgtabs' : ⌈ tl ⌉.natAbs = ⌈ tl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
-    have hgtabs₀ : (⌈ tl ⌉.natAbs : ℚ) = ⌈ tl ⌉ := by exact Rat.ext hgtabs' rfl
-
-    rw [PolyEquiv]
-    unfold IsnPolygonal'
-    have hzeroornot : ⌈ tl ⌉.natAbs = 0 ∨ ⌈ tl ⌉.natAbs ≠ 0 := by
-      exact Or.symm (ne_or_eq ⌈tl⌉.natAbs 0)
-    rcases hzeroornot with hzero | hnonzero
-    . left; exact hzero
-    right
-    use t
-    simp
-    rw [hgtabs₀]
-    rw [← tlint]
-
-  have pu : IsnPolygonal (m+2) ⌈ ul ⌉.natAbs (hm2geq3) := by
-    have hgt : ul ≥ 0 := by
-      dsimp [ul]
-      refine Rat.add_nonneg ?_ ?_
-      . refine Rat.mul_nonneg ?_ ?_
-        . linarith
-        . suffices h : u^2 - u ≥ 0 by
-            have hconv : (u : ℚ) ^ 2 - u = (u^2 - u : ℕ) := hposconv u
-            rw [hconv]
-            exact Nat.cast_nonneg' (u ^ 2 - u)
-          linarith
-      . linarith
-    have hgtabs : ⌈ ul ⌉ ≥ 0 := by
-      exact Int.ceil_nonneg hgt
-    have hgtabs' : ⌈ ul ⌉.natAbs = ⌈ ul ⌉ := by exact Int.natAbs_of_nonneg hgtabs
-    have hgtabs₀ : (⌈ ul ⌉.natAbs : ℚ) = ⌈ ul ⌉ := by exact Rat.ext hgtabs' rfl
-
-    rw [PolyEquiv]
-    unfold IsnPolygonal'
-    have hzeroornot : ⌈ ul ⌉.natAbs = 0 ∨ ⌈ ul ⌉.natAbs ≠ 0 := by
-      exact Or.symm (ne_or_eq ⌈ul⌉.natAbs 0)
-    rcases hzeroornot with hzero | hnonzero
-    . left; exact hzero
-    right
-    use u
-    simp
-    rw [hgtabs₀]
-    rw [← ulint]
-
-  have pv : IsnPolygonal (m+2) ⌈ vl ⌉.natAbs (hm2geq3) := by
-    have hgt : vl ≥ 0 := by
-      dsimp [vl]
-      refine Rat.add_nonneg ?_ ?_
-      . refine Rat.mul_nonneg ?_ ?_
-        . linarith
-        . suffices h : v^2 - v ≥ 0 by
-            have hconv : (v : ℚ) ^ 2 - v = (v^2 - v : ℕ) := hposconv v
-            rw [hconv]
-            exact Nat.cast_nonneg' (v ^ 2 - v)
-          linarith
-      . linarith
-    have hgtabs : ⌈ vl ⌉ ≥ 0 := by
-      exact Int.ceil_nonneg hgt
-    have hgtabs' : ⌈ vl ⌉.natAbs = ⌈ vl ⌉ := by exact Int.natAbs_of_nonneg hgtabs
-    have hgtabs₀ : (⌈ vl ⌉.natAbs : ℚ) = ⌈ vl ⌉ := by exact Rat.ext hgtabs' rfl
-
-    rw [PolyEquiv]
-    unfold IsnPolygonal'
-    have hzeroornot : ⌈ vl ⌉.natAbs = 0 ∨ ⌈ vl ⌉.natAbs ≠ 0 := by
-      exact Or.symm (ne_or_eq ⌈vl⌉.natAbs 0)
-    rcases hzeroornot with hzero | hnonzero
-    . left; exact hzero
-    right
-    use v
-    simp
-    rw [hgtabs₀]
-    rw [← vlint]
+  have slint : sl = |⌈ sl ⌉| := by dsimp [sl]; apply polyform m s hm2geq3
+  have tlint : tl = |⌈ tl ⌉| := by dsimp [tl]; apply polyform m t hm2geq3
+  have ulint : ul = |⌈ ul ⌉| := by dsimp [ul]; apply polyform m u hm2geq3
+  have vlint : vl = |⌈ vl ⌉| := by dsimp [vl]; apply polyform m v hm2geq3
 
 
   let poly1 : Polygonal (m+2) (by linarith) := ⟨ 1, polygonal_m_one (m+2) (hm2geq3)⟩
 
   let l₁ : List (Polygonal (m+2) (by linarith)) := []
 
-  let ms₁ := Multiset.replicate r poly1
+  let ms₁ := List.replicate r poly1
 
-  have ms₃repl (r : ℕ) : Multiset.replicate (r + 1) poly1 = poly1 ::ₘ Multiset.replicate r poly1 := rfl
+  have ms₃repl (r : ℕ) : List.replicate (r + 1) poly1 = poly1 :: List.replicate r poly1 := rfl
 
-  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) hm2geq3 (Multiset.replicate r poly1)  = r := by
+  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) hm2geq3 (List.replicate r poly1)  = r := by
     induction' r with r hr
     . simp [sumPolyToInt]
     . rw [ms₃repl]
@@ -450,21 +401,26 @@ theorem CauchyPolygonalNumberTheorem
       rw [hr]
       ring
 
-  have ms₁sum' : Multiset.foldr (foldrfun (↑m + 2) hm2geq3) 0 ms₁ = r := by
+  have ms₁sum' : List.foldr (foldrfun (↑m + 2) hm2geq3) 0 ms₁ = r := by
     exact ms₁induc r
 
-  have ms₁card : ms₁.card = r := by
-    exact Multiset.card_replicate r poly1
+  have ms₁card : ms₁.length = r := by
+    exact List.length_replicate r poly1
   /-
     Equation (5)
   -/
   have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r := by
-    dsimp [a]
+    have hmeq : (m : ℚ) * (m : ℚ)⁻¹ = 1 := by
+      exact Rat.mul_inv_cancel (↑m) hmnot0
+    rw [hazq]
     simp
     rw [← mul_assoc, mul_comm]
     simp
-    sorry
-
+    ring
+    repeat
+      rw [mul_assoc]
+      rw [hmeq]
+      simp
 
 
   /- The sum of the numbers is `n` -/
@@ -474,11 +430,25 @@ theorem CauchyPolygonalNumberTheorem
     simp
     ring
 
-  let S : Multiset (Polygonal (m+2) hm2geq3) := {
-    ⟨ ⌈sl⌉.natAbs, ps ⟩,
-    ⟨ ⌈tl⌉.natAbs, pt ⟩,
-    ⟨ ⌈ul⌉.natAbs, pu ⟩,
-    ⟨ ⌈vl⌉.natAbs, pv ⟩} + ms₁
+  have corsum₀ : (((|⌈ sl ⌉| + |⌈ tl ⌉| + |⌈ ul ⌉| + |⌈ vl ⌉| + r) : ℤ) : ℚ) = (n : ℤ) := by
+    simp
+
+    have hstep (x : ℚ) : |(⌈ x ⌉ : ℚ)| = |⌈ x ⌉| := by
+      simp
+
+    rw [hstep sl, hstep tl, hstep ul, hstep vl]
+    rw [← slint, ← tlint, ← ulint, ← vlint]
+    exact corsum
+
+  have corsum' : |⌈ sl ⌉| + |⌈ tl ⌉| + |⌈ ul ⌉| + |⌈ vl ⌉| + r = n := by
+    exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm corsum₀)))
+
+  let S : List (Polygonal (m+2) hm2geq3) :=
+    ⟨ ⌈sl⌉.natAbs, polyformval m s hm2geq3 ⟩ ::
+    ⟨ ⌈tl⌉.natAbs, polyformval m t hm2geq3 ⟩ ::
+    ⟨ ⌈ul⌉.natAbs, polyformval m u hm2geq3 ⟩ ::
+    ⟨ ⌈vl⌉.natAbs, polyformval m v hm2geq3 ⟩ ::
+    ms₁
 
   use S
   constructor
@@ -488,10 +458,10 @@ theorem CauchyPolygonalNumberTheorem
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
     rw [ms₁sum']
-    sorry
-    --exact corsum
-  . -- Proof it has at most 5 elements
+    exact corsum'
+  . -- Proof its size is correct
     simp [S]
     rw [ms₁card]
-
-    sorry
+    have hr : r + 3 ≤ m := by
+      exact Nat.add_le_of_le_sub mb hrb'
+    exact hr
