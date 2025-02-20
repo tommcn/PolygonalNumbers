@@ -133,25 +133,57 @@ lemma cauchy_setup_a
                    (hm : m ≥ 3)
                    (a : ℤ)
                    (ha : a ≥ 0)
-                   (b r : ℕ)
+                   (b : ℕ)
+                   (hb : 0 ≠ b)
+                   (r : ℕ)
                    (hr : r < m)
-                   (ha : (a) = (1 - (2/m)) * b + 2 * ((n - r) / m))
+                   (haeq : (a) = (1 - (2 : ℚ) / m) * b + 2 * ((n - r) / m))
     : b < ((2 / 3) + √(8 * (n / m) - 8))
       → b^2 < 4*a := by
   intro h
 
-  -- have hsub : (b - 2/3) ^ 2 < 8 * n/m - 8 := by
-  --   sorry
-  -- suffices (b)^2 - 4 * a < 0 by
-  --   linarith
+  have hsub : ((b : ℚ) - 2/3) ^ 2 < 8 * n/m - 8 := by
+    have hleq : b - 2/3 < √(8 * n/m - 8) := by
+      refine sub_right_lt_of_lt_add ?_
+      rw [add_comm]
+      rw [mul_div_assoc]
+      exact h
+    have hb' : (b : ℚ) - 2/3 ≥ 0 := by sorry
+    have hbsqrt :  0 ≤ √(8 * (n : ℚ)/m - 8) := by exact Real.sqrt_nonneg (8 * n / m - 8)
+    sorry
+  suffices (b : ℚ)^2 - 4 * a < 0 by
+    sorry
 
-  -- calc (b : ℚ)^2 - 4 * a
-  --   _ = (b - 2/3) ^ 2 + 4/3 * b - 4/9 - 4 * a := by
-  --     rw [ha]
-  --     ring
+  calc (b : ℚ)^2 - 4 * a
+    _ = (b - 2/3) ^ 2 + 4/3 * b - 4/9 - 4 * a := by ring
+    _ < (8 * n/m - 8) + 4/3 * b - 4/9 - 4 * ((1 - (2/m)) * b + 2 * ((n - r) / m)) := by
+      rw [haeq] --hsub
+      simp
+      exact hsub
+    _ = -1 * (8 * b * (1/3 - 1/m) + 8 * (1 - r/m) + 4/9) := by ring
+    _ < 0 := by
+      refine mul_neg_of_neg_of_pos rfl ?_
 
+      refine add_pos ?_ ?_
+      . refine add_pos_of_nonneg_of_pos ?_ ?_
+        . have hleq : 1/3 - 1/(m : ℚ) ≥ 0 := by
+            simp
+            refine inv_anti₀ ?_ ?_
+            . linarith
+            . exact Nat.ofNat_le_cast.mpr hm
+          refine mul_nonneg ?_ ?_
+          . linarith
+          . exact hleq
+        . simp
+          suffices h : r < m by
+            refine Bound.div_lt_one_of_pos_of_lt ?_ ?_
+            . suffices h' : 0 < m by
+                exact Nat.cast_pos'.mpr h'
+              linarith
+            . exact Nat.cast_lt.mpr hr
+          exact hr
+      . linarith
 
-  sorry
 
 -- i.e., Lemma 6
 lemma cauchy_setup_b (m N : ℕ)
@@ -171,7 +203,9 @@ lemma cauchy_setup (m N : ℕ)
                   --  (hnineq : N ≥ 2 * m)
                    (a : ℤ)
                    (ha : a ≥ 0)
-                   (b r : ℕ)
+                   (b : ℕ)
+                   (hb : 0 ≠ b)
+                    (r : ℕ)
                   --  (hr : r < m)
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
     : (1 / 2 + √(6 * (N / m) - 3)) < b
@@ -366,7 +400,14 @@ theorem CauchyPolygonalNumberTheorem
     exact Even.add_odd hae₁ hboz
 
 
-  let cauchy_setset_up := cauchy_setup m n mb a hapos b r
+  have hbnez : 0 ≠ b := by
+    intro h
+    have hoddz : Odd 0 := by rw [← h] at hbo; exact hbo
+    have hnoddz : ¬ Odd 0 := by exact Nat.not_odd_zero
+    contradiction
+
+
+  let cauchy_setset_up := cauchy_setup m n mb a hapos b hbnez r
   let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
 
   let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b hao hbo clemma_left clemma_right
