@@ -332,3 +332,53 @@ lemma interval_length (n m : ℕ) (hm : m > 0) (hn : n ≥ 120 * m) : ((2 / 3) +
       _ = 120 * (m / m) := by ring
       _ = 120 := by simp; sorry
   sorry
+
+
+lemma mod_m_congr (b₁ b₂ : ℤ) (hcon : b₂ = b₁ + 2) (n : ℤ) (m : ℕ) (hm : m ≥ 4)
+  : ∃ r : ℤ, 0 ≤ r ∧ r ≤ m-3 ∧ (∃ b ∈ [b₁, b₂], n ≡ (b + r : ℤ) [ZMOD m]) := by
+  let r' := (n - b₁) % m
+  have rnonneg : r' ≥ 0 := by
+    refine Int.emod_nonneg (n - ↑b₁) ?_
+    simp
+    exact Nat.not_eq_zero_of_lt hm
+  have : r' + 3 ≤ m ∨ r' + 3 > m := by exact le_or_lt (r' + 3) m
+  rcases this with  hl | hr
+  . use r'
+    constructor
+    . exact rnonneg
+    . constructor
+      . exact Int.le_sub_right_of_add_le hl
+      . use b₁
+        simp
+        have : n - b₁ ≡ r' [ZMOD m] := by exact Int.ModEq.symm (Int.mod_modEq (n - b₁) ↑m)
+        have : b₁ + (n - b₁) ≡ b₁ + r' [ZMOD m] := by exact Int.ModEq.add rfl this
+        simp at this
+        exact this
+  . use r' - 2
+    have foo : r' ≥ ↑m - 2 := by linarith
+    constructor
+    . linarith
+    . constructor
+      . norm_num
+        ring_nf
+        rw [add_comm, ← sub_eq_add_neg]
+        change (n - b₁) % m ≤ m -1
+        refine Int.le_sub_one_of_lt ?h.right.left.H
+        refine Int.emod_lt_of_pos (n-b₁) ?H
+        linarith
+      . use b₂
+        simp
+        have : n - b₁ ≡ (n - b₁) % m [ZMOD m] := by exact Int.ModEq.symm (Int.mod_modEq (n - b₁) ↑m)
+        have bar : b₁ + (n - b₁) ≡ b₁ + (n - b₁) % m [ZMOD m] := by exact Int.ModEq.add rfl this
+        simp at bar
+        change n ≡ b₂ + (r'- 2) [ZMOD ↑m]
+        rw [hcon]
+        ring_nf
+        exact bar
+
+
+example (n : ℤ) (m : ℕ) (hm : m > 0): r = n % m → r < m := by
+  intro h
+  rw [h]
+  refine Int.emod_lt_of_pos n ?H
+  exact Int.ofNat_pos.mpr hm

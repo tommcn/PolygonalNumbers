@@ -150,6 +150,7 @@ lemma cauchy_setup_a
       exact h
     have hb' : (b : ℚ) - 2/3 ≥ 0 := by sorry
     have hbsqrt :  0 ≤ √(8 * (n : ℚ)/m - 8) := by exact Real.sqrt_nonneg (8 * n / m - 8)
+
     sorry
   suffices (b : ℚ)^2 - 4 * a < 0 by
     sorry
@@ -196,6 +197,12 @@ lemma cauchy_setup_b (m N : ℕ)
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
     : b < ((2 / 3) + √(8 * (n / m) - 8))
       → 3*a < b^2 + 2*b + 4 := by
+  intro h
+  suffices h' : 0 < b^2 + 2 * b + 4 - 3*a by
+    linarith
+
+  apply GT.gt.lt
+
   sorry
 
 lemma cauchy_setup (m N : ℕ)
@@ -205,17 +212,19 @@ lemma cauchy_setup (m N : ℕ)
                    (ha : a ≥ 0)
                    (b : ℕ)
                    (hb : 0 ≠ b)
-                    (r : ℕ)
-                  --  (hr : r < m)
+                   (r : ℕ)
+                   (haeq : (a) = (1 - (2 : ℚ) / m) * b + 2 * ((N - r) / m))
+                   (hr : r < m)
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
     : (1 / 2 + √(6 * (N / m) - 3)) < b
         → b < (2 / 3 + √(8 * (N / m) - 8))
       → b^2 < 4*a ∧ 3*a < b^2 + 2*b + 4 := by
   intro h₁
   intro h₂
-  sorry
-  -- constructor
-  -- . exact cauchy_setup_a m m hm a ha b 2 hm h₁
+  -- sorry
+  constructor
+  . exact cauchy_setup_a m N hm a ha b hb r hr haeq h₂
+  . sorry
   -- . exact cauchy_setup_b m m hm a ha b 2 hm h₂
 
 
@@ -274,8 +283,12 @@ theorem CauchyPolygonalNumberTheorem
 
   have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r) [MOD m] := by
     simp
-    -- Proof by pigeonhole principle, the set of numbers `b+r` as defined above is larger than the set of residues mod m
-    sorry
+    suffices h : ∃ r : ℤ, 0 ≤ r ∧ r ≤ m-3 ∧ (∃ b ∈ [(b₁ : ℤ), (b₂ : ℤ)], n ≡ (b + r : ℤ) [ZMOD m]) by
+      sorry
+    have hbb : (b₂ : ℤ) = b₁ + 2 := by
+      exact congrArg Nat.cast hb₁b₂
+    apply mod_m_congr b₁ b₂ hbb n m (sorry)
+
 
   let ⟨ r, hr ⟩ := h₁
   let ⟨ b, hb ⟩ := hr.right
@@ -357,15 +370,18 @@ theorem CauchyPolygonalNumberTheorem
     rw [hzdiv]
     rw [hqdiv]
 
-  have haalt : a = ((1 : ℚ) - 2 / m) * b + 2 * (n - r) / m := by
+  have haalt : a = ((1 : ℚ) - 2 / m) * b + 2 * ((n - r) / m) := by
     rw [hazq]
+    ring
+  have haalt' : a = ((1 : ℚ) - 2 / m) * b + 2 * (n - r) / m := by
+    rw [haalt]
     ring
 
   have hapos : a ≥ 0 := by
     suffices hapos' : (a : ℚ) ≥ 0 by
       exact (Mathlib.Tactic.Qify.intCast_le 0 a).mpr hapos'
 
-    rw [haalt]
+    rw [haalt']
     refine Rat.add_nonneg ?_ ?_
     . refine Rat.mul_nonneg ?_ ?_
       . refine (Rat.le_iff_sub_nonneg (2 / ↑m) 1).mp ?_
@@ -407,7 +423,7 @@ theorem CauchyPolygonalNumberTheorem
     contradiction
 
 
-  let cauchy_setset_up := cauchy_setup m n mb a hapos b hbnez r
+  let cauchy_setset_up := cauchy_setup m n mb a hapos b hbnez r haalt hrltm
   let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
 
   let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b hao hbo clemma_left clemma_right
