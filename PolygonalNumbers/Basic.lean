@@ -11,6 +11,7 @@
 -/
 
 import Mathlib.Tactic
+import Mathlib.Tactic.Rify
 import Mathlib.Data.Set.Defs
 import Mathlib.Data.Fin.Parity
 import Init.Data.List.Basic
@@ -60,50 +61,6 @@ example : IsnPolygonal 3 6 (by simp) := by
   linarith
 
 
-/--
-  A `Polygonal` number of order $3$ is triangular.
--/
--- lemma PolyThreeIsTriangular (a : ℕ) : IsnPolygonal 3 a hm = (IsTriangular a) := by
---   unfold IsnPolygonal
---   unfold IsTriangular
---   simp
---   have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
---   constructor
---   . intro h
---     let ⟨ k, hk ⟩ := h
---     use k
---     have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
---       constructor
---       . intro h
---         rw [htwoa]
---         rw [← h]
---         simp
---       . intro h
---         have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
---           simp
---         rw [hkr, htwoa] at h
---         sorry
---         -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
---     apply hiff.mpr
---     rw [← hk]
---     ring_nf
---   . intro h
---     let ⟨ k, hk ⟩ := h
---     ring_nf
---     use k
---     rw [← add_mul]
---     simp
---     have honetwo (a b : ℚ) : 2 * a = 2 * b → a = b := by
---       intro hone
---       apply mul_left_cancel₀ two_ne_zero hone
-
---     apply honetwo
-
---     rw [htwoa]
---     rw [← hk]
---     ring_nf
---     simp
-
 lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := by
   unfold IsnPolygonal
   right
@@ -148,12 +105,22 @@ lemma cauchy_setup_a
       rw [add_comm]
       rw [mul_div_assoc]
       exact h
-    have hb' : (b : ℚ) - 2/3 ≥ 0 := by sorry
-    have hbsqrt :  0 ≤ √(8 * (n : ℚ)/m - 8) := by exact Real.sqrt_nonneg (8 * n / m - 8)
 
+    have hleqq : (b : ℝ) - 2/3 < (8 * n/m - 8) := by
+      -- apply?
+      sorry
     sorry
-  suffices (b : ℚ)^2 - 4 * a < 0 by
-    sorry
+
+
+
+  suffices ht : (b : ℚ)^2 - 4 * a < 0 by
+    refine lt_of_sub_neg ?_
+    have hfoura : 4 * a = ((4 * a : ℤ) : ℚ) := by simp
+    have hbsq : (b : ℚ)^2 = ((b^2 : ℤ) : ℚ) := by simp
+    rw [hfoura, hbsq] at ht
+    have hbfourasq : ((b^2 : ℤ) : ℚ) - ((4 * a : ℤ) : ℚ) = ((b^2 - 4 * a : ℤ) : ℚ) := by simp
+    rw [hbfourasq] at ht
+    exact (Mathlib.Tactic.Qify.intCast_lt ((b : ℤ) ^ 2 - 4 * a) 0).mpr ht
 
   calc (b : ℚ)^2 - 4 * a
     _ = (b - 2/3) ^ 2 + 4/3 * b - 4/9 - 4 * a := by ring
@@ -189,25 +156,126 @@ lemma cauchy_setup_a
 -- i.e., Lemma 6
 lemma cauchy_setup_b (m N : ℕ)
                    (hm : m ≥ 3)
-                  --  (hnineq : N ≥ 2 * m)
+                   (hnineq : N ≥ 2 * m)
                    (a : ℤ)
                    (ha : a ≥ 0)
                    (b r : ℕ)
+                   (hb : 0 ≠ b)
                    (hr : r < m)
+                   (haeq : (a) = (1 - (2 : ℚ) / m) * b + 2 * ((N - r) / m))
                   --  (hneq : N = ((m : ℚ) / 2)*(a - b) + b + r)
-    : b < ((2 / 3) + √(8 * (n / m) - 8))
+    : b > ((1 / 2) + √(6 * (N / m) - 3))
       → 3*a < b^2 + 2*b + 4 := by
   intro h
-  suffices h' : 0 < b^2 + 2 * b + 4 - 3*a by
+  suffices h' : 3 * a < (b : ℚ)^2 + 2 * b + 4 by
+    have hlhs : 3 * a = ((3 * a : ℤ) : ℚ) := by simp
+    have hrhs : (b : ℚ)^2 + 2 * b + 4 = ((b^2 + 2 * b + 4 : ℤ) : ℚ) := by simp
+    rw [hlhs, hrhs] at h'
+    exact (Mathlib.Tactic.Qify.intCast_lt (3 * a) (↑b ^ 2 + 2 * ↑b + 4)).mpr h'
+
+  suffices h' : 0 < (b : ℚ)^2 + 2 * b + 4 - 3 * a by
     linarith
+
+  have hineq : ((b : ℚ) - 1/2)^2 > 6 * N / m - 3 := by
+    have hbq : (b : ℝ) - 1/2 > √(6 * (N / m) - 3) := by
+      linarith
+
+    -- have hbsqq : (b : ℚ) - 1/2 > Rat.sqrt (6 * (N / m) - 3) := by
+    --   have hqsqrtleq (a : ℚ) (ha : a > 1) : Rat.sqrt a ≤ √a := by
+    --     sorry
+    --   sorry
+
+    have hbabs : |(b : ℚ) - 1/2| = b - 1/2 := by
+      simp
+      have hb : b ≥ 1 := by exact Nat.one_le_iff_ne_zero.mpr (id (Ne.symm hb))
+      calc 2⁻¹
+        _ ≤  (1 : ℚ) := by norm_num
+        _ ≤ (b : ℚ) := by exact Nat.one_le_cast.mpr hb
+
+    rw [← hbabs]
+
+    have hbabs' : |(b : ℝ) - 1/2| = b - 1/2 := by
+      simp
+      have hb : b ≥ 1 := by exact Nat.one_le_iff_ne_zero.mpr (id (Ne.symm hb))
+      calc 2⁻¹
+        _ ≤  (1 : ℝ) := by norm_num
+        _ ≤ (b : ℝ) := by exact Nat.one_le_cast.mpr hb
+
+    have hsqabs : (6 * (N : ℚ) / ↑m - 3) = |(6 * (N : ℚ) / ↑m - 3)| := by
+      suffices h' : (6 * (N : ℚ) / m - 3) ≥ 0 by
+        exact Eq.symm (abs_of_nonneg h')
+      simp
+
+      have hnrat : (N : ℝ) / m ≥ 2 := by
+        have hnn : (N : ℝ) ≥ 2 * m := by
+          have htwoz : ((2 * (m : ℕ) : ℕ) : ℝ) = 2 * (m : ℝ) := by simp
+          rw [← htwoz]
+          exact Nat.cast_le.mpr hnineq
+
+        apply GE.ge.le at hnn
+        simp
+        refine (le_mul_inv_iff₀ ?_).mpr hnn
+        calc 0
+          _ < (3 : ℝ) := by norm_num
+          _ ≤ (m : ℝ) := by exact Nat.ofNat_le_cast.mpr hm
+
+      suffices h' : 3 ≤ 6 * ((N : ℚ) / m) by
+        rw [@mul_div_assoc]
+        exact h'
+
+      calc 3
+        _ ≤ (6 : ℚ) := by norm_num
+        _ ≤ 6 * 2 := by
+          simp
+        _ ≤ 6 * ((N : ℚ) / m) := by
+          refine mul_le_mul_of_nonneg_left ?_ ?_
+          . have h' : (N : ℝ) / m = ((N : ℚ) / (m : ℚ) : ℚ) := by
+              simp
+            rw [h'] at hnrat
+            apply GE.ge.le at hnrat
+            let a : ℚ := N / m
+            have ha : a = N / m := by simp
+            rw [← ha] at hnrat
+            rw [← ha]
+            apply (Mathlib.Tactic.Rify.ratCast_le 2 a).mpr
+            exact hnrat
+          . linarith
+
+    rw [← hbabs'] at hbq
+
+    rw [hsqabs]
+    suffices h' : |6 * (N : ℚ) / ↑m - 3| < |(b : ℚ) - 1 / 2| ^ 2 by
+      exact h'
+
+    -- apply GT.gt.lt at hbsqq
+
+    sorry
+
+  have hbsuba : (b : ℚ) - a = 2 / m * b - 2 * ((N - r) / m) := by
+    rw [haeq]
+    ring
 
   apply GT.gt.lt
 
-  sorry
+  calc (b : ℚ) ^ 2 + 2 * b + 4 - 3 * a
+    _ = (b - 1/2) ^ 2 + 3*b + 15/4 - 3 * a := by ring
+    _ > 6 * N / m - 3 + 3 * b + 15/4 - 3 * a := by linarith
+    _ = 6 * N / m - 3 + 15/4 + 3 * (b - a) := by ring
+    _ = 6 * N / m + 3/4 + 3 * (b - a) := by ring
+    _ = 6 * N / m + 3/4 + 3 * (2 / m * b - 2 * ((N - r) / m)) := by
+      rw [haeq]
+      ring_nf
+    _ = 3/4 + 6 * (b + r) / m := by ring
+    _ > 0 := by
+      refine Right.add_pos_of_pos_of_nonneg ?_ ?_
+      . norm_num
+      . refine Rat.div_nonneg ?_ ?_
+        . linarith
+        . linarith
 
 lemma cauchy_setup (m N : ℕ)
                    (hm : m ≥ 3)
-                  --  (hnineq : N ≥ 2 * m)
+                   (hnineq : N ≥ 2 * m)
                    (a : ℤ)
                    (ha : a ≥ 0)
                    (b : ℕ)
@@ -219,14 +287,12 @@ lemma cauchy_setup (m N : ℕ)
     : (1 / 2 + √(6 * (N / m) - 3)) < b
         → b < (2 / 3 + √(8 * (N / m) - 8))
       → b^2 < 4*a ∧ 3*a < b^2 + 2*b + 4 := by
+
   intro h₁
   intro h₂
-  -- sorry
   constructor
   . exact cauchy_setup_a m N hm a ha b hb r hr haeq h₂
-  . sorry
-  -- . exact cauchy_setup_b m m hm a ha b 2 hm h₂
-
+  . exact cauchy_setup_b m N hm hnineq a ha b r hb hr haeq h₁
 
 /-
   ==================== Theorem I for Polygonal Numbers ====================
@@ -283,10 +349,17 @@ theorem CauchyPolygonalNumberTheorem
 
   have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r) [MOD m] := by
     simp
+
     suffices h : ∃ r : ℤ, 0 ≤ r ∧ r ≤ m-3 ∧ (∃ b ∈ [(b₁ : ℤ), (b₂ : ℤ)], n ≡ (b + r : ℤ) [ZMOD m]) by
+      let ⟨ r, hr ⟩ := h
+      use r.natAbs
+      have hrpos : r ≥ 0 := by
+        exact hr.left
       sorry
+
     have hbb : (b₂ : ℤ) = b₁ + 2 := by
       exact congrArg Nat.cast hb₁b₂
+
     apply mod_m_congr b₁ b₂ hbb n m (sorry)
 
 
@@ -422,8 +495,7 @@ theorem CauchyPolygonalNumberTheorem
     have hnoddz : ¬ Odd 0 := by exact Nat.not_odd_zero
     contradiction
 
-
-  let cauchy_setset_up := cauchy_setup m n mb a hapos b hbnez r haalt hrltm
+  let cauchy_setset_up := cauchy_setup m n mb ngeq2m a hapos b  hbnez r haalt hrltm
   let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
 
   let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b hao hbo clemma_left clemma_right

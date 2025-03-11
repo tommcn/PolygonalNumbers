@@ -596,47 +596,6 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       _ = (r * r - (m - 4)^2) / (8 * (m - 2)) := by ring
 
     rw [hrnq]
-    -- . refine Int.natAbs_pos.mpr ?_
-    --   refine Ne.symm (Int.ne_of_lt ?_)
-    --   have hmsubfour : m - 4 ≥ 0 := by
-    --     linarith
-    --   refine Int.ediv_pos_of_pos_of_dvd ?_ ?_ ?_
-    --   . dsimp [rm₄]
-    --     simp
-    --     suffices hne : r ≠ 0 by
-    --       have hrgt : |r| > 0 := by exact abs_pos.mpr hne
-    --       linarith
-    --     contrapose hr
-    --     simp at hr
-    --     rw [hr]
-    --     simp
-    --     suffices hcont : 8 * (m - 2) * ↑x + (m - 4) ^ 2 = 0 → False by
-    --       exact hcont
-    --     intro hzero
-    --     have hzero' : 8 * (m - 2) * (x : ℤ) = - (m - 4) ^ 2 := by
-    --       linarith
-    --     have hgeqzero : (m - 4) ^ 2 ≥ 0 := by
-    --       exact pow_two_nonneg (m - 4)
-    --     have hgeqzero : 8 * (m - 2) * ↑x ≥ 0 := by
-    --       refine Int.mul_nonneg ?_ ?_
-    --       . linarith
-    --       . exact Int.ofNat_zero_le x
-    --     have hleqzero : - (m - 4) ^ 2 ≤ 0 := by linarith
-    --     have heqzero : (m - 4) ^ 2 = 0 := by linarith
-    --     have heqzero' : m - 4 = 0 := by
-    --       apply pow_eq_zero heqzero
-    --     have heqzero'' : m = 4 := by
-    --       linarith
-    --     have heqzerocontra : 8 * (m - 2) * ↑x = 0 := by
-    --       linarith
-    --     rw [heqzero''] at heqzerocontra
-    --     simp at heqzerocontra
-    --     let ⟨ _, hf ⟩ := h₂
-    --     exact hf heqzerocontra
-    --   . linarith
-    --   . dsimp [rm₄]
-    --     let ⟨ hdiv, hgeq ⟩ := h₂
-    --     exact Int.dvd_of_emod_eq_zero hdiv
 
 instance : BEq (Polygonal m hm) where
   beq a b := if (a.val == b.val)
@@ -675,9 +634,21 @@ instance : Decidable (IsnPolygonal m n h) := by
   dsimp [IsnPolygonal₀]
   exact instDecidableOr
 
-#eval decide <| IsnPolygonal 11 58 (by simp) -- true
+#eval decide <| IsnPolygonal 5 5 (by simp) -- true
 #eval decide <| IsnPolygonal 14 53 (by simp) -- false
 #eval decide <| IsnPolygonal 14 0 (by simp) -- true
+
+
+/- n is the sum of k polygonal numbers of order m-/
+def IsNKPolygonal (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) := ∃ (l : List (Polygonal m hm)), l.length = k ∧ n = l.foldl (fun a b => a + b.val) 0
+
+def IsNKPolygonal' (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) := (k = 1 ∧ IsnPolygonal m n hm) ∨ (k > 1 ∧ ∃ (l : List (Polygonal m hm)), l.length = (k - 1) ∧ IsnPolygonal m (n - l.foldl (fun a b => a + b.val) 0) hm)
+
+-- instance : Decidable (IsNKPolygonal m n k hm) := by
+--   rw [IsNKPolygonal]
+
+--   refine instDecidableAnd ?_ ?_
+
 
 lemma polyform (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : ((m : ℚ) / 2) * (r^2 - r) + r = |⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉| := by
   simp
@@ -790,6 +761,28 @@ lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (
     exact Eq.symm (Nat.cast_natAbs ⌈(m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r⌉)
   exact polyform m r hm2geq3
 
+def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
+  let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
+  have hnum : num  = |⌈ num ⌉| := by
+    dsimp [num]
+    have h : (m : ℚ) - 2 = (((m - 2) : ℤ) : ℚ) := by simp
+    rw [h]
+    apply polyform (((m - 2) : ℤ)) n
+    linarith
+
+  have h : IsnPolygonal m ⌈ num ⌉.natAbs hm := by
+    have hm' : (m - 2 + 2) ≥ 3 := by linarith
+    dsimp [num]
+    -- apply polyformval (m - 2) n hm'
+    sorry
+
+  ⟨ ⌈ num ⌉.natAbs, h ⟩
+
+
+-- def IsNKPoly (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) :=
+
+
+
 /-
   ==================== Helper Functions ====================
   The following are helper functions **not formally verified** in Lean4
@@ -856,3 +849,48 @@ def nthPolygonal (s x : Nat) : Option Nat :=
 #eval nthPolygonal 4 17 -- none
 #eval nthPolygonal 6 66 -- some 6
 -/
+
+
+/-
+  A `Polygonal` number of order $3$ is triangular.
+-/
+-- lemma PolyThreeIsTriangular (a : ℕ) : IsnPolygonal 3 a hm = (IsTriangular a) := by
+--   unfold IsnPolygonal
+--   unfold IsTriangular
+--   simp
+--   have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
+--   constructor
+--   . intro h
+--     let ⟨ k, hk ⟩ := h
+--     use k
+--     have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
+--       constructor
+--       . intro h
+--         rw [htwoa]
+--         rw [← h]
+--         simp
+--       . intro h
+--         have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
+--           simp
+--         rw [hkr, htwoa] at h
+--         sorry
+--         -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
+--     apply hiff.mpr
+--     rw [← hk]
+--     ring_nf
+--   . intro h
+--     let ⟨ k, hk ⟩ := h
+--     ring_nf
+--     use k
+--     rw [← add_mul]
+--     simp
+--     have honetwo (a b : ℚ) : 2 * a = 2 * b → a = b := by
+--       intro hone
+--       apply mul_left_cancel₀ two_ne_zero hone
+
+--     apply honetwo
+
+--     rw [htwoa]
+--     rw [← hk]
+--     ring_nf
+--     simp
