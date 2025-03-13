@@ -87,6 +87,7 @@ lemma CauchyLemma
 -- i.e., Lemma 5
 lemma cauchy_setup_a
                    (m n : ℕ)
+                   (hnineq : n ≥ 2 * m)
                    (hm : m ≥ 3)
                    (a : ℤ)
                    (ha : a ≥ 0)
@@ -100,18 +101,53 @@ lemma cauchy_setup_a
   intro h
 
   have hsub : ((b : ℚ) - 2/3) ^ 2 < 8 * n/m - 8 := by
+
     have hleq : b - 2/3 < √(8 * n/m - 8) := by
       refine sub_right_lt_of_lt_add ?_
       rw [add_comm]
       rw [mul_div_assoc]
       exact h
 
-    have hleqq : (b : ℝ) - 2/3 < (8 * n/m - 8) := by
-      -- apply?
+    suffices h' : ((b : ℝ) - 2/3) ^ 2 < 8 * n/m - 8 by
       sorry
-    sorry
 
+    have hbabs : (b : ℝ) - 2/3 = |(b : ℝ) - 2/3| := by
+      have hgeq : (b : ℝ) - 2/3 ≥ 0 := by
+        refine sub_nonneg_of_le ?_
+        have hb : b ≥ 1 := by exact Nat.one_le_iff_ne_zero.mpr (id (Ne.symm hb))
+        have hbr : (b : ℝ) ≥ 1 := by exact Nat.one_le_cast.mpr hb
+        linarith
+      exact Eq.symm (abs_of_nonneg hgeq)
 
+    have hsqabs : √(8 * (n : ℝ) / m - 8) = |√(8 * n / m - 8)| := by
+      have hgeq : √(8 * (n : ℝ) / m - 8) ≥ 0 := by exact Real.sqrt_nonneg (8 * (n : ℝ) / m - 8)
+      exact Eq.symm (abs_of_nonneg hgeq)
+
+    rw [hbabs, hsqabs] at hleq
+    apply sq_lt_sq.mpr at hleq
+
+    have hsqrtsq : √(8 * (n : ℝ) / m - 8) ^ 2 = (8 * (n : ℝ) / m - 8) := by
+      refine Real.sq_sqrt ?_
+      simp
+      have h' : (n : ℝ) / m ≥ 1 := by
+        refine one_le_div_iff.mpr ?_
+        left
+        constructor
+        . have h' : (m : ℝ) ≥ 3 := by exact Nat.ofNat_le_cast.mpr hm
+          linarith
+        . apply GE.ge.le at hnineq
+          have h' : (n : ℝ) ≥ ((2 * m : ℕ) : ℝ) := by
+            exact Nat.cast_le.mpr hnineq
+          calc (m : ℝ)
+            _ ≤ 2 * m := by linarith
+            _ ≤ ((2 * m : ℕ) : ℝ) := by simp
+            _ ≤ (n : ℝ) := by exact h'
+      calc (8 : ℝ)
+        _ ≤ 8 * (n / m) := by simp; exact h'
+        _ = 8 * n / m := by rw [@mul_div]
+
+    rw [hsqrtsq] at hleq
+    exact hleq
 
   suffices ht : (b : ℚ)^2 - 4 * a < 0 by
     refine lt_of_sub_neg ?_
@@ -179,11 +215,6 @@ lemma cauchy_setup_b (m N : ℕ)
   have hineq : ((b : ℚ) - 1/2)^2 > 6 * N / m - 3 := by
     have hbq : (b : ℝ) - 1/2 > √(6 * (N / m) - 3) := by
       linarith
-
-    -- have hbsqq : (b : ℚ) - 1/2 > Rat.sqrt (6 * (N / m) - 3) := by
-    --   have hqsqrtleq (a : ℚ) (ha : a > 1) : Rat.sqrt a ≤ √a := by
-    --     sorry
-    --   sorry
 
     have hbabs : |(b : ℚ) - 1/2| = b - 1/2 := by
       simp
@@ -291,7 +322,7 @@ lemma cauchy_setup (m N : ℕ)
   intro h₁
   intro h₂
   constructor
-  . exact cauchy_setup_a m N hm a ha b hb r hr haeq h₂
+  . exact cauchy_setup_a m N hnineq hm a ha b hb r hr haeq h₂
   . exact cauchy_setup_b m N hm hnineq a ha b r hb hr haeq h₁
 
 /-
