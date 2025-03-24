@@ -109,7 +109,16 @@ lemma cauchy_setup_a
       exact h
 
     suffices h' : ((b : ℝ) - 2/3) ^ 2 < 8 * n/m - 8 by
-      sorry
+      let b2 : ℚ := b - 2/3
+      let nm8 : ℚ := 8 * n/m - 8
+      have hb2' : b2 = b - 2/3 := by simp
+      have hb2r : (b2 : ℝ) = b - 2/3 := by dsimp [b2]; simp
+      have hnm8' : nm8 = 8 * n/m - 8 := by simp
+      have hnm8'r : (nm8 : ℝ) = 8 * n/m - 8 := by dsimp [nm8]; simp
+
+      rw [← hb2r, ← hnm8'r] at h'
+      rw [← hb2', ← hnm8']
+      norm_cast at h'
 
     have hbabs : (b : ℝ) - 2/3 = |(b : ℝ) - 2/3| := by
       have hgeq : (b : ℝ) - 2/3 ≥ 0 := by
@@ -275,12 +284,54 @@ lemma cauchy_setup_b (m N : ℕ)
     rw [← hbabs'] at hbq
 
     rw [hsqabs]
+
     suffices h' : |6 * (N : ℚ) / ↑m - 3| < |(b : ℚ) - 1 / 2| ^ 2 by
       exact h'
 
-    -- apply GT.gt.lt at hbsqq
+    -- NORMCAST
 
-    sorry
+    norm_cast at hbq
+
+    -- norm_cast
+    let nm : ℚ := 6 * N / m - 3
+    let b' : ℚ := b - 1/2
+    have hnm' : nm = 6 * N / m - 3 := by simp
+    have hb' : b' = b - 1/2 := by dsimp [b']
+    have hnm'r :  6 * (N : ℝ) / m - 3 = nm := by
+      rw [hnm']
+      simp
+    have hnm'r' :  6 * ((N : ℝ) / m) - 3 = nm := by
+      rw [hnm']
+      simp
+      rw [mul_div_assoc]
+    have hb'r : (b : ℝ) - 1/2 = b' := by
+      rw [hb']
+      simp
+
+    suffices h' : |6 * (N : ℝ) / m - 3| < |(b : ℝ) - 1 / 2| ^ 2 by
+      rw [← hnm', ← hb']
+      rw [hnm'r, hb'r] at h'
+      norm_cast at h'
+
+    rw [hnm'r, hb'r]
+    rw [hnm'r', hb'r] at hbq
+    apply gt_iff_lt.mp at hbq
+    have hsqnm : √(nm) = |√(nm)| := by
+      have hsqnm' : √(nm) ≥ 0 := by
+        exact Real.sqrt_nonneg nm
+      exact Eq.symm (abs_of_nonneg hsqnm')
+
+
+    rw [hsqnm] at hbq
+    have hsqsq : |√(nm)| ^ 2 = nm := by
+      refine Eq.symm ((Real.sqrt_eq_iff_eq_sq ?_ ?_).mp hsqnm)
+      . rw [← hnm'] at hsqabs
+        norm_cast
+        exact abs_eq_self.mp (id (Eq.symm hsqabs))
+      . exact abs_nonneg √↑nm
+    rw [← hsqsq]
+    simp
+    exact sq_lt_sq.mpr hbq
 
   have hbsuba : (b : ℚ) - a = 2 / m * b - 2 * ((N - r) / m) := by
     rw [haeq]
@@ -386,7 +437,27 @@ theorem CauchyPolygonalNumberTheorem
       use r.natAbs
       have hrpos : r ≥ 0 := by
         exact hr.left
-      sorry
+      have hrabs : r.natAbs = r := by
+        exact Int.natAbs_of_nonneg hrpos
+      constructor
+      . apply Nat.lt_add_one_of_le
+
+        suffices h' : (r.natAbs : ℤ) ≤ m - 3 by
+          norm_cast at h'
+
+        rw [hrabs]
+        exact hr.right.left
+      . let hrr := hr.right.right
+        simp at hrr
+        rcases hrr with h₁ | h₂
+        . left
+          refine Int.natCast_modEq_iff.mp ?_
+          rw [← hrabs] at h₁
+          norm_cast at h₁
+        . right
+          refine Int.natCast_modEq_iff.mp ?_
+          rw [← hrabs] at h₂
+          norm_cast at h₂
 
     have hbb : (b₂ : ℤ) = b₁ + 2 := by
       exact congrArg Nat.cast hb₁b₂
