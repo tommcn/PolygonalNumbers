@@ -389,6 +389,7 @@ theorem CauchyPolygonalNumberTheorem
           (nmpos : n ≥ 1)
           (mb : m ≥ 3)
           (nb : n ≥ 120*m)
+          (hb : (m ≥ 4 ∧ n ≥ 53 * m) ∨ (m = 3 ∧ n ≥ 159 * m))
     : ∃ (S : List (Polygonal (m+2) (by linarith))),
       (sumPolyToInt (m+2) (by linarith) S  = n)                  -- Sum = n
     ∧ (S.length ≤ m+1)
@@ -414,193 +415,100 @@ theorem CauchyPolygonalNumberTheorem
     refine (le_mul_inv_iff₀ ?_).mpr hypr
     exact Nat.cast_pos'.mpr hmgtn0
 
-  let ⟨ b₁,
-        b₂,
-        hbo₁,
-        hbo₂,
-        hb₁,
-        hb₂,
-        hb₁b₂
-      ⟩
-      := odd_pair_four_interval
-          (1/2 + √(6 * (n/m) - 3))
-          ((2 / 3) + √(8 * (n / m) - 8))
-          (interval_length n m hmgtn0 nb)
-          (bound_positive hnmr)
+  have hprepa : ((m : ℤ) ≥ 4 ∧ n ≥ 53 * (m : ℤ)) ∨ ((m : ℤ) = 3 ∧ n ≥ 159 * (m : ℤ)) := by
+    norm_cast
+  let ⟨ b, r, hob, hblb, hbub, hrgeq0, hrm, hmdiv ⟩ := b_r n m hprepa
 
 
-  have h₁ : ∃ r ∈ List.range (((m-3) + 1 : ℕ)), ∃ b ∈ [b₁, b₂], n ≡ (b + r) [MOD m] := by
-    simp
+  -- let a : ℤ := 2 * ((n - b - r) / m) + b
 
-    suffices h : ∃ r : ℤ, 0 ≤ r ∧ r ≤ m-3 ∧ (∃ b ∈ [(b₁ : ℤ), (b₂ : ℤ)], n ≡ (b + r : ℤ) [ZMOD m]) by
-      let ⟨ r, hr ⟩ := h
-      use r.natAbs
-      have hrpos : r ≥ 0 := by
-        exact hr.left
-      have hrabs : r.natAbs = r := by
-        exact Int.natAbs_of_nonneg hrpos
-      constructor
-      . apply Nat.lt_add_one_of_le
+  let bn : ℕ := b.natAbs
 
-        suffices h' : (r.natAbs : ℤ) ≤ m - 3 by
-          norm_cast at h'
+  have hr : (0 ≤ r ∧ r ≤ m - 3)  := by
+    constructor
+    . exact hrgeq0
+    . exact hrm
 
-        rw [hrabs]
-        exact hr.right.left
-      . let hrr := hr.right.right
-        simp at hrr
-        rcases hrr with h₁ | h₂
-        . left
-          refine Int.natCast_modEq_iff.mp ?_
-          rw [← hrabs] at h₁
-          norm_cast at h₁
-        . right
-          refine Int.natCast_modEq_iff.mp ?_
-          rw [← hrabs] at h₂
-          norm_cast at h₂
-
-    have hbb : (b₂ : ℤ) = b₁ + 2 := by
-      exact congrArg Nat.cast hb₁b₂
-
-    apply mod_m_congr b₁ b₂ hbb n m (sorry)
+  have hbpos : (b : ℝ) > 0 := by
+    have mb' : 3 ≤ (m : ℤ) := by
+      exact Nat.ofNat_le_cast.mpr mb
+    have ngeq2m' : 2 * (m : ℤ) ≤ n := by
+      exact Nat.cast_le.mpr ngeq2m
+    exact I_lb_pos n m b r hr hblb mb' ngeq2m'
+  have hbposq : (b : ℚ) > 0 := by
+    exact Rat.cast_pos.mp hbpos
 
 
-  let ⟨ r, hr ⟩ := h₁
-  let ⟨ b, hb ⟩ := hr.right
+  have hbnbz : b = bn := by
+    refine Int.eq_natAbs_of_zero_le ?_
+    refine Int.le_of_lt ?_
+    apply GT.gt.lt
+    norm_cast at hbpos
 
-  have hrb : r < (m - 3 + 1) := by
-    let hrrange := hr.left
-    apply List.mem_range.mp hrrange
-  have hrb' : r ≤ m - 3 := by exact Nat.le_of_lt_succ hrb
-  have hrltm : r < m := by
-    calc r
-      _ < m - 3 + 1 := by exact hrb
-      _ < m := by refine Nat.add_lt_of_lt_sub ?_; refine Nat.sub_lt_sub_left ?_ ?_; exact
-        Nat.lt_of_succ_lt mb; exact Nat.one_lt_succ_succ 1
+  have hobnn : Odd bn := by
+    exact Odd.natAbs hob
 
-
-  have hb₁ohb₂o : b = b₁ ∨ b = b₂ := by
-    rw [← List.mem_pair]
-    exact hb.left
-
-  have hbo : Odd b := by
-    rcases hb₁ohb₂o with hb₁ | hb₂
-    . rw [hb₁]
-      exact hbo₁
-    . rw [hb₂]
-      exact hbo₂
-
-  have hbub : b < ((2 / 3) + √(8 * (n / m) - 8)) := by
-    have hbleqb₂ : b ≤ (b₂ : ℝ) := by
-      rcases hb₁ohb₂o with hb₁ | hb₂
-      . rw [hb₁]
-        rw [hb₁b₂]
-        refine Int.cast_le.mpr ?_
-        exact Int.le.intro 2 rfl
-      . rw [hb₂]
-    calc
-      b ≤ (b₂ : ℝ) := hbleqb₂
-      _ < ((2 / 3) + √(8 * (n / m) - 8)) := hb₂
-
-  have hblb : ((1 / 2) + √(6 * (n / m) - 3)) < b := by
-    have hbleqb₁ : b ≥ (b₁ : ℝ) := by
-      rcases hb₁ohb₂o with hb₁ | hb₂
-      . rw [hb₁]
-      . rw [hb₂]
-        rw [hb₁b₂]
-        refine Int.cast_le.mpr ?_
-        exact Int.le.intro 2 rfl
-    calc
-      ((1 / 2) + √(6 * (n / m) - 3)) < b₁ := by apply hb₁
-      _ ≤ b := hbleqb₁
-
-  let a : ℤ := 2 * ((n - b - r) / m) + b
-
-
-  have hazq : (a : ℚ) = 2 * (((n : ℚ) - b - r) / m) + b := by
-    dsimp [a]
-    simp
-    have hex : ∃ (k : ℤ), (n - b - r) = m * k := by
-      let hmod := hb.right
-      have hnpm : (n : ℤ) - b - r = n - (b + r) := by linarith
-      apply Nat.ModEq.symm at hmod
-      rw [hnpm]
-      apply Nat.ModEq.dvd at hmod
-      let ⟨ k, hk ⟩ := hmod
-      use k
-      simp at hk
-      rw [hk]
-    let ⟨ k, hk ⟩ := hex
-    have hzdiv : ((n - b - r) / m) = k := by
-      rw [hk]
-      refine Int.mul_ediv_cancel_left k ?_
-      linarith
-    have hqdiv : (((n : ℚ) - b - r) / m) = k := by
-      have hnzq : (n : ℚ) - b - r = ((n - b - r) : ℤ) := by
-        simp
-      rw [hnzq]
-      rw [hk]
-      simp
-      exact mul_div_cancel_left₀ (↑k) hmnot0
-    rw [hzdiv]
-    rw [hqdiv]
-
-  have haalt : a = ((1 : ℚ) - 2 / m) * b + 2 * ((n - r) / m) := by
-    rw [hazq]
-    ring
-  have haalt' : a = ((1 : ℚ) - 2 / m) * b + 2 * (n - r) / m := by
-    rw [haalt]
-    ring
-
-  have hapos : a ≥ 0 := by
-    suffices hapos' : (a : ℚ) ≥ 0 by
-      exact (Mathlib.Tactic.Qify.intCast_le 0 a).mpr hapos'
-
-    rw [haalt']
-    refine Rat.add_nonneg ?_ ?_
-    . refine Rat.mul_nonneg ?_ ?_
-      . refine (Rat.le_iff_sub_nonneg (2 / ↑m) 1).mp ?_
-        refine (div_le_one₀ hmgtq0).mpr (by linarith)
-      . linarith
-    . refine Rat.div_nonneg ?_ ?_
-      . have hmnq : (n : ℚ) ≥ 120 * (m : ℕ) := by
-          let m' : ℚ := n
-          let n' : ℕ := 120 * m
-          suffices hmn' : m' ≥ n' by
-            dsimp [m', n'] at hmn'
-            simp at hmn'
-            exact hmn'
-          apply Rat.cast_le_natCast.mpr
-          simp
-          dsimp [n']
-          exact nb
-        refine Rat.mul_nonneg rfl ?_
-        refine (Rat.le_iff_sub_nonneg ↑r ↑n).mp ?_
-        calc (r : ℚ)
-          _ ≤ m := by refine Nat.cast_le.mpr (by linarith)
-          _ ≤ 120 * m := by exact (le_mul_iff_one_le_left hmgtq0).mpr rfl
-          _ ≤ n := by exact hmnq
-      . linarith
-
-  have hao : Odd a := by
-    have hae₁ : Even ((2 : ℤ) * ((n - b - r) / m)) := by
-      exact even_two_mul (((n : ℤ) - b - r) / m)
-    dsimp [a]
-    have hboz : Odd (b : ℤ) := by
-      exact (Int.odd_coe_nat b).mpr hbo
-    exact Even.add_odd hae₁ hboz
-
-
-  have hbnez : 0 ≠ b := by
+  have hbnez : 0 ≠ bn := by
     intro h
-    have hoddz : Odd 0 := by rw [← h] at hbo; exact hbo
+    have hoddz : Odd 0 := by
+      rw [h]
+      exact hobnn
     have hnoddz : ¬ Odd 0 := by exact Nat.not_odd_zero
     contradiction
 
-  let cauchy_setset_up := cauchy_setup m n mb ngeq2m a hapos b  hbnez r haalt hrltm
-  let ⟨ clemma_left, clemma_right ⟩ := cauchy_setset_up hblb hbub
+  have hrna : r = r.natAbs := by
+    exact Int.eq_natAbs_of_zero_le hrgeq0
+  have hrnaq : (r : ℚ) = r.natAbs := by
+    exact congrArg Int.cast hrna
+  have hbnbq : (bn : ℚ) = (b : ℚ) := by
+    exact Rat.ext (id (Eq.symm hbnbz)) rfl
 
-  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b hao hbo clemma_left clemma_right
+
+  have hrmn : r.natAbs < m := by
+    -- norm_cast at hrm
+    norm_cast
+    suffices hz : (r.natAbs : ℤ) < (m : ℤ) by
+      exact Int.ofNat_lt.mp hz
+    linarith
+
+  have h3m : (3 : ℤ) ≤ m := by
+    exact Nat.ofNat_le_cast.mpr mb
+
+  have hmn' : (2 : ℤ) * m ≤ n := by
+    exact Int.toNat_le.mp ngeq2m
+
+  let hgd := main hr h3m hmn' hblb hbub hmdiv hob
+
+  let ⟨ a, hao, hleft, hright, hazq ⟩ := hgd
+
+  have hapos : a ≥ 0 := by
+    have hbbreorg : b ^ 2 < 4 * a := by
+      exact Int.lt_of_sub_neg hleft
+    have h2bpos : b^2 ≥ 0 := by
+      exact sq_nonneg b
+
+    have h4a : 0 < 4 * a := by
+      calc _
+        0 ≤ b^2 := by exact h2bpos
+        _ < 4 * a := by exact hbbreorg
+
+    contrapose h4a
+    simp
+    simp at h4a
+    exact Int.le_of_lt h4a
+
+  have hleft' : b.natAbs ^ 2 < 4 * a := by
+    dsimp [bn] at hbnbz
+    rw [← hbnbz]
+    exact Int.lt_of_sub_neg hleft
+
+  have hright' : 3 * a < b.natAbs ^ 2 + 2 * b.natAbs + 4 := by
+    dsimp [bn] at hbnbz
+    rw [← hbnbz]
+    exact Int.lt_of_sub_pos hright
+
+  let ⟨ s, t, u, v, hstuv ⟩ := CauchyLemma a hapos b.natAbs hao hobnn hleft' hright'
+
   /- Probably rewrite to one-two lines to not overpopulate state -/
   let sl : ℚ := (m / 2) * (s^2 - s) + s
   let tl : ℚ := (m / 2) * (t^2 - t) + t
@@ -617,51 +525,62 @@ theorem CauchyPolygonalNumberTheorem
 
   let l₁ : List (Polygonal (m+2) (by linarith)) := []
 
-  let ms₁ := List.replicate r poly1
+  let ms₁ := List.replicate r.natAbs poly1
 
   have ms₃repl (r : ℕ) : List.replicate (r + 1) poly1 = poly1 :: List.replicate r poly1 := rfl
 
-  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) hm2geq3 (List.replicate r poly1)  = r := by
+  have ms₁induc (r : ℕ) : sumPolyToInt (m+2) hm2geq3 (List.replicate r poly1) = r := by
     induction' r with r hr
     . simp [sumPolyToInt]
     . rw [ms₃repl]
       simp [sumPolyToInt]
       simp [foldrfun]
-
       simp [sumPolyToInt] at hr
       rw [hr]
       ring
 
-  have ms₁sum' : List.foldr (foldrfun (↑m + 2) hm2geq3) 0 ms₁ = r := by
-    exact ms₁induc r
+  have ms₁sum' : List.foldr (foldrfun (↑m + 2) hm2geq3) 0 ms₁ = r.natAbs := by
+    exact ms₁induc r.natAbs
 
-  have ms₁card : ms₁.length = r := by
-    exact List.length_replicate r poly1
+  have ms₁card : ms₁.length = r.natAbs := by
+    exact List.length_replicate r.natAbs poly1
   /-
     Equation (5)
   -/
-  have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r := by
+  have h₂ : (n : ℚ) = ((m : ℚ) / 2) * ((a : ℚ) - b) + b + r.natAbs := by
     have hmeq : (m : ℚ) * (m : ℚ)⁻¹ = 1 := by
       exact Rat.mul_inv_cancel (↑m) hmnot0
     rw [hazq]
     simp
-    rw [← mul_assoc, mul_comm]
+    ring
+    rw [mul_comm] at hmeq
+    rw [← mul_comm, ← mul_assoc, mul_comm]
+    rw [hmeq]
     simp
     ring
-    repeat
-      rw [mul_assoc]
-      rw [hmeq]
-      simp
+    rw [mul_comm] at hmeq
+    rw [hmeq]
+    simp
+    ring
+    rw [mul_assoc, mul_comm, mul_assoc]
+    rw [mul_comm] at hmeq
+    rw [hmeq]
+    ring
+    rw [← hrnaq]
+    simp
 
 
   /- The sum of the numbers is `n` -/
-  have corsum : sl + tl + ul + vl + r = n := by
+  have corsum : sl + tl + ul + vl + r.natAbs = n := by
     dsimp [sl, tl, ul, vl]
-    rw [h₂, hstuv.left, hstuv.right]
+    rw [h₂, hstuv.left]
+    rw [hbnbz]
+    dsimp [bn]
+    rw [hstuv.right]
     simp
     ring
 
-  have corsum₀ : (((|⌈ sl ⌉| + |⌈ tl ⌉| + |⌈ ul ⌉| + |⌈ vl ⌉| + r) : ℤ) : ℚ) = (n : ℤ) := by
+  have corsum₀ : (((|⌈ sl ⌉| + |⌈ tl ⌉| + |⌈ ul ⌉| + |⌈ vl ⌉| + r.natAbs) : ℤ) : ℚ) = (n : ℤ) := by
     simp
 
     have hstep (x : ℚ) : |(⌈ x ⌉ : ℚ)| = |⌈ x ⌉| := by
@@ -669,9 +588,13 @@ theorem CauchyPolygonalNumberTheorem
 
     rw [hstep sl, hstep tl, hstep ul, hstep vl]
     rw [← slint, ← tlint, ← ulint, ← vlint]
-    exact corsum
+    rw [← corsum]
+    simp
+    norm_cast
+    exact Eq.symm (Nat.cast_natAbs r)
 
   have corsum' : |⌈ sl ⌉| + |⌈ tl ⌉| + |⌈ ul ⌉| + |⌈ vl ⌉| + r = n := by
+    rw [hrna]
     exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm corsum₀)))
 
   let S : List (Polygonal (m+2) hm2geq3) :=
@@ -689,10 +612,12 @@ theorem CauchyPolygonalNumberTheorem
     simp [foldrfun]
     rw [← add_assoc, ← add_assoc, ← add_assoc]
     rw [ms₁sum']
-    exact corsum'
+    exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm corsum₀)))
   . -- Proof its size is correct
     simp [S]
     rw [ms₁card]
     have hr : r + 3 ≤ m := by
-      exact Nat.add_le_of_le_sub mb hrb'
-    exact hr
+      exact Int.add_le_of_le_sub_right hrm
+
+    rw [hrna] at hr
+    norm_cast at hr
