@@ -800,23 +800,52 @@ def getlepoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
   let S' := loop n Finset.empty
   S'
 
-theorem getlepolyCorrect (m : ℤ) (n : ℕ) (hm : m ≥ 3) : ∀ (p : Polygonal m hm), p ∈ getlepoly m n hm ↔ p.val ≤ n := by
+def getlepoly_helper (m : ℤ) (n : ℕ) (hm : m ≥ 3) (i : ℕ) (s : Finset (Polygonal m hm)) : Finset (Polygonal m hm) :=
+  let poly₀
+  match i with
+  | 0 => (insert 0 s)
+  | i + 1 =>
+    let poly := getnthpoly m (i + 1) hm
+    if poly.val ≤ n then
+      getlepoly_helper m n hm i (insert poly s)
+    else
+      getlepoly_helper m n hm i s
+
+def getlepoly' (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
+  getlepoly_helper m n hm n Finset.empty
+
+theorem getlepolyCorrect (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly' m n hm = { x : Polygonal m hm | x.val ≤ n } := by
+  dsimp [getlepoly']
+  refine Set.ext ?_
   intro p
   constructor
   . intro h
     simp at h
-    dsimp [getlepoly] at h
+    refine Set.mem_setOf.mpr ?_
+    rw [getlepoly_helper.eq_def] at h
+    simp at h
 
-    -- rw [getlepoly.loop]
+    split at h
+    . sorry
+    . sorry
 
+  . intro h
+    simp
+    simp at h
+    rw [getlepoly_helper.eq_def]
+    match n with
+    | 0 =>
+      simp
 
+      sorry
+    | i + 1 => sorry
 
+def S := { x : Polygonal 4 (by simp) | x.val ≤ 879 }
 
-    sorry
-  . sorry
-
+-- #eval S
 
 #eval getlepoly 4 879 (by simp)
+#eval getlepoly' 5 879 (by simp)
 
 
 -- def IsNKPoly (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) :=
