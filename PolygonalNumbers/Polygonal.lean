@@ -773,10 +773,50 @@ def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
   have h : IsnPolygonal m ⌈ num ⌉.natAbs hm := by
     have hm' : (m - 2 + 2) ≥ 3 := by linarith
     dsimp [num]
-    -- apply polyformval (m - 2) n hm'
-    sorry
+    suffices h' :  IsnPolygonal (m - 2 + 2) ⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉.natAbs hm' by
+      simp at h'
+      simp
+      exact h'
+    refine polyformval (m - 2) n hm'
 
   ⟨ ⌈ num ⌉.natAbs, h ⟩
+
+
+
+def getlepoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
+  let rec loop (i : ℕ) (s : Finset (Polygonal m hm)) : Finset (Polygonal m hm) :=
+    match i with
+    | 0 => s
+    | i + 1 =>
+      let poly := getnthpoly m (i + 1) hm
+      if poly.val ≤ n then
+        loop (i) (insert poly s)
+      else
+        loop (i) s
+
+      -- loop (i) (insert (getnthpoly m i hm) s)
+  termination_by i
+
+  let S' := loop n Finset.empty
+  S'
+
+theorem getlepolyCorrect (m : ℤ) (n : ℕ) (hm : m ≥ 3) : ∀ (p : Polygonal m hm), p ∈ getlepoly m n hm ↔ p.val ≤ n := by
+  intro p
+  constructor
+  . intro h
+    simp at h
+    dsimp [getlepoly] at h
+
+    -- rw [getlepoly.loop]
+
+
+
+
+    sorry
+  . sorry
+
+
+#eval getlepoly 4 879 (by simp)
 
 
 -- def IsNKPoly (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) :=

@@ -17,164 +17,177 @@
     \]
 \end{definition}
 
-%
-% x120bound
-%
-
-\begin{lemma}
-    \label{lem:x120bound}
-    If $x\geq 120$, then $\sqrt{8x-8}-\sqrt{6x-3}>4$
-\end{lemma}
-
-\begin{proof}
-    \begin{align}
-        \sqrt{8x-8}-\sqrt{6x-3} &= \frac{((\sqrt{8x-8}-\sqrt{6x-3})\cdot (\sqrt{8x-8}+\sqrt{6x-3}))}{\sqrt{8x-8}+\sqrt{6x-3}} \\
-        &= \frac{(8x-8)-(6x-3)}{\sqrt{8x-8}+\sqrt{6x-3}} \\
-        &> \frac{2x-5}{\sqrt{8x-4}+\sqrt{6x-3}} \\
-        &= \frac{(2x-1)-4}{2\sqrt{2x-1}+\sqrt{3}\sqrt{2x-1}} \\
-        &= \frac{(2x-1)-4}{(2+\sqrt{3})(\sqrt{2x+1})} \\
-        &= \frac{1}{2+\sqrt{3}}\cdot \left(\sqrt{2x-1} - \frac{4}{\sqrt{2x-1}}\right) \\
-        &\geq \frac{1}{2+\sqrt{3}}\cdot \left(\sqrt{239} - \frac{4}{\sqrt{239}}\right) \\
-        (&\simeq 4.06307)\\
-        &>4
-    \end{align} 
-\end{proof}
-
-%
-% The interval length is greater than 4
-%
-
-\begin{lemma}[Interval Length]
-    \label{lem:IntervalLength}
-    \lean{interval_length}
-    \uses{lem:x120bound}
-
-    Let $n, m\in \N$, with $m\geq 3$, $n\geq 120 \cdot m$, then:
-
-    \[
-        \left(\frac{2}{3} + \sqrt{8 \cdot \frac{n}{m} - 8}\right) - \left(\frac{1}{2} + \sqrt{6 \cdot \frac{n}{m} - 3}\right) > 4
-    \]
-
-    i.e., the length of the interval $\left(\frac{1}{2}+\sqrt{6\cdot \frac{n}{m}-3}; \frac{2}{3} + \sqrt{8\cdot \frac{n}{m} - 8}\right)$ is greater than 4.
-\end{lemma}
-
-\begin{proof}
-    Note that,
-    \[
-        \left(\frac{2}{3} + \sqrt{8 \cdot \frac{n}{m} - 8}\right) - \left(\frac{1}{2} + \sqrt{6 \cdot \frac{n}{m} - 3}\right) > \sqrt{8\cdot \frac{n}{m} - 8} - \sqrt{6\cdot \frac{n}{m} - 3}
-    \]
-
-    Note also that $\frac{n}{m}\geq 120$, and thus by Lemma \ref{lem:x120bound}, we have that $\sqrt{8\cdot \frac{n}{m} - 8} - \sqrt{6\cdot \frac{n}{m} - 3} > 4$, hence the result.
-\end{proof}
-
-%
-% Their exists an odd pair
-%
-
-\begin{lemma}[Existence of Odd Pair]
-    \label{lem:ExistsOddPair}
-    \lean{odd_pair_four_interval}
+\begin{theorem}[mod_m_congr]
+    \label{thm:mod_m_congr}
+    \lean{mod_m_congr}
     \leanok
-
-    Let $a,b\in \R$ such that $b - a > 4$, then there exists two consecutive odd integers $x,y\in \Z$ such that $a < x < y < b$.
-
-    In other words, there exists $x,y\in (a,b)$, such that $y=x+2$, and $x,y$ are odd.
-\end{lemma}
-
-\begin{proof}
-    \leanok
-    Note either $a<\lceil{a}\rceil\in (a,b)$, or $a=\lceil{a}\rceil\notin (a,b)$. If $\lceil{a}\rceil\in (a,b)$, then let $c=\lceil{a}\rceil\in (a,b)$, otherwise, let $c=\lceil{a}\rceil+1\in (a,b)$.
-
-    Note that in either case $a<c \leq a + 1$.
-
-    Then $c$ is either even or odd. If $c$ is even, let $x=c+1$, and $x=c$ otherwise (i.e., $c$ is odd). Then $x$ and $x+2$ are odd. It remains to show that $y=x+2\in (a,b)$, i.e., $y < b$.
-
-    Note that $a<x\leq c + 1\leq (a + 1) + 1= a + 2$, thus $y=x+2\leq a + 4$. Since $b - a > 4$, we have $b > a + 4$, and thus $y < b$.
-\end{proof}
-
-%
-% cauchy 1
-%
-
-\begin{lemma}
-    \label{lem:b2leq4a}
-    \lean{cauchy_setup_a}
+    Test
     
-    Let $n,m\in \N$, $m\geq 3$, $n\geq 120\cdot m$, let $a,b\in\N$ be odd, and let $r\in\{0,1,\dots,m-3\}$ be such that:
-
-    \[
-        a=\left(1-\frac{2}{m}\right)\cdot b + 2\left(\frac{n-r}{m}\right)
-    \]
-
-    If $b<\frac{2}{3} + \sqrt{8\cdot\frac{n}{m} - 8}$, then $b^2-4a<0$
-\end{lemma}
-
-\begin{proof}
-    By our assumption, we have $\left(b-\frac{2}{3}\right)^2 < 8\cdot\frac{n}{m} - 8$, then:
-    \begin{align}
-        b^2-4a &= \left(b-\frac{2}{3}\right)^2 + \frac{4}{3}b - \frac{4}{9} - 4a \\
-        &<8\left(\frac{n}{m}\right) + \frac{4}{3}b - \frac{4}{9} - 4\left(\left(1-\frac{2}{m}\right)b + 2\left(\frac{n-r}{m}\right)\right) \\
-        &= b\left(\frac{4}{3} - 4\left(1-\frac{2}{m}\right)\right) + 8\left(\frac{n}{m}\right) - 8 - \frac{4}{9} - 8\left(\frac{n-r}{m}\right) \\
-        &= 4b\left(\frac{-2}{3} +\frac{2}{m}\right) - 8\left(1 - \frac{r}{m}\right) - \frac{4}{9} \\
-        &= -\underbrace{8b\left(\frac{1}{3} -\frac{1}{m}\right)}_{>0} - \underbrace{8\left(1 - \frac{r}{m}\right)}_{>0} - \underbrace{\frac{4}{9}}_{>0} \\
-        &<0
-    \end{align}
-\end{proof}
-
-%
-% cauchy 2
-%
-
-\begin{lemma}
-    \label{lem:b22b43a}
-    \lean{cauchy_setup_b}
-    
-    Let $n,m\in \N$, $m\geq 3$, $n\geq 120\cdot m$, let $a,b\in\N$ be odd, and let $r\in\{0,1,\dots,m-3\}$ be such that:
-
-    \[
-        a=\left(1-\frac{2}{m}\right)\cdot b + 2\left(\frac{n-r}{m}\right)
-    \]
-
-    If $b>\frac{1}{2} + \sqrt{6\cdot\frac{n}{m} - 3}$, then $b^2+2b+4-3a>0$
-\end{lemma}
-
-\begin{proof}
-    By our assumption, we have $(b-\frac{1}{2})^2>6\cdot \frac{n}{m} - 3$, then:
-
-    \begin{align}
-        b^2+2b+4-3a &= \left(b-\frac{1}{2}\right)^2 + 3b + \frac{15}{4} - 3a \\
-        &> 6\cdot \frac{n}{m} - 3 + \frac{15}{4} + 3\left(b-a\right) \\
-        &=6\cdot\frac{n}{m} + \frac{3}{4} + 3\left(\frac{2}{m}b - 2\frac{n-r}{m}\right) \\
-        &=\frac{3}{4} + 6\frac{n}{m} + \frac{6b}{m}-6\frac{n-r}{m} \\
-        &=\frac{3}{4} + 6\left(\frac{n}{m} + \frac{b}{m} - \frac{n-r}{m}\right) \\
-        &=\frac{3}{4} + 6\left(\frac{b+r}{m}\right) \\
-        &>0
-    \end{align}
-\end{proof}
-
-\begin{lemma}[Cauchy's Lemma]
-    \label{lem:CauchyLemma}
-    \lean{CauchyLemma}
-    \leanok
-
-    Let $a,b$ be odd positive integers such that $b^2<4a$ and $3a<b^2+2b+4$, then there exists nonnegative integers $s,t,u,v$ such that:
-
-    \[
-        a=s^2+t^2+u^2+v^2 \quad \text{and} \quad b=s+t+u+v
-    \]
-\end{lemma}
-
-\begin{proof}
-    Omitted.
-\end{proof}
-
-
-%
-% CPNT
-%
-\begin{theorem}[Cauchy's Polygonal Number Theorem]
-    \label{thm:thmone}
-    \lean{CauchyPolygonalNumberTheorem}
-    \uses{def:Polygonal,lem:ExistsOddPair,lem:IntervalLength,lem:b2leq4a,lem:b22b43a}
-    Let $m\geq 3$ and $n\geq 120\cdot m$ be integers. Then $n$ is the sum of $m+1$ polygonal numbers of order $m+2$, at most $4$ of which are different from $0$ or $1$. 
 \end{theorem}
+
+
+% %
+% % x120bound
+% %
+
+% \begin{lemma}
+%     \label{lem:x120bound}
+%     If $x\geq 120$, then $\sqrt{8x-8}-\sqrt{6x-3}>4$
+% \end{lemma}
+
+% \begin{proof}
+%     \begin{align}
+%         \sqrt{8x-8}-\sqrt{6x-3} &= \frac{((\sqrt{8x-8}-\sqrt{6x-3})\cdot (\sqrt{8x-8}+\sqrt{6x-3}))}{\sqrt{8x-8}+\sqrt{6x-3}} \\
+%         &= \frac{(8x-8)-(6x-3)}{\sqrt{8x-8}+\sqrt{6x-3}} \\
+%         &> \frac{2x-5}{\sqrt{8x-4}+\sqrt{6x-3}} \\
+%         &= \frac{(2x-1)-4}{2\sqrt{2x-1}+\sqrt{3}\sqrt{2x-1}} \\
+%         &= \frac{(2x-1)-4}{(2+\sqrt{3})(\sqrt{2x+1})} \\
+%         &= \frac{1}{2+\sqrt{3}}\cdot \left(\sqrt{2x-1} - \frac{4}{\sqrt{2x-1}}\right) \\
+%         &\geq \frac{1}{2+\sqrt{3}}\cdot \left(\sqrt{239} - \frac{4}{\sqrt{239}}\right) \\
+%         (&\simeq 4.06307)\\
+%         &>4
+%     \end{align} 
+% \end{proof}
+
+% %
+% % The interval length is greater than 4
+% %
+
+% \begin{lemma}[Interval Length]
+%     \label{lem:IntervalLength}
+%     \lean{interval_length}
+%     \uses{lem:x120bound}
+
+%     Let $n, m\in \N$, with $m\geq 3$, $n\geq 120 \cdot m$, then:
+
+%     \[
+%         \left(\frac{2}{3} + \sqrt{8 \cdot \frac{n}{m} - 8}\right) - \left(\frac{1}{2} + \sqrt{6 \cdot \frac{n}{m} - 3}\right) > 4
+%     \]
+
+%     i.e., the length of the interval $\left(\frac{1}{2}+\sqrt{6\cdot \frac{n}{m}-3}; \frac{2}{3} + \sqrt{8\cdot \frac{n}{m} - 8}\right)$ is greater than 4.
+% \end{lemma}
+
+% \begin{proof}
+%     Note that,
+%     \[
+%         \left(\frac{2}{3} + \sqrt{8 \cdot \frac{n}{m} - 8}\right) - \left(\frac{1}{2} + \sqrt{6 \cdot \frac{n}{m} - 3}\right) > \sqrt{8\cdot \frac{n}{m} - 8} - \sqrt{6\cdot \frac{n}{m} - 3}
+%     \]
+
+%     Note also that $\frac{n}{m}\geq 120$, and thus by Lemma \ref{lem:x120bound}, we have that $\sqrt{8\cdot \frac{n}{m} - 8} - \sqrt{6\cdot \frac{n}{m} - 3} > 4$, hence the result.
+% \end{proof}
+
+% %
+% % Their exists an odd pair
+% %
+
+% \begin{lemma}[Existence of Odd Pair]
+%     \label{lem:ExistsOddPair}
+%     \lean{odd_pair_four_interval}
+%     \leanok
+
+%     Let $a,b\in \R$ such that $b - a > 4$, then there exists two consecutive odd integers $x,y\in \Z$ such that $a < x < y < b$.
+
+%     In other words, there exists $x,y\in (a,b)$, such that $y=x+2$, and $x,y$ are odd.
+% \end{lemma}
+
+% \begin{proof}
+%     \leanok
+%     Note either $a<\lceil{a}\rceil\in (a,b)$, or $a=\lceil{a}\rceil\notin (a,b)$. If $\lceil{a}\rceil\in (a,b)$, then let $c=\lceil{a}\rceil\in (a,b)$, otherwise, let $c=\lceil{a}\rceil+1\in (a,b)$.
+
+%     Note that in either case $a<c \leq a + 1$.
+
+%     Then $c$ is either even or odd. If $c$ is even, let $x=c+1$, and $x=c$ otherwise (i.e., $c$ is odd). Then $x$ and $x+2$ are odd. It remains to show that $y=x+2\in (a,b)$, i.e., $y < b$.
+
+%     Note that $a<x\leq c + 1\leq (a + 1) + 1= a + 2$, thus $y=x+2\leq a + 4$. Since $b - a > 4$, we have $b > a + 4$, and thus $y < b$.
+% \end{proof}
+
+% %
+% % cauchy 1
+% %
+
+% \begin{lemma}
+%     \label{lem:b2leq4a}
+%     \lean{cauchy_setup_a}
+    
+%     Let $n,m\in \N$, $m\geq 3$, $n\geq 120\cdot m$, let $a,b\in\N$ be odd, and let $r\in\{0,1,\dots,m-3\}$ be such that:
+
+%     \[
+%         a=\left(1-\frac{2}{m}\right)\cdot b + 2\left(\frac{n-r}{m}\right)
+%     \]
+
+%     If $b<\frac{2}{3} + \sqrt{8\cdot\frac{n}{m} - 8}$, then $b^2-4a<0$
+% \end{lemma}
+
+% \begin{proof}
+%     By our assumption, we have $\left(b-\frac{2}{3}\right)^2 < 8\cdot\frac{n}{m} - 8$, then:
+%     \begin{align}
+%         b^2-4a &= \left(b-\frac{2}{3}\right)^2 + \frac{4}{3}b - \frac{4}{9} - 4a \\
+%         &<8\left(\frac{n}{m}\right) + \frac{4}{3}b - \frac{4}{9} - 4\left(\left(1-\frac{2}{m}\right)b + 2\left(\frac{n-r}{m}\right)\right) \\
+%         &= b\left(\frac{4}{3} - 4\left(1-\frac{2}{m}\right)\right) + 8\left(\frac{n}{m}\right) - 8 - \frac{4}{9} - 8\left(\frac{n-r}{m}\right) \\
+%         &= 4b\left(\frac{-2}{3} +\frac{2}{m}\right) - 8\left(1 - \frac{r}{m}\right) - \frac{4}{9} \\
+%         &= -\underbrace{8b\left(\frac{1}{3} -\frac{1}{m}\right)}_{>0} - \underbrace{8\left(1 - \frac{r}{m}\right)}_{>0} - \underbrace{\frac{4}{9}}_{>0} \\
+%         &<0
+%     \end{align}
+% \end{proof}
+
+% %
+% % cauchy 2
+% %
+
+% \begin{lemma}
+%     \label{lem:b22b43a}
+%     \lean{cauchy_setup_b}
+    
+%     Let $n,m\in \N$, $m\geq 3$, $n\geq 120\cdot m$, let $a,b\in\N$ be odd, and let $r\in\{0,1,\dots,m-3\}$ be such that:
+
+%     \[
+%         a=\left(1-\frac{2}{m}\right)\cdot b + 2\left(\frac{n-r}{m}\right)
+%     \]
+
+%     If $b>\frac{1}{2} + \sqrt{6\cdot\frac{n}{m} - 3}$, then $b^2+2b+4-3a>0$
+% \end{lemma}
+
+% \begin{proof}
+%     By our assumption, we have $(b-\frac{1}{2})^2>6\cdot \frac{n}{m} - 3$, then:
+
+%     \begin{align}
+%         b^2+2b+4-3a &= \left(b-\frac{1}{2}\right)^2 + 3b + \frac{15}{4} - 3a \\
+%         &> 6\cdot \frac{n}{m} - 3 + \frac{15}{4} + 3\left(b-a\right) \\
+%         &=6\cdot\frac{n}{m} + \frac{3}{4} + 3\left(\frac{2}{m}b - 2\frac{n-r}{m}\right) \\
+%         &=\frac{3}{4} + 6\frac{n}{m} + \frac{6b}{m}-6\frac{n-r}{m} \\
+%         &=\frac{3}{4} + 6\left(\frac{n}{m} + \frac{b}{m} - \frac{n-r}{m}\right) \\
+%         &=\frac{3}{4} + 6\left(\frac{b+r}{m}\right) \\
+%         &>0
+%     \end{align}
+% \end{proof}
+
+% \begin{lemma}[Cauchy's Lemma]
+%     \label{lem:CauchyLemma}
+%     \lean{CauchyLemma}
+%     \leanok
+
+%     Let $a,b$ be odd positive integers such that $b^2<4a$ and $3a<b^2+2b+4$, then there exists nonnegative integers $s,t,u,v$ such that:
+
+%     \[
+%         a=s^2+t^2+u^2+v^2 \quad \text{and} \quad b=s+t+u+v
+%     \]
+% \end{lemma}
+
+% \begin{proof}
+%     Omitted.
+% \end{proof}
+
+
+% %
+% % CPNT
+% %
+% \begin{theorem}[Cauchy's Polygonal Number Theorem]
+%     \label{thm:thmone}
+%     \lean{CauchyPolygonalNumberTheorem}
+%     \uses{def:Polygonal,lem:ExistsOddPair,lem:IntervalLength,lem:b2leq4a,lem:b22b43a}
+%     Let $m\geq 3$ and $n\geq 120\cdot m$ be integers. Then $n$ is the sum of $m+1$ polygonal numbers of order $m+2$, at most $4$ of which are different from $0$ or $1$. 
+% \end{theorem}
+
+%%%
+% mod_m_congr
+%%%
