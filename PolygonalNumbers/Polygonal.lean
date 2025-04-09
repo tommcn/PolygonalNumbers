@@ -1016,6 +1016,39 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m x hm} = { (g
     let ⟨ k', p⟩ := k
     exact p
 
+---- =================================================== --------
+
+-- def LEPolygonal (m : ℤ) (hm : m ≥ 3) (b : ℕ) := Subtype (fun (n : Polygonal m hm) ↦ n.val ≤ b)
+-- def LEPolygonal (m : ℤ) (hm : m ≥ 3) (b : ℕ) := {n : Polygonal m hm // n.val ≤ b}
+-- instance : Fintype (LEPolygonal m hm b) where
+--   elems :=
+--     let S := Fin b
+--     let S' := { (getnthpoly m (x : ℕ) hm) | (x : ℕ) ∈ Fin b}
+--     -- let S' : Multiset ℕ := Multiset.set
+--     -- let S : Finset ℕ  := ⟨ ({a | a ≤ b} : Multiset (Polygonal m hm)), sorry ⟩
+--     sorry
+--   complete := sorry
+
+def getnthpolyfun (m : ℤ) (hm : m ≥ 3) (x : ℕ) : Polygonal m hm := getnthpoly m x hm
+
+example (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Set.Finite ((getnthpolyfun m hm) '' {x | x ≤ b}) := by
+  exact Set.toFinite (getnthpolyfun m hm '' {x | x ≤ b})
+
+def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Set (Polygonal m hm) :=
+  let S := (getnthpolyfun m hm) '' {x | x ≤ b}
+  have hf : Set.Finite S := by
+    exact Set.toFinite S
+
+  let MS : Multiset (Polygonal m hm) := ⟨ S, hf ⟩
+
+
+  sorry
+
+-- def getuptonthpoly (m : ℤ) (b : ℕ) (hm : m ≥ 3) : Finset (LEPolygonal m hm b) :=
+--   let S : Finset (LEPolygonal m hm b) := { ⟨ getnthpoly m x hm, sorry ⟩  | h : x ≤ b }
+
+--   S
+
 
 def getlepoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
   let rec loop (i : ℕ) (s : Finset (Polygonal m hm)) : Finset (Polygonal m hm) :=
@@ -1027,8 +1060,6 @@ def getlepoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
         loop (i) (insert poly s)
       else
         loop (i) s
-
-      -- loop (i) (insert (getnthpoly m i hm) s)
   termination_by i
 
   let S' := loop n Finset.empty
