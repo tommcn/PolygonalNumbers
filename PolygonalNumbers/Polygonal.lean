@@ -602,6 +602,7 @@ instance : BEq (Polygonal m hm) where
              then true
              else false
 
+
 instance : LawfulBEq (Polygonal m hm) where
   rfl := by
     intro a
@@ -625,9 +626,9 @@ instance : DecidableEq (Polygonal n hm) :=
     else
       isFalse (by rw [a.eq_iff]; exact h)
 
+
 instance : LE (Polygonal m hm) where
   le a b := a.val ≤ b.val
-
 
 lemma Polyrw (m : ℤ) (n : ℕ) (hm : m ≥ 3) : IsnPolygonal m n hm ↔ IsnPolygonal' m n hm := by
   rw [PolyEquiv]
@@ -646,6 +647,8 @@ def PolyOne (m : ℤ) (hm : m ≥ 3) : Polygonal m hm := ⟨ 1, one_is_poly m hm
 def PolyZero (m : ℤ) (hm : m ≥ 3) : Polygonal m hm := ⟨ 0, zero_is_poly m hm ⟩
 
 #eval PolyZero (3) (by linarith) ≤ PolyOne (3) (by linarith)
+
+#eval decide <| PolyOne (3) (by linarith) = PolyZero (3) (by linarith)
 
 instance : Decidable (IsnPolygonal m n h) := by
   rw [PolyEquiv₀]
@@ -798,7 +801,6 @@ def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
     refine polyformval (m - 2) n hm'
 
   ⟨ ⌈ num ⌉.natAbs, h ⟩
-
 
 lemma getnthpoly_monotone (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m n hm).val ≤ (getnthpoly m (n + 1) hm).val := by
   dsimp [getnthpoly]
@@ -1016,305 +1018,118 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m x hm} = { (g
     let ⟨ k', p⟩ := k
     exact p
 
----- =================================================== --------
-
--- def LEPolygonal (m : ℤ) (hm : m ≥ 3) (b : ℕ) := Subtype (fun (n : Polygonal m hm) ↦ n.val ≤ b)
--- def LEPolygonal (m : ℤ) (hm : m ≥ 3) (b : ℕ) := {n : Polygonal m hm // n.val ≤ b}
--- instance : Fintype (LEPolygonal m hm b) where
---   elems :=
---     let S := Fin b
---     let S' := { (getnthpoly m (x : ℕ) hm) | (x : ℕ) ∈ Fin b}
---     -- let S' : Multiset ℕ := Multiset.set
---     -- let S : Finset ℕ  := ⟨ ({a | a ≤ b} : Multiset (Polygonal m hm)), sorry ⟩
---     sorry
---   complete := sorry
 
 def getnthpolyfun (m : ℤ) (hm : m ≥ 3) (x : ℕ) : Polygonal m hm := getnthpoly m x hm
 
 example (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Set.Finite ((getnthpolyfun m hm) '' {x | x ≤ b}) := by
   exact Set.toFinite (getnthpolyfun m hm '' {x | x ≤ b})
 
-def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Set (Polygonal m hm) :=
-  let S := (getnthpolyfun m hm) '' {x | x ≤ b}
-  have hf : Set.Finite S := by
-    exact Set.toFinite S
-
-  let MS : Multiset (Polygonal m hm) := ⟨ S, hf ⟩
-
-
-  sorry
-
--- def getuptonthpoly (m : ℤ) (b : ℕ) (hm : m ≥ 3) : Finset (LEPolygonal m hm b) :=
---   let S : Finset (LEPolygonal m hm b) := { ⟨ getnthpoly m x hm, sorry ⟩  | h : x ≤ b }
-
---   S
+def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Finset (Polygonal m hm) :=
+  let r : Finset ℕ := Finset.range (b + 1)
+  let S := (getnthpolyfun m hm) '' r
+  let FS : Finset (Polygonal m hm) := S.toFinset
+  FS.filter (fun x ↦ x.val ≤ b)
 
 
-def getlepoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
-  let rec loop (i : ℕ) (s : Finset (Polygonal m hm)) : Finset (Polygonal m hm) :=
-    match i with
-    | 0 => s
-    | i + 1 =>
-      let poly := getnthpoly m (i + 1) hm
-      if poly.val ≤ n then
-        loop (i) (insert poly s)
-      else
-        loop (i) s
-  termination_by i
+#eval (getlepoly₀ 7 (by linarith) 146)
+#eval decide <| IsnPolygonal 3 1456 (by linarith)
 
-  let S' := loop n Finset.empty
-  S'
 
-def getlepoly_helper (m : ℤ) (n : ℕ) (hm : m ≥ 3) (i : ℕ) (s : Finset (Polygonal m hm)) : Finset (Polygonal m hm) :=
-  have h₀ : IsnPolygonal m 0 hm := by
-    dsimp [IsnPolygonal]
-    left
-    simp
-  match i with
-  | 0 => (insert (PolyZero m hm) s)
-  | i + 1 =>
-    let poly := getnthpoly m (i + 1) hm
-    if poly.val ≤ n then
-      getlepoly_helper m n hm i (insert poly s)
-    else
-      getlepoly_helper m n hm i s
+theorem poly_eq (m : ℤ) (hm : m ≥ 3) (p : Polygonal m hm) (q : Polygonal m hm) : p = q ↔ p.val = q.val := by
+  refine beq_eq_beq.mp ?_
+  simp
+  constructor
+  . intro h
+    exact congrArg Subtype.val h
+  . intro h
 
-def getlepoly' (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Finset (Polygonal m hm) :=
-  getlepoly_helper m n hm n Finset.empty
+    sorry
 
-lemma getlepoly_helper_subset (m : ℤ) (n : ℕ) (hm : m ≥ 3) (i : ℕ) : ∀ s : Finset (Polygonal m hm), s ⊆ getlepoly_helper m n hm i s := by
-  induction i with
-  | zero =>
-    intro s
-    rw [getlepoly_helper]
-    exact Finset.subset_insert (PolyZero m hm) s
-  | succ i hi =>
-    intro s
-    rw [getlepoly_helper]
-    split
-    . case isTrue ha =>
-      intro p
-      intro h
-      have hss₁ : s ⊆ (insert (getnthpoly m (i + 1) hm) s) := Finset.subset_insert (getnthpoly m (i + 1) hm) s
-      let q := (insert (getnthpoly m (i + 1) hm) s)
-      have hqeq : q = insert (getnthpoly m (i + 1) hm) s := by
-        exact rfl
-      have hq : p ∈ q := by
-        exact hss₁ h
-      rw [← hqeq]
-      exact hi q (hss₁ h)
-    . case isFalse ha =>
-      exact hi s
 
--- #eval (({ x : Polygonal 3 (by linarith) | x.val ≤ 10 }) : Finset (Polygonal 3 (by linarith))).size
-
-example (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly' m n hm = { x : Polygonal m hm | x.val ≤ n } := by
+theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m hm n = { x : Polygonal m hm | x.val ≤ n } := by
+  dsimp [getlepoly₀]
   refine Set.ext ?_
   intro p
   constructor
   . intro h
-    induction n with
-    | zero =>
-      simp
-      dsimp [getlepoly', getlepoly_helper] at h
-      simp at h
-      rcases h with g | g
-      . sorry
-      . contrapose g
-        exact Finset.disjoint_singleton_left.mp fun ⦃x⦄ a a ↦ a
-    | succ n hn =>
-      dsimp [getlepoly', getlepoly_helper] at h
-      simp at *
-      suffices h' : p ∈ getlepoly' m n hm by
-        apply hn at h'
-        linarith
+    simp
+    simp at h
+    let ⟨ a, ⟨ ha₁, ha₂ ⟩ ⟩ := h.left
+    let h₁ := h.right
+    exact h₁
+  . intro h
+    simp
+    simp at h
+    constructor
+    . let ⟨a, ha⟩ := p
+      dsimp [IsnPolygonal] at h
+      dsimp [IsnPolygonal] at ha
+      rcases ha with g | g
+      . use 0
+        dsimp [getnthpolyfun]
+        dsimp [getnthpoly]
+        simp
+        -- weird equal thing
 
-      split at h
-      . sorry
-      . rw [getlepoly_helper.eq_def] at h
-        simp at h
-        match n with
-        | 0 =>
-          simp at h
-          sorry
-        | i + 1 =>
-          simp at h
-          rw [getlepoly']
-          split at h
-          .
+        sorry
+      . let ⟨ k, hk ⟩ := g
+        use k
+        constructor
+        . have h₂ : ((m : ℚ) - 2) / 2 * (k * (k - 1)) + k ≥ k := by
+            simp
+            refine Rat.mul_nonneg ?_ ?_
+            . refine Rat.div_nonneg ?_ rfl
+              norm_cast
+              linarith
+            . have hkp : (k : ℚ) ≥ 0 := by
+                refine Nat.cast_nonneg' k
+              have hk' : k = 0 ∨ k > 0 := by
+                exact Or.symm (Nat.zero_le k).gt_or_eq
+              rcases hk' with hkzero | hkpos
+              . rw [hkzero]
+                simp
+              . have hkposq : (k : ℚ) ≥ 1 := by
+                  exact Nat.one_le_cast.mpr hkpos
+                refine Rat.mul_nonneg ?_ ?_
+                linarith
+                linarith
+          rw [hk] at h₂
+          simp at h₂
+          linarith
+        . dsimp [getnthpolyfun]
+          dsimp [getnthpoly]
+
+          have h₀ : (((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k = |⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑k ^ 2 - ↑k) + ↑k⌉| := by
+            apply polyform (m - 2) k
+            linarith
+
+          suffices h' :  (getnthpoly m k hm).val = a by
+            dsimp [getnthpoly] at h'
+            simp
+
+
             sorry
-          . sorry
-  . sorry
 
+          dsimp [getnthpoly]
+          have hm2 : (((m - 2) : ℤ) : ℚ) = m - 2 := by simp
+          rw [← hm2]
+          rw [hm2] at h₀
+          rw [← kfactq k] at h₀
+          rw [h₀] at hk
 
-theorem getlepolyCorrect (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly' m n hm = { x : Polygonal m hm | x.val ≤ n } := by
-  dsimp [getlepoly']
-  refine Set.ext ?_
-  intro p
-  constructor
-  . intro h
-    simp at h
-    refine Set.mem_setOf.mpr ?_
-    rw [getlepoly_helper.eq_def] at h
-
-    match n with
-    | 0 =>
-      simp
-      simp at h
-      rcases h with g | g
-      . sorry
-      . sorry
-    | i + 1 =>
-      simp
-      simp at h
-      split at h
-      . sorry
-      . sorry
-
-    -- split at h
-    -- . simp
-    --   simp at h
-    --   rcases h with g | g
-    --   . sorry
-    --   . sorry
-    -- . simp
-    --   simp at h
-    --   split at h
-    --   . rw [getlepoly_helper.eq_def] at h
-    --     sorry
-    --   . sorry
-  . intro h
-    simp
-    simp at h
-    rw [getlepoly_helper.eq_def]
-    match n with
-    | 0 =>
-      simp
-      simp at h
-      left
-      sorry
-    | i + 1 => sorry
-
-def S := { x : Polygonal 4 (by simp) | x.val ≤ 879 }
-
--- #eval S
-
-#eval getlepoly 5 879 (by simp)
-#eval getlepoly' 5 879 (by simp)
-
-
--- def IsNKPoly (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) :=
-
-
-
-/-
-  ==================== Helper Functions ====================
-  The following are helper functions **not formally verified** in Lean4
--/
-
-
-/-
-def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
-  let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
-  have hnum : num  = ⌈ num ⌉ := by
-    dsimp [num]
-    have h : (m : ℚ) - 2 = (((m - 2) : ℤ) : ℚ) := by simp
-    rw [h]
-    apply polyform (((m - 2) : ℤ)) n
-
-  have h : IsnPolygonal m ⌈ num ⌉ hm := by
-    rw [PolyEquiv]
-    unfold IsnPolygonal'
-    use n
-    simp
-    rw [← hnum]
-
-  ⟨ ⌈ num ⌉, h ⟩
-
-
-#eval getnthpoly 4 1 (by simp)
-
-/--
- Test whether the a'th polygonal number is equal to n.
--/
-def ismnapoly_helper (m n : ℤ) (a : ℕ) (hm : m ≥ 3) : Bool :=
-  match a with
-  | 0 => false
-  | k + 1 => if ((getnthpoly m (k + 1) hm).val== n) then true else (ismnapoly_helper m n k hm)
-
-/--
-  Test whether n is a polygonal number of order m, by checking if it's the
-  k'th polygonal number, decrementing k until it reaches 0
-  (here k is n, but there are probably better upper bounds for a)
--/
-def ismnpoly (m n : ℤ) (hm : m ≥ 3) : Bool := ismnapoly_helper m n n.natAbs hm
-
-#eval ismnpoly 3 15 (by simp)
-
-
---
--- Given `s` and `x`, if `x` is an s-gonal number, returns
--- `some n` so that x is the nth s-gonal number. Otherwise
--- returns `none`.
-def nthPolygonal (s x : Nat) : Option Nat :=
-  let sq := if (s < 4) then 8 * (s - 2) * x + (4 - s) ^ 2 else 8 * (s - 2) * x + (s - 4) ^ 2
-  if IsSquare sq then
-    let r := dbgTraceVal <| Nat.sqrt sq
-    let d := 2 * (s - 2)
-    if (r + s - 4) % d == 0 then
-      some <| (r + s - 4) / d
-    else
-      none
-  else
-    none
-
-
-#eval nthPolygonal 3 55 -- some 10
-#eval nthPolygonal 4 17 -- none
-#eval nthPolygonal 6 66 -- some 6
--/
-
-
-/-
-  A `Polygonal` number of order $3$ is triangular.
--/
--- lemma PolyThreeIsTriangular (a : ℕ) : IsnPolygonal 3 a hm = (IsTriangular a) := by
---   unfold IsnPolygonal
---   unfold IsTriangular
---   simp
---   have htwoa : 2 * (a : ℚ) = (((2 * a) : ℤ) : ℚ) := by simp
---   constructor
---   . intro h
---     let ⟨ k, hk ⟩ := h
---     use k
---     have hiff : k * (k + 1) = 2 * a ↔ k * (k + 1) = 2 * (a : ℚ) := by
---       constructor
---       . intro h
---         rw [htwoa]
---         rw [← h]
---         simp
---       . intro h
---         have hkr : (k : ℚ) * (k + 1) = ((k * (k + 1) : ℤ)) := by
---           simp
---         rw [hkr, htwoa] at h
---         sorry
---         -- exact Eq.symm ((fun {a b} ↦ Real.intCast_inj.mp) (id (Eq.symm h)))
---     apply hiff.mpr
---     rw [← hk]
---     ring_nf
---   . intro h
---     let ⟨ k, hk ⟩ := h
---     ring_nf
---     use k
---     rw [← add_mul]
---     simp
---     have honetwo (a b : ℚ) : 2 * a = 2 * b → a = b := by
---       intro hone
---       apply mul_left_cancel₀ two_ne_zero hone
-
---     apply honetwo
-
---     rw [htwoa]
---     rw [← hk]
---     ring_nf
---     simp
+          suffices h₁ : |⌈((m : ℚ) - 2) / 2 * (↑k * (↑k - 1)) + ↑k⌉| = ⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs by
+            suffices h₂ : (a : ℚ) = (⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs : ℚ) by
+              apply Eq.symm
+              norm_cast
+              norm_cast at h₂
+            rw [← hk]
+            rw [h₁]
+            simp
+            rw [← hm2]
+            simp
+            norm_cast
+            norm_cast at h₁
+            exact Eq.symm (Nat.cast_natAbs (⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat (k ^ 2) k)⌉ + ↑k))
+          simp
+          rw [← kfactq k]
+    . exact h
