@@ -1147,7 +1147,7 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
     . exact h
 
 def IsNKPolygonal (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :=
-  ∃ S : Finset (Polygonal m hm), S.card ≤ k ∧ S.sum (fun x ↦ x.val) = n
+  ∃ S : List (Polygonal m hm), S.length = k ∧ sumPolyToInt m hm S = n
 
 def IsNKPolygonal' (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :=
   match k with
@@ -1157,13 +1157,188 @@ def IsNKPolygonal' (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :=
     (∃ p ∈ { p : Polygonal m hm | p.val ≤ n }, IsNKPolygonal' m hm (n - p.val) (k + 1))
   termination_by k
 
-
-theorem NKPolyEquiv (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) : IsNKPolygonal' m hm n k ↔ IsNKPolygonal m hm n k := by
+lemma IsNKPolygonalRec (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :
+  IsNKPolygonal m hm n k ↔ (∃ p ∈ { p : Polygonal m hm | p.val ≤ n }, IsNKPolygonal m hm (n - p.val) (k - 1)) := by
   constructor
   . intro h
-    unfold IsNKPolygonal' at h
-    sorry
-  . sorry
+    dsimp [IsNKPolygonal] at h
+    let ⟨ S, hS, hsum ⟩ := h
+    have hk : k = 0 ∨ k > 0 := by
+      exact Nat.eq_zero_or_pos k
+    rcases hk with g | g
+    . rw [g] at hS
+      simp at hS
+      rw [hS] at hsum
+      unfold sumPolyToInt at hsum
+      unfold foldrfun at hsum
+      simp at hsum
+      use PolyZero m hm
+      simp
+      have hn : n = 0 ∨ n > 0 := by
+        exact Nat.eq_zero_or_pos n
+      rcases hn with g' | g'
+      . rw [g']
+        unfold PolyZero
+        rw [g]
+        simp
+        unfold IsNKPolygonal
+        use []
+        simp
+        unfold sumPolyToInt
+        unfold foldrfun
+        simp
+      . have hn : n = 0 := by
+          norm_cast at hsum
+          exact Eq.symm hsum
+        have hn' : n ≠ 0 := by
+          exact Nat.not_eq_zero_of_lt g'
+        contradiction
+    . induction k with
+      | zero =>
+        contradiction
+      | succ i ih =>
+        simp
+        sorry
+  . intro h
+    let ⟨ p, hp₁, hp₂ ⟩ := h
+    simp at hp₁
+    unfold IsNKPolygonal
+    unfold IsNKPolygonal at hp₂
+    let ⟨ S, hS, hsum ⟩ := hp₂
+    use p :: S
+    simp
+    constructor
+    . sorry
+    . unfold sumPolyToInt
+      unfold sumPolyToInt at hsum
+      simp
+      rw [hsum]
+      unfold foldrfun
+      norm_cast
+      exact Nat.add_sub_of_le hp₁
+
+theorem NKPolyEquiv' (m : ℤ) (hm : m ≥ 3) : ∀ n : ℕ, (IsNKPolygonal' m hm n k ↔ IsNKPolygonal m hm n k) := by
+  induction k with
+  | zero => sorry
+  | succ i ih =>
+    intro n
+    constructor
+    . unfold IsNKPolygonal'
+      simp
+      match i with
+      | 0 =>
+        simp
+        intro h
+        use {⟨ n, h ⟩}
+        constructor
+        . rfl
+        . rfl
+      | 1 =>
+        simp
+        intro p
+        intro hple
+        intro h
+        let q := (ih (n - p.val)).mp h
+        unfold IsNKPolygonal
+        unfold IsNKPolygonal at q
+        let ⟨ S, h₁, h₂ ⟩ := q
+        use (p :: S)
+        constructor
+        . simp
+          exact h₁
+        . unfold sumPolyToInt
+          unfold sumPolyToInt at h₂
+          simp
+          unfold foldrfun
+          unfold foldrfun at h₂
+          rw [h₂]
+          norm_cast
+          exact Nat.add_sub_of_le hple
+      | l + 2 =>
+        simp
+        intro p
+        intro hple
+        intro h
+        let q := (ih (n - p.val)).mp h
+        unfold IsNKPolygonal
+        unfold IsNKPolygonal at q
+        let ⟨ S, h₁, h₂ ⟩ := q
+        use (p :: S)
+        constructor
+        . simp
+          exact h₁
+        . unfold sumPolyToInt
+          unfold sumPolyToInt at h₂
+          simp
+          rw [h₂]
+          unfold foldrfun
+          norm_cast
+          exact Nat.add_sub_of_le hple
+    . intro h
+      unfold IsNKPolygonal'
+      match i with
+      | 0 =>
+        simp
+        unfold IsNKPolygonal at h
+        let ⟨ S, hS ⟩ := h
+        simp at hS
+        have h₁ : S = [S[0]] := by
+          refine List.eq_of_length_one S hS.left
+        have h₁ : n = S[0].val := by
+          let h' := hS.right
+          unfold sumPolyToInt foldrfun at h'
+          rw [h₁] at h'
+          simp at h'
+          exact Eq.symm h'
+        rw [h₁]
+        exact S[0].prop
+      | 1 =>
+        simp
+        simp at h
+        unfold IsNKPolygonal at h
+        let ⟨ S, ⟨ h₁, h₂ ⟩ ⟩ := h
+
+        sorry
+      | l => sorry
+  -- constructor
+  -- . intro h
+  --   unfold IsNKPolygonal' at h
+  --   unfold IsNKPolygonal
+  --   match k with
+  --   | 0 => exact False.elim h
+  --   | 1 =>
+  --     simp at h
+  --     use {⟨ n, h ⟩}
+  --     simp
+  --   | l + 2 =>
+  --     induction l with
+  --     | zero =>
+  --       simp at h
+  --       simp
+  --       let ⟨ p, ⟨ h₁, h₂ ⟩ ⟩ := h
+  --       unfold IsNKPolygonal' at h₂
+  --       let S : Finset (Polygonal m hm) := { p, ⟨ n - p.val, h₂ ⟩ }
+  --       use S
+  --       dsimp [S]
+  --       constructor
+  --       . exact Finset.card_le_two
+  --       . sorry
+  --     | succ i ih =>
+  --       simp at h
+  --       simp at ih
+
+  --       let ⟨ p, ⟨ h₁, h₂ ⟩ ⟩ := h
+
+  --       unfold IsNKPolygonal' at h₂
+
+  --       let ⟨ p₁, ⟨ hpr₁, hpl₁ ⟩ ⟩ := h₂
+  --       let pr := p.val + p₁.val
+
+  --       let hinds := ih p h₁ hpl₁
+
+
+  --       sorry
+  -- . sorry
 
 instance : ∀ n : ℕ, Decidable (IsNKPolygonal' m hm n k) := by
   have hiff (i : ℕ) (n : ℕ) : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) i)
