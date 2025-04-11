@@ -19,19 +19,6 @@ import Init.Data.List.Basic
 import PolygonalNumbers.Polygonal
 import PolygonalNumbers.Lemmas
 
-def foldrfun (m : ℤ) (hm : m ≥ 3) := fun (x1 : Polygonal m hm) (x2 : ℤ) ↦ x1.val + x2
-
-instance : LeftCommutative (foldrfun n hm : Polygonal n hm → ℤ → ℤ) where
-  left_comm := by
-    intro a b c
-    simp [foldrfun]
-    ring
-
-/--
-  Sum of a List of polygonal numbers of same order `n` (i.e., rational
-  numbers) into a rational number
--/
-def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : List (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
 
 
 instance : HAdd Triangular Triangular ℤ where
