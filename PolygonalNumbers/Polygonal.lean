@@ -662,14 +662,23 @@ def PolyZero (m : ℤ) (hm : m ≥ 3) : Polygonal m hm := ⟨ 0, zero_is_poly m 
 
 #eval decide <| PolyOne (3) (by linarith) = PolyZero (3) (by linarith)
 
-instance : Decidable (IsnPolygonal m n h) := by
-  rw [PolyEquiv₀]
+instance : Decidable (IsnPolygonal₀ m n h) := by
   dsimp [IsnPolygonal₀]
   exact instDecidableOr
+
+instance : Decidable (IsnPolygonal m n h) := by
+  apply decidable_of_iff (IsnPolygonal₀ m n h)
+  refine Eq.to_iff ?_
+  rw [PolyEquiv₀]
+
 
 #eval decide <| IsnPolygonal 5 5 (by simp) -- true
 #eval decide <| IsnPolygonal 14 53 (by simp) -- false
 #eval decide <| IsnPolygonal 14 0 (by simp) -- true
+
+
+example : IsnPolygonal 5 5 (by decide) := by
+  decide +kernel -- works!
 
 
 /- n is the sum of k polygonal numbers of order m-/
@@ -1370,7 +1379,13 @@ instance : ∀ n : ℕ, Decidable (IsNKPolygonal' m hm n k) := by
     | zero =>
       intro n
       unfold IsNKPolygonal'
-      rw [← getlepoly₀Correct]
+
+      suffices h' : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) 1) by
+        have hp' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) 1) ↔ (∃ p ∈ {p : Polygonal m hm | p.val ≤ n}, IsNKPolygonal' m hm (n - p.val) (0 + 1)) := by
+          rw [← getlepoly₀Correct m n hm]
+          rfl
+        apply decidable_of_decidable_of_iff (hp')
+
       let p (a : ℕ) := (getnthpolyfun m hm a).val ≤ n ∧ IsnPolygonal m (n - (getnthpolyfun m hm a).val) hm
       have hpeq (a : ℕ) : p a = (((getnthpolyfun m hm a).val ≤ n) ∧ IsnPolygonal m (n - (getnthpolyfun m hm a).val) hm) := by
         simp
@@ -1384,26 +1399,77 @@ instance : ∀ n : ℕ, Decidable (IsNKPolygonal' m hm n k) := by
         unfold p
         rfl
 
-      unfold getlepoly₀
-      simp
-      rw [hiff]
+      -- unfold getlepoly₀
+      -- simp
+
+      suffices h₀ : Decidable (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (0 + 1)) by
+        have hiff' : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (0 + 1)) ↔
+          (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (0 + 1) ):= by
+            unfold getlepoly₀
+            simp
+
+        apply decidable_of_decidable_of_iff hiff'
+
+
+      -- rw [hiff]
+      suffices h' : Decidable (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (0 + 1)) by
+        apply decidable_of_decidable_of_iff (Iff.symm (hiff (0 + 1) n))
+
+
       unfold IsNKPolygonal'
-      rw [← hpiff₂]
+
+      -- rw [← hpiff₂]
+
       exact finCaseDec p n
 
     | succ i ih =>
       intro n
 
       unfold IsNKPolygonal'
-      rw [← getlepoly₀Correct]
+
+      have heq : ∀ p, ((p ∈ {p : Polygonal m hm | p.val ≤ n}) ↔ (p ∈ getlepoly₀ m hm n)) := by
+        intro p
+        suffices hex : {p : Polygonal m hm | p.val ≤ n} = getlepoly₀ m hm n by
+          exact Iff.symm (Eq.to_iff (congrFun (id (Eq.symm hex)) p))
+        exact Eq.symm (getlepoly₀Correct m n hm)
+
+
+      have h' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) ↔ (∃ p ∈ ({p : Polygonal m hm | p.val ≤ n}), IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) := by
+        constructor
+        . intro ⟨ p, hp₁, hp₂ ⟩
+          use p
+          constructor
+          . apply (heq p).mpr
+            exact hp₁
+          . exact hp₂
+        . intro ⟨ p, hp₁, hp₂ ⟩
+          use p
+          constructor
+          . apply (heq p).mp
+            exact hp₁
+          . exact hp₂
+
+      suffices hk : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) by
+        apply decidable_of_decidable_of_iff h'
 
       unfold IsNKPolygonal' at ih
 
-      have hi2 : i + 1 + 1 = i + 2 := by rfl
-      rw [hi2]
-      unfold getlepoly₀
-      simp
-      rw [hiff]
+
+      suffices hdec : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) by
+        have hp' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) ↔ (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) := by
+          rfl
+        apply decidable_of_decidable_of_iff hp'
+
+      suffices h₀ : Decidable (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (i + 2)) by
+        have hiff' : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (i + 2)) ↔
+          (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2) ):= by
+            unfold getlepoly₀
+            simp
+
+        apply decidable_of_decidable_of_iff hiff'
+
+      suffices h' : Decidable (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)) by
+        apply decidable_of_decidable_of_iff (Iff.symm (hiff (i + 2) n))
 
       let p (a : ℕ) := (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)
       have hpeq (a : ℕ) : p a = ((getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)) := by
@@ -1415,7 +1481,16 @@ instance : ∀ n : ℕ, Decidable (IsNKPolygonal' m hm n k) := by
         intro a
         unfold p
         exact instDecidableAnd
-      rw [hpiff₂]
+
+      suffices hdec' : Decidable (∃ a < n + 1, p a) by
+        apply decidable_of_decidable_of_iff hpiff₂
+
       exact finCaseDec p n
 
 #eval decide <| IsNKPolygonal' 5 (by linarith) 89 4
+
+-- set_option pp.proofs true
+
+-- example : IsNKPolygonal' 5 (by linarith) 89 7 := by
+--   decide +kernel -- works!`
+--   decide +native -- works!
