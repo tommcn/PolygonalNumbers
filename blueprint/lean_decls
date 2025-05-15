@@ -1,8 +1,4 @@
 Polygonal
-lemma1
-lemma2
-cor2
-cor3
 I_ub
 I_lb
 lemma4
@@ -13,7 +9,7 @@ main
 mod_m_congr
 blist
 res_b
-b_r
 res_b_r
+b_r
 CauchyLemma
 CauchyPolygonalNumberTheorem

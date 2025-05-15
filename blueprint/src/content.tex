@@ -17,51 +17,63 @@
     \]
 \end{definition}
 
-\begin{lemma}[lemma1]
-    \label{lem:lemma1}
-    \lean{lemma1}
-    \leanok
-    Let $a$ be a non-negative real number, and $x\geq a$, then:
+% \begin{lemma}[lemma1]
+%     \label{lem:lemma1}
+%     \lean{lemma1}
+%     \leanok
+%     Let $a$ be a non-negative real number, and $x\geq a$, then:
 
-    \[
-        \sqrt{x} - \frac{4}{\sqrt{x}} \geq \sqrt{a} - \frac{4}{\sqrt{a}}
-    \]
-\end{lemma}
+%     \[
+%         \sqrt{x} - \frac{4}{\sqrt{x}} \geq \sqrt{a} - \frac{4}{\sqrt{a}}
+%     \]
+% \end{lemma}
 
-\begin{lemma}[lemma2]
-    \label{lem:lemma2}
-    \lean{lemma2}
-    \uses{lem:lemma1}
-    \leanok
-    Let $x\geq 120$, then:
-    \[
-        \sqrt{8\cdot x - 8} - \sqrt{6\cdot x - 3} > 4
-    \]
-\end{lemma}
+% \begin{lemma}[lemma2]
+%     \label{lem:lemma2}
+%     \lean{lemma2}
+%     \uses{lem:lemma1}
+%     \leanok
+%     Let $x\geq 120$, then:
+%     \[
+%         \sqrt{8\cdot x - 8} - \sqrt{6\cdot x - 3} > 4
+%     \]
+% \end{lemma}
 
-\begin{corollary}[cor2]
-    \label{cor:cor2}
-    \lean{cor2}
-    \leanok
+% \begin{corollary}[cor2]
+%     \label{cor:cor2}
+%     \lean{cor2}
+%     \leanok
 
-    Let $x \geq 53$, then:
+%     Let $x \geq 53$, then:
 
-    \[
-        \frac{5}{4} + \sqrt{8\cdot x - 4} - \sqrt{6\cdot x - \frac{15}{4}} > 4.002
-    \]
-\end{corollary}
+%     \[
+%         \frac{5}{4} + \sqrt{8\cdot x - 4} - \sqrt{6\cdot x - \frac{15}{4}} > 4.002
+%     \]
+% \end{corollary}
 
-\begin{corollary}[cor3]
-    \label{cor:cor3}
-    \lean{cor3}
-    \leanok
+% \begin{corollary}[cor3]
+%     \label{cor:cor3}
+%     \lean{cor3}
+%     \leanok
 
-    Let $x\geq 159$, then:
+%     Let $x\geq 159$, then:
 
-    \[
-        \frac{7}{6} + \sqrt{8\cdot x + \frac{4}{9}} - \sqrt{6\cdot x - \frac{15}{4}} > 6.002
-    \]
-\end{corollary}
+%     \[
+%         \frac{7}{6} + \sqrt{8\cdot x + \frac{4}{9}} - \sqrt{6\cdot x - \frac{15}{4}} > 6.002
+%     \]
+% \end{corollary}
+
+% \begin{proof}
+%     \leanok
+%     \begin{align*}
+% u(n,m) - \ell(n,m)
+% & = \frac{7}{6} + 
+% \sqrt{8\left(\frac{n}{m}\right) + \frac{4}{9}}
+% -\sqrt{6\left(\frac{n}{m}\right) - \frac{15}{4}} - 0.002 \\
+% & \geq 6
+% \end{align*}
+%   by Corollary~\ref{cor:3} with $x = \frac{n}{m}$.
+% \end{proof}
 
 \begin{definition}[I ub]
     \label{def:I_ub}
@@ -89,8 +101,9 @@
     Where $I_{lb}$ is non-computable in Lean.
 \end{definition}
 
-\begin{lemma}[lemma4]
-    \label{lem:lemma4}
+%% 3.3
+\begin{lemma}[Interval]
+    \label{lem:interval}
     \lean{lemma4}
     \leanok
     \uses{def:I_ub,def:I_lb}
@@ -107,6 +120,37 @@
     That is, the length of the interval $I_{ub}(n,m) - I_{lb}(n,m)$ is greater than $4.002$ or $6.002$, when $m\geq 4$ or $m = 3$ respectively.
 \end{lemma}
 
+\begin{proof}
+    \leanok
+    With $m \geq 4$, we have
+\begin{align*}
+u(n,m)-\ell(n,m)
+& =
+ \frac{3}{2}-\frac{1}{m}+
+\sqrt{8\left(\frac{n}{m}\right)+\frac{16}{m^2}+\frac{8}{m}-4} - 
+\sqrt{6\left(\frac{n}{m}\right)-\frac{3}{m}\left(1-\frac{3}{m}\right)-\frac{15}{4}} - 0.002 \\
+& \geq
+ \frac{3}{2}-\frac{1}{4}+
+\sqrt{8\left(\frac{n}{m}\right)-4} - 
+\sqrt{6\left(\frac{n}{m}\right)-\frac{15}{4}} - 0.002 \\
+& =
+ \frac{5}{4}+
+\sqrt{8\left(\frac{n}{m}\right)-4} - 
+\sqrt{6\left(\frac{n}{m}\right)-\frac{15}{4}} - 0.002 \\
+& \geq 4
+\end{align*}
+  by Corollary 3.5 with $x = \frac{n}{m}$.
+When $m = 3$, we have
+\begin{align*}
+u(n,m) - \ell(n,m)
+& = \frac{7}{6} + 
+\sqrt{8\left(\frac{n}{m}\right) + \frac{4}{9}}
+-\sqrt{6\left(\frac{n}{m}\right) - \frac{15}{4}} - 0.002 \\
+& \geq 6
+\end{align*}
+  by Corollary 3.6 with $x = \frac{n}{m}$.
+\end{proof}
+
 \begin{lemma}[qub]
     \label{lem:qub}
     \lean{qub}
@@ -117,6 +161,26 @@
         x^2 - p \cdot x- c < 0
     \]
 \end{lemma}
+
+\begin{proof}
+    \leanok
+    Since $c > 0$, we have
+    $\pm\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}
+       > \pm\frac{p}{2} + \left\lvert\frac{p}{2}\right\rvert \geq 0.$
+        The statement holds trivially when $x = 0$.
+        Assume that $x > 0$.
+        Since $x < \frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}$, we have
+        $x - p < -\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}$.
+        Thus,
+        \begin{align*}
+        x^2 - px - c
+        & = x(x - p) - c \\
+        & < x\left(-\frac{p}{2}+\sqrt{\left(\frac{p}{2}\right)^ 2 + c})\right)-c \\
+        & < \left(\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}\right)
+        \left(-\frac{p}{2}+\sqrt{\left(\frac{p}{2}\right)^ 2 + c})\right) - c \\
+        & = 0.
+        \end{align*}
+\end{proof}
 
 \begin{lemma}[qlb]
     \label{lem:qlb}
@@ -129,10 +193,27 @@
     \]
 \end{lemma}
 
+\begin{proof}
+    \leanok
+    Since $x >\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c} > 0$,
+    we have $x - p > -\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}
+    >-\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c} > 0$. 
+    Hence,
+  \begin{align*}
+    x^2 - px - c
+    & = x(x - p) - c \\
+    & > \left(\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}\right)
+         (x-p) - c \\
+    & > \left(\frac{p}{2} + \sqrt{\left(\frac{p}{2}\right)^ 2 + c}\right)
+    \left(-\frac{p}{2}+\sqrt{\left(\frac{p}{2}\right)^ 2 + c})\right) - c \\
+    & = 0.
+  \end{align*}
+\end{proof}
+
 \begin{lemma}[I lb pos]
     \label{lem:I_lb_pos}
     \lean{I_lb_pos}
-    \uses{def:I_lb}
+    \uses{def:I_lb,lem:qlb}
     \leanok
     Let $n,m,b,r\in\Z$ with $0 \leq r \leq m - 3$, $b > I_{lb}(n,m)$, $3 \leq m$, $2 \cdot m \leq n$ then:
 
@@ -144,21 +225,78 @@
     
 \end{lemma}
 
+\begin{proof}
+    \leanok
+    Note that
+    \begin{align*}
+    b \geq \ell(n,m)
+    & =
+      \left(\frac{1}{2}-\frac{3}{m}\right)
+      + \sqrt{\left(\frac{1}{2}-\frac{3}{m}\right)^2
+      + 6\left(\frac{n}{m}\right) - 4}+0.001 \\ 
+    & >
+      \left(1-\frac{6}{m}\right)/2
+      +\sqrt{\left(\left(1-\frac{6}{m}\right)/2\right)^2
+      + 6\left(\frac{n-r}{m}\right) - 4} \\
+    \end{align*}
+    Setting $p := 1 - \frac{6}{m}$ and $c := 6 \left(\frac{n - r}{m}\right) - 4$,
+      we have $c > 0$ and so, by Lemma~\ref{lem:qlb} part (b), we obtain that
+    $b^2 + 2b + 4 - 3a = b ^ 2 - \left(1 - \frac{6}{m}\right) b -
+    \left(6\left(\frac{n - r}{m}\right) - 4\right) > 0$.
+\end{proof}
+
 \begin{lemma}[main]
     \label{lem:main}
     \lean{main}
-    \uses{def:I_lb,def:I_ub}
+    \uses{def:I_lb,def:I_ub,lem:qub,lem:qlb}
     \leanok
     Let $n,m,b,r\in\Z$ where $b$ is odd, with $0 \leq r \leq m - 3$, $2\cdot m \leq n$, $I_{lb}(n,m)\leq b \leq I_{ub}(n,m)$, and $m \mid (n-b-r)$ then:
-
+    
     \[
         a = 2\cdot \frac{n - b - r}{m} + b
-    \]
-    and,
-    \[
-       a\text{ is odd and } b^2 - 4\cdot a < 0 \text{ and } b^2 + 2 \cdot b + 4 - 3\cdot a > 0
-    \]    
-\end{lemma}
+        \]
+        and,
+        \[
+            a\text{ is odd and } b^2 - 4\cdot a < 0 \text{ and } b^2 + 2 \cdot b + 4 - 3\cdot a > 0
+            \]    
+        \end{lemma}
+        
+\begin{proof}
+    \leanok
+Note that
+\begin{align*}
+b \geq \ell(n,m)
+& =
+  \left(\frac{1}{2}-\frac{3}{m}\right)
+  + \sqrt{\left(\frac{1}{2}-\frac{3}{m}\right)^2
+  + 6\left(\frac{n}{m}\right) - 4}+0.001 \\ 
+& >
+  \left(1-\frac{6}{m}\right)/2
+  +\sqrt{\left(\left(1-\frac{6}{m}\right)/2\right)^2
+  + 6\left(\frac{n-r}{m}\right) - 4} \\
+\end{align*}
+Setting $p := 1 - \frac{6}{m}$ and $c := 6 \left(\frac{n - r}{m}\right) - 4$,
+  we have $c > 0$ and so, by Lemma~\ref{lem:qlb} part (b), we obtain that
+$b^2 + 2b + 4 - 3a = b ^ 2 - \left(1 - \frac{6}{m}\right) b -
+\left(6\left(\frac{n - r}{m}\right) - 4\right) > 0$.
+We can also see from the above derivation that $b > 0$. 
+Now, 
+\begin{align*}
+  b \leq u(n,m) 
+  & = 2\left(1-\frac{2}{m}\right)+\sqrt{4\left(1-\frac{2}{m}\right)^2
+      + 8\left(\frac{n-(m-3)}{m}\right)} - 0.001 \\
+  & < \left(4\left(1-\frac{2}{m}\right)/2\right) 
+      + \sqrt{\left(4\left(1-\frac{2}{m}\right)/2\right)^2
+      + 8\left(\frac{n-r}{m}\right)}.
+\end{align*}
+Setting $p := 4 \left(1 - \frac{2}{m}\right)$ and 
+$c := 8 \left(\frac{n - r}{m}\right)$,
+we have $c > 0$ (as $n - r \geq 2m - (m-3) = m+3$) and so, by 
+  Lemma~\ref{lem:qub} part (a),
+we obtain that
+$b^2 - 4a = b^2 - 4 \left(1 - \frac{2}{m}\right) b - \frac{8n - r}{m} < 0.$
+
+\end{proof}
 
 
 \begin{theorem}[mod m congr]
@@ -173,59 +311,65 @@
 \end{theorem}
     
 \begin{lemma}[blist]
-    \label{lemma:blist}
+    \label{lem:blist}
     \lean{blist}
     \leanok
     Let $p,q\in\R$, $k\in\N$ such that $q - p \geq 2 \cdot k$, then:
 
-    There exists a list $b$ of $k$ integers such that:
+    There exists a sequence $(b_i)_0^{k-1}$ of $k$ integers, and an integer $m$ such that:
 
     \[
-        \exists\ m \in \Z\text{ such that } \forall\ (i \in \N, i < k), b[i] = 2 \cdot (m + i) + 1\text{ and } b[i] \leq q
+        \forall\ (i = 0, \dots, k-1), b_i = 2 \cdot (m + i) + 1\land  p\leq b_i \leq q
     \]
 \end{lemma}
+
+\begin{proof}
+    \leanok
+    Let $\ell = \lceil p \rceil.$
+
+    Note that $p > \ell - 1$.
+
+    We can take $m$ to be the least integer such that $2m + 1 \geq \ell$. Indeed, for all $i = 0,\ldots,k-1$, we have that $b_i \geq b_0 = 2m + 1 \geq p$ and $b_i \leq b_{k-1} = 2(m+(k-1))+ 1 = 2m+1+2(k-1).$
+    
+    If $\ell$ is even, then $2m+1 = \ell + 1$.
+
+    Hence, 
+    
+    \begin{align*}
+        2m+1+2(k-1) &= \ell + 1 + 2(k-1) \\
+        &= \ell - 1 + 2k \\
+        &< p + 2k \\
+        &\leq p + q - p \\
+        &= q    
+    \end{align*}
+
+    If $\ell$ is odd, then $2m+1 = \ell$.
+    
+    Hence,
+    \begin{align*}
+        2m+1+2(k-1) &= \ell + 2(k-1)\\
+        &= \ell - 1 + 2k - 1 \\
+        &< p + 2k + 1 \\
+        &\leq p + q - p - 1 \\
+        &< q
+    \end{align*}
+\end{proof}
 
 \begin{lemma}[res b]
     \label{lemma:res_b}
     \lean{res_b}
     \leanok
-    Let $b_1,b_2,b_3\in\Z$ such that $b_2 = b_1 + 2$, and $b_3 = b_2 + 2$, then,
+    Let $n\in\Z$, and $b_1,b_2,b_3\in\Z$ such that $b_2 = b_1 + 2$ and $b_3 = b_2 + 2$.
+    Then there exists $b\in\{b_1,b_2,b_3\}$ such that:
 
     \[
-        \forall n \in \Z, (3\mid n - b_1)\lor (3 \mid n - b_2) \lor (3 \mid n - b_3)
+        3 \mid n-b
     \]
 \end{lemma}
+\begin{proof}
+    Proof by cases on $n \mod b_1$
+\end{proof}
 
-\begin{lemma}[b r]
-    \label{lemma:b_r}
-    \lean{b_r}
-    \leanok
-    Let $n,m\in\Z$, and:
-
-    \[
-        m\geq 4 \land n \geq 53 \cdot m
-    \]
-
-    or 
-
-    \[
-        m = 3 \land n \geq 159 \cdot m
-    \]
-
-    Then, $\exists\ b,r \in \Z$, where $b$ is odd, such that:
-
-    \[
-        I_{lb}(n,m) \leq b \leq I_{ub}(n,m)
-    \]
-    and
-    \[
-        0 \leq r \leq m - 3
-    \]
-    and
-    \[
-        m \mid (n - b - r)
-    \]
-\end{lemma}
 
 \begin{lemma}[res b r]
     \label{lemma:res_b_r}
@@ -238,6 +382,55 @@
         \exists\ r\in \Z\text{ such that } 0 \leq r \leq m - 3\text{ and } (m \mid (n - b_1 - r)) \lor (m \mid (n - b_2 - r))
     \]
 \end{lemma}
+
+\begin{proof}
+    Proof by cases on $n \mod b_1$
+\end{proof}
+
+%% Lemma 2.2
+\begin{lemma}[b r]
+    \label{lemma:b_r}
+    \lean{b_r}
+    \leanok
+    \uses{lem:interval,lem:blist,def:I_ub,def:I_lb}
+    Let $n,m$ be positive integers such that $m \geq 4$ and $n \geq 53\cdot m$ or if $m = 3$, $n \geq 159\cdot m$. Then there exists integers $b,r$ such that:
+
+    \begin{enumerate}
+        \item $b$ is odd
+        \item $I_{lb}(n,m) \leq b \leq I_{ub}(n,m)$
+        \item $0 \leq r \leq m - 3$
+        \item $m \mid (n - b - r)$
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    \leanok
+    First, consider the case when $m \geq 4$ and $n \geq 53m$.
+  By Lemma~\ref{lem:interval} part (a), we have $u(n,m) - \ell(n,m) \geq 4.$
+  It follows from Lemma~\ref{lem:blist} that there exist odd integers
+  $b_0, b_1$ in the interval $[\ell(n,m), u(n,m)]$ such that $b_1 = b_0+2$.
+  Let $r'$ be the remainder when $n - b_0$ is divided by $m$.
+  Note that $r' \leq m - 1$ and $n - b_0 - r' \equiv 0 \pmod{m}.$
+  If $r' \geq m - 2$, set $r$ to $r'-2$ and $b$ to $b_1$.
+  Since $r' \leq m-1$, we have that $r = r' - 2 \leq m - 3$.
+  Also, $r = r'-2 \geq m-2-2 = m - 4 \geq 4 - 4 = 0$.
+  Then setting $b$ to $b_1$, we have that
+  $n - b - r = n - b_1 - (r'-2)
+  = n - b_0 - r' \equiv 0 \pmod{m}$.
+  Hence, $m$ divides $n - b - r$.
+  Otherwise, we have $r' \leq m - 3$. Setting $r$ to $r'$ and $b$ to $b_0$,
+  we have that $n - b - r = n - b_0 - r' \equiv 0 \pmod{m}.$
+  Hence, $m$ divides $n - b - r$.
+  Next, consider the case when $m = 3$ and $n \geq 159m$. We set $r$ to 0.
+  By Lemma~\ref{lem:interval} part (b), we have $u(n,m) - \ell(n,m) \geq 6.$
+  It follows from Lemma~\ref{lem:blist} that there exist odd integers $b_0,
+  b_1, b_2$ in the interval $[\ell(n,m), u(n,m)]$ such that $b_1 = b_0+2$ and
+  $b_2 = b_1 + 2$.
+  Since $b_1 \equiv b_0 + 2 \pmod{3}$ and
+  $b_2 \equiv b_1 + 2 \equiv b_0 + 4 \equiv b_0 + 1 \pmod{3}$, it follows that
+  for some $b \in \{b_0, b_1,b_2\}$, we have
+  $n - b - r \equiv n - b \equiv 0 \pmod{3}$.
+\end{proof}
 
 
 \begin{lemma}[Cauchy's Lemma]
