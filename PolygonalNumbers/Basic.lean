@@ -41,19 +41,6 @@ example : IsTriangular 6 := by
   use 3
   simp
 
-example : IsnPolygonal 3 6 (by simp) := by
-  unfold IsnPolygonal
-  right
-  use 3
-  linarith
-
-
-lemma polygonal_m_one (m : ℕ) (hm : (m : ℤ) ≥ 3) : IsnPolygonal m 1 hm := by
-  unfold IsnPolygonal
-  right
-  use 1
-  ring
-
 /-
   ==================== Cauchy Lemma for Polygonal Numbers ====================
 -/
@@ -74,14 +61,13 @@ lemma CauchyLemma
 -/
 theorem CauchyPolygonalNumberTheorem
           (m n: ℕ)
-          (nmpos : n ≥ 1)
           (mb : m ≥ 3)
-          (nb : n ≥ 120*m)
           (hb : (m ≥ 4 ∧ n ≥ 53 * m) ∨ (m = 3 ∧ n ≥ 159 * m))
     : ∃ (S : List (Polygonal (m+2) (by linarith))),
       (sumPolyToInt (m+2) (by linarith) S  = n)                  -- Sum = n
     ∧ (S.length ≤ m+1)
       := by
+
   have hmqgeq3 : (m : ℚ) ≥ 3 := by
     exact Nat.ofNat_le_cast.mpr mb
   have hm2geq3 : ((m : ℤ) + 2) ≥ 3 := by linarith
@@ -91,17 +77,11 @@ theorem CauchyPolygonalNumberTheorem
     exact Nat.zero_lt_of_lt mb
   have hmnot0 : (m : ℚ) ≠ 0 := by
     linarith
+  have hgeq159 : n ≥ 53 * m := by
+    rcases hb with ⟨ _, g ⟩  | ⟨ _, g ⟩ <;> linarith
+
   have ngeq2m : n ≥ 2 * m := by
     linarith
-  have hnmr : (n : ℝ) / m ≥ 120 := by
-    have hypr : (n : ℝ) ≥ (((120 * m) : ℕ) : ℝ) := by
-      exact Nat.cast_le.mpr nb
-    simp at hypr
-    apply ge_iff_le.mp at hypr
-    apply ge_iff_le.mpr
-    ring_nf
-    refine (le_mul_inv_iff₀ ?_).mpr hypr
-    exact Nat.cast_pos'.mpr hmgtn0
 
   have hprepa : ((m : ℤ) ≥ 4 ∧ n ≥ 53 * (m : ℤ)) ∨ ((m : ℤ) = 3 ∧ n ≥ 159 * (m : ℤ)) := by
     norm_cast
@@ -209,7 +189,7 @@ theorem CauchyPolygonalNumberTheorem
   have vlint : vl = |⌈ vl ⌉| := by dsimp [vl]; apply polyform m v hm2geq3
 
 
-  let poly1 : Polygonal (m+2) (by linarith) := ⟨ 1, polygonal_m_one (m+2) (hm2geq3)⟩
+  let poly1 : Polygonal (m+2) (by linarith) := ⟨ 1, one_is_poly (m+2) (hm2geq3)⟩
 
   let l₁ : List (Polygonal (m+2) (by linarith)) := []
 
@@ -309,3 +289,82 @@ theorem CauchyPolygonalNumberTheorem
 
     rw [hrna] at hr
     norm_cast at hr
+
+
+
+theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ [9, 21, 31, 43, 55, 89]) → IsNKPolygonal 5 (by norm_num) 4 n := by
+  intro n
+
+  have h : n ≥ 477 ∨ n < 477 := by
+    exact le_or_lt 477 n
+
+
+  rcases h with g | g
+  . intro _
+
+    have hb : 3 ≥ 4 ∧ n ≥ 53 * 3 ∨ 3 = 3 ∧ n ≥ 159 * 3 := by
+      right
+      simp
+      linarith
+
+    suffices hs : ∃ (S : List (Polygonal (5) (by linarith))),
+        (sumPolyToInt (5) (by linarith) S  = n)
+      ∧ (S.length ≤ 4) by
+      dsimp [IsNKPolygonal]
+      simp
+      let ⟨ S, hn ⟩ := hs
+      let S' : List ℕ := List.map (fun x ↦ x.val) S
+      let S₀ : List ℕ := List.replicate (4 - S'.length) 0
+      use (S₀.append S')
+      simp
+      and_intros
+      . intro n
+        intro h
+        rcases h with g | g
+        . unfold S₀ at g
+          simp at g
+          rw [g.right]
+          exact zero_is_poly 5 (by linarith)
+        . unfold S' at g
+          simp at g
+          let ⟨ a, ha ⟩ := g
+          rw [← ha.right]
+          let ⟨ a, hpa ⟩ := a
+          exact hpa
+      . have hlen : S₀.length = 4 - S'.length := by
+          unfold S₀
+          simp
+        have hslen : S'.length ≤ 4 := by
+          have hleneq : S'.length = S.length := by
+            exact List.length_map S fun x ↦ x.val
+          rw [hleneq]
+          exact hn.right
+        rw [hlen]
+        exact Nat.sub_add_cancel hslen
+      . have hs' : S'.sum = sumPolyToInt 5 (by linarith) S := by
+          dsimp [S', sumPolyToInt]
+          unfold foldrfun
+          simp
+          unfold List.sum
+          rw [List.foldr_map (Nat.cast ∘ fun x ↦ x.val) (fun x1 x2 ↦ x1 + x2) S 0]
+          simp
+        have hs₀ : S₀.sum = 0 := by
+          unfold S₀
+          simp
+        rw [hs₀]
+        simp
+        rw [hn.left] at hs'
+        norm_cast at hs'
+
+    apply CauchyPolygonalNumberTheorem 3 n (by linarith) hb
+  . intro h
+
+    suffices h' : ∀ n : ℕ, n < 477 ∧ ¬ (n ∈ [9, 21, 31, 43, 55, 89]) → IsNKPolygonal 5 (by norm_num) 4 n by
+      sorry
+
+    simp
+
+    -- decide
+
+
+    sorry

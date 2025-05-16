@@ -466,6 +466,7 @@ def I_lb (n m : ℤ) : ℝ :=
   ((1 : ℝ) / 2 - ↑3 / m) + √(((1 : ℝ) / 2 - ↑3 / m) ^ 2 + (↑6 * n / m - 4))
 
 
+-- 3.3
 lemma lemma4 {n m : ℤ} (hm : m ≥ 3)
   :   ((m ≥ 4 ∧ n ≥ 53 * m) → I_ub n m - I_lb n m > (4.002 : ℝ))
     ∧ ((m = 3 ∧ n ≥ 159 * m) → I_ub n m - I_lb n m > (6.002 : ℝ)) := by
@@ -888,7 +889,7 @@ lemma res_b_r (b₁ b₂ : ℤ) (hcon : b₂ = b₁ + 2) (n m : ℤ) (hm : m ≥
         _ ≡ (b₁ + (n - b₁) % m) + (-b₁ - (n - b₁) % m) [ZMOD m] := by exact Int.ModEq.add bar rfl
         _ ≡ 0 [ZMOD m] := by ring_nf; exact rfl
 
-
+-- Lemma 2.2
 lemma b_r (n m : ℤ) (h : (m ≥ 4 ∧ n ≥ 53 * m) ∨ (m = 3 ∧ n ≥ 159 * m)) :
   ∃ b r : ℤ,
        Odd b

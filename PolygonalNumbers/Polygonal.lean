@@ -13,11 +13,11 @@ import PolygonalNumbers.Lemmas
 -- Wikipedia definitions
 -- `m` -> order
 def IsTriangular (n : ℤ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (n : ℕ) (_ : m ≥ 3) := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n --∧ k > 0
-def IsnPolygonal' (m : ℤ) (n : ℕ) (_ : m ≥ 3) := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = n --∧ k > 0
-def IsnPolygonal'' (m : ℤ) (n : ℕ) (_ : m ≥ 3) := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n --∧ k > 0
+def IsnPolygonal (m : ℤ) (_ : m ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n --∧ k > 0
+def IsnPolygonal' (m : ℤ) (_ : m ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = n --∧ k > 0
+def IsnPolygonal'' (m : ℤ) (_ : m ≥ 3) (n : ℕ) := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n --∧ k > 0
 -- def IsnPolygonal₀ (m : ℤ) (n : ℤ) := (√(8*(m-2)*n + (m-4)^2) + (m - 4)) / (2 * (m - 2))
-def IsnPolygonal₀ (m : ℤ) (n : ℕ) (_ : m ≥ 3) := n = 0 ∨ (IsSquare (8*(m-2)*n + (m-4)^2)
+def IsnPolygonal₀ (m : ℤ) (_ : m ≥ 3) (n : ℕ) := n = 0 ∨ (IsSquare (8*(m-2)*n + (m-4)^2)
                         ∧ (Int.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0)
                         --∧ n ≠ 0
                      --   ∧ (∃ (k : ℕ), (k ^ 2 = (8*(m-2)*n + (m-4)^2) ∧ (k + (m - 4)) % (2 * (m - 2)) = 0))
@@ -25,7 +25,7 @@ def IsnPolygonal₀ (m : ℤ) (n : ℕ) (_ : m ≥ 3) := n = 0 ∨ (IsSquare (8*
 
 
 def Triangular := Subtype (fun (n : ℕ) ↦ IsTriangular n)
-def Polygonal (m : ℤ) (hm : m ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal m n hm)
+def Polygonal (m : ℤ) (hm : m ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal m hm n)
 
 
 def foldrfun (m : ℤ) (hm : m ≥ 3) := fun (x1 : Polygonal m hm) (x2 : ℤ) ↦ x1.val + x2
@@ -98,7 +98,7 @@ lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
 
 lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
   unfold IsnPolygonal₀
-  funext m x hm
+  funext m hm x
   apply propext
 
   have hcasesthr : m = 3 ∨ m > 3 := by
@@ -642,16 +642,16 @@ instance : DecidableEq (Polygonal n hm) :=
 instance : LE (Polygonal m hm) where
   le a b := a.val ≤ b.val
 
-lemma Polyrw (m : ℤ) (n : ℕ) (hm : m ≥ 3) : IsnPolygonal m n hm ↔ IsnPolygonal' m n hm := by
+lemma Polyrw (m : ℤ) (n : ℕ) (hm : m ≥ 3) : IsnPolygonal m hm n ↔ IsnPolygonal' m hm n := by
   rw [PolyEquiv]
 
-theorem one_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m 1 hm := by
+theorem one_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m hm 1 := by
   dsimp [IsnPolygonal]
   right
   use 1
   simp
 
-theorem zero_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m 0 hm := by
+theorem zero_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m hm 0 := by
   dsimp [IsnPolygonal]
   simp
 
@@ -672,12 +672,12 @@ instance : Decidable (IsnPolygonal m n h) := by
   rw [PolyEquiv₀]
 
 
-#eval decide <| IsnPolygonal 5 5 (by simp) -- true
-#eval decide <| IsnPolygonal 14 53 (by simp) -- false
-#eval decide <| IsnPolygonal 14 0 (by simp) -- true
+#eval decide <| IsnPolygonal 5 (by simp) 5 -- true
+#eval decide <| IsnPolygonal 14 (by simp) 53 -- false
+#eval decide <| IsnPolygonal 14 (by simp) 0  -- true
 
 
-example : IsnPolygonal 5 5 (by decide) := by
+example : IsnPolygonal 5 (by decide) 5  := by
   decide +kernel -- works!
 
 
@@ -751,7 +751,7 @@ lemma polyform (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : ((m : ℚ) / 2) *
 
   exact Eq.symm (abs_of_nonneg hempos)
 
-lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (m+2) ⌈ (((m / 2) * (r^2 - r) + r) : ℚ) ⌉.natAbs (hm2geq3) := by
+lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (m+2) hm2geq3 ⌈ (((m / 2) * (r^2 - r) + r) : ℚ) ⌉.natAbs := by
   let rl : ℚ := (m / 2) * (r^2 - r) + r
   have rleq : rl = (m / 2) * (r^2 - r) + r := by exact rfl
 
@@ -803,7 +803,7 @@ lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (
     exact Eq.symm (Nat.cast_natAbs ⌈(m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r⌉)
   exact polyform m r hm2geq3
 
-def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
+def getnthpoly (m : ℤ) (hm : m ≥ 3) (n : ℕ) : Polygonal m hm :=
   let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
   have hnum : num  = |⌈ num ⌉| := by
     dsimp [num]
@@ -812,10 +812,10 @@ def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
     apply polyform (((m - 2) : ℤ)) n
     linarith
 
-  have h : IsnPolygonal m ⌈ num ⌉.natAbs hm := by
+  have h : IsnPolygonal m hm ⌈ num ⌉.natAbs  := by
     have hm' : (m - 2 + 2) ≥ 3 := by linarith
     dsimp [num]
-    suffices h' :  IsnPolygonal (m - 2 + 2) ⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉.natAbs hm' by
+    suffices h' :  IsnPolygonal (m - 2 + 2) hm' ⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉.natAbs  by
       simp at h'
       simp
       exact h'
@@ -823,7 +823,7 @@ def getnthpoly (m : ℤ) (n : ℕ) (hm : m ≥ 3) : Polygonal m hm :=
 
   ⟨ ⌈ num ⌉.natAbs, h ⟩
 
-lemma getnthpoly_monotone (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m n hm).val ≤ (getnthpoly m (n + 1) hm).val := by
+lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm n).val ≤ (getnthpoly m hm (n + 1)).val := by
   dsimp [getnthpoly]
   have hm' : m - 2 + 2 ≥ 3 := by linarith
   suffices h : |(⌈((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n⌉)| ≤ |⌈((m : ℚ) - 2) / 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| by
@@ -944,16 +944,16 @@ lemma getnthpoly_monotone (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m n h
       . linarith
   . linarith
 
-lemma getnthpoly_polyone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m 1 hm) = PolyOne m hm := by
+lemma getnthpoly_polyone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m hm 1) = PolyOne m hm := by
   dsimp [getnthpoly]
   dsimp [PolyOne]
   simp
 
-lemma getnthpoly_intone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m 1 hm).val = 1 := by
+lemma getnthpoly_intone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m hm 1).val = 1 := by
   dsimp [getnthpoly]
   simp
 
-lemma getnthpoly_geq (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m n hm).val ≥ n := by
+lemma getnthpoly_geq (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m hm n).val ≥ n := by
   dsimp [getnthpoly]
   have h₀ : (((m - 2) : ℤ) : ℚ) / 2 * (↑n ^ 2 - ↑n) + ↑n = |⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉| := by
     -- apply polyform m n hm
@@ -993,7 +993,7 @@ lemma getnthpoly_geq (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m n hm).va
     refine Nat.le_self_pow ?_ n
     linarith
 
-lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m x hm} = { (getnthpoly m n hm).val | n : ℕ} := by
+lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m hm x} = { (getnthpoly m hm n).val | n : ℕ} := by
   refine Set.ext ?_
   intro x
   constructor
@@ -1028,9 +1028,9 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m x hm} = { (g
 
   . simp
     intro a
-    let k := getnthpoly m a hm
+    let k := getnthpoly m hm a
     intro h
-    have hkeq : k.val = (getnthpoly m a hm).val := by rfl
+    have hkeq : k.val = (getnthpoly m hm a).val := by rfl
 
     have hxk : x = k.val := by
       nth_rw 2 [h] at hkeq
@@ -1040,7 +1040,7 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m x hm} = { (g
     exact p
 
 
-def getnthpolyfun (m : ℤ) (hm : m ≥ 3) (x : ℕ) : Polygonal m hm := getnthpoly m x hm
+def getnthpolyfun (m : ℤ) (hm : m ≥ 3) (x : ℕ) : Polygonal m hm := getnthpoly m hm x
 
 def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Finset (Polygonal m hm) :=
   let r : Finset ℕ := Finset.range (b + 1)
@@ -1050,9 +1050,9 @@ def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Finset (Polygonal m hm) :=
 
 
 #eval (getlepoly₀ 7 (by linarith) 146)
-#eval decide <| IsnPolygonal 3 1456 (by linarith)
+#eval decide <| IsnPolygonal 3 (by linarith) 1456
 
-#check Decidable (∃ n < 2, IsnPolygonal 3 n (by linarith))
+#check Decidable (∃ n < 2, IsnPolygonal 3 (by linarith) n)
 
 def finCaseDec (p : ℕ → Prop) (n : ℕ) [DecidablePred p] : Decidable (∃ a < n + 1, (p a)) := by
   suffices h : Decidable (∃ a ∈ Finset.range (n + 1), p a) by
@@ -1118,7 +1118,7 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
             apply polyform (m - 2) k
             linarith
 
-          suffices h' :  (getnthpoly m k hm).val = a by
+          suffices h' :  (getnthpoly m hm k).val = a by
             dsimp [getnthpoly] at h'
             simp
 
@@ -1155,342 +1155,142 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
           rw [← kfactq k]
     . exact h
 
-def IsNKPolygonal (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :=
-  ∃ S : List (Polygonal m hm), S.length = k ∧ sumPolyToInt m hm S = n
+def IsNKPolygonal (m : ℤ) (hm : m ≥ 3) (k : ℕ) (n : ℕ) :=
+  ∃ S : List ℕ, S.all (IsnPolygonal m hm) ∧ S.length = k ∧ S.sum = n
 
-def IsNKPolygonal' (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :=
-  match k with
-  | 0 => False
-  | 1 => IsnPolygonal m n hm
-  | k + 2 =>
-    (∃ p ∈ { p : Polygonal m hm | p.val ≤ n }, IsNKPolygonal' m hm (n - p.val) (k + 1))
-  termination_by k
+instance (m : ℤ) (hm : m ≥ 3): DecidablePred (IsNKPolygonal m hm 0) := by
+  intro n
+  unfold IsNKPolygonal
+  match n with
+  | 0  => have : ∃ S : List ℕ, S.all (IsnPolygonal m hm) ∧ S.length = 0 ∧ S.sum = 0 := by
+            use []
+            constructor
+            . rw [List.all_nil]
+            . exact Nat.eq_zero_of_add_eq_zero rfl
+          exact (isTrue this)
+  | k + 1 => have : ¬∃ S : List ℕ, S.all (IsnPolygonal m hm) ∧ S.length = 0 ∧ S.sum = k + 1 := by
+               by_contra g
+               obtain ⟨ polygonals, _, hpolygonalslen, hpolygonalssum ⟩ := g
+               have : polygonals.sum = 0 := by
+                 have : polygonals = [] := by exact List.length_eq_zero.mp hpolygonalslen
+                 rw [this]
+                 exact rfl
+               rw [this] at hpolygonalssum
+               set g := Nat.succ_ne_zero k
+               apply g
+               norm_cast at hpolygonalssum
+             exact (isFalse this)
 
-lemma IsNKPolygonalRec (m : ℤ) (hm : m ≥ 3) (n : ℕ) (k : ℕ) :
-  IsNKPolygonal m hm n k ↔ (∃ p ∈ { p : Polygonal m hm | p.val ≤ n }, IsNKPolygonal m hm (n - p.val) (k - 1)) := by
-  constructor
-  . intro h
-    dsimp [IsNKPolygonal] at h
-    let ⟨ S, hS, hsum ⟩ := h
-    have hk : k = 0 ∨ k > 0 := by
-      exact Nat.eq_zero_or_pos k
-    rcases hk with g | g
-    . rw [g] at hS
-      simp at hS
-      rw [hS] at hsum
-      unfold sumPolyToInt at hsum
-      unfold foldrfun at hsum
-      simp at hsum
-      use PolyZero m hm
-      simp
-      have hn : n = 0 ∨ n > 0 := by
-        exact Nat.eq_zero_or_pos n
-      rcases hn with g' | g'
-      . rw [g']
-        unfold PolyZero
-        rw [g]
-        simp
-        unfold IsNKPolygonal
-        use []
-        simp
-        unfold sumPolyToInt
-        unfold foldrfun
-        simp
-      . have hn : n = 0 := by
-          norm_cast at hsum
-          exact Eq.symm hsum
-        have hn' : n ≠ 0 := by
-          exact Nat.not_eq_zero_of_lt g'
-        contradiction
-    . induction k with
-      | zero =>
-        contradiction
-      | succ i ih =>
-        simp
-        sorry
-  . intro h
-    let ⟨ p, hp₁, hp₂ ⟩ := h
-    simp at hp₁
-    unfold IsNKPolygonal
-    unfold IsNKPolygonal at hp₂
-    let ⟨ S, hS, hsum ⟩ := hp₂
-    use p :: S
-    simp
-    constructor
-    . sorry
-    . unfold sumPolyToInt
-      unfold sumPolyToInt at hsum
-      simp
-      rw [hsum]
-      unfold foldrfun
-      norm_cast
-      exact Nat.add_sub_of_le hp₁
+example : IsNKPolygonal 3 (by norm_num) 0 0 := by decide +kernel
+example : ¬IsNKPolygonal 3 (by norm_num) 0 1 := by decide +kernel
 
-theorem NKPolyEquiv' (m : ℤ) (hm : m ≥ 3) : ∀ n : ℕ, (IsNKPolygonal' m hm n k ↔ IsNKPolygonal m hm n k) := by
+instance (m : ℤ) (hm : m ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal m hm k) := by
   induction k with
-  | zero => sorry
-  | succ i ih =>
-    intro n
-    constructor
-    . unfold IsNKPolygonal'
-      simp
-      match i with
-      | 0 =>
-        simp
-        intro h
-        use {⟨ n, h ⟩}
-        constructor
-        . rfl
-        . rfl
-      | 1 =>
-        simp
-        intro p
-        intro hple
-        intro h
-        let q := (ih (n - p.val)).mp h
-        unfold IsNKPolygonal
-        unfold IsNKPolygonal at q
-        let ⟨ S, h₁, h₂ ⟩ := q
-        use (p :: S)
-        constructor
-        . simp
-          exact h₁
-        . unfold sumPolyToInt
-          unfold sumPolyToInt at h₂
-          simp
-          unfold foldrfun
-          unfold foldrfun at h₂
-          rw [h₂]
-          norm_cast
-          exact Nat.add_sub_of_le hple
-      | l + 2 =>
-        simp
-        intro p
-        intro hple
-        intro h
-        let q := (ih (n - p.val)).mp h
-        unfold IsNKPolygonal
-        unfold IsNKPolygonal at q
-        let ⟨ S, h₁, h₂ ⟩ := q
-        use (p :: S)
-        constructor
-        . simp
-          exact h₁
-        . unfold sumPolyToInt
-          unfold sumPolyToInt at h₂
-          simp
-          rw [h₂]
-          unfold foldrfun
-          norm_cast
-          exact Nat.add_sub_of_le hple
-    . intro h
-      unfold IsNKPolygonal'
-      match i with
-      | 0 =>
-        simp
-        unfold IsNKPolygonal at h
-        let ⟨ S, hS ⟩ := h
-        simp at hS
-        have h₁ : S = [S[0]] := by
-          refine List.eq_of_length_one S hS.left
-        have h₁ : n = S[0].val := by
-          let h' := hS.right
-          unfold sumPolyToInt foldrfun at h'
-          rw [h₁] at h'
-          simp at h'
-          exact Eq.symm h'
-        rw [h₁]
-        exact S[0].prop
-      | 1 =>
-        simp
-        simp at h
-        unfold IsNKPolygonal at h
-        let ⟨ S, ⟨ h₁, h₂ ⟩ ⟩ := h
-
-        sorry
-      | l => sorry
-  -- constructor
-  -- . intro h
-  --   unfold IsNKPolygonal' at h
-  --   unfold IsNKPolygonal
-  --   match k with
-  --   | 0 => exact False.elim h
-  --   | 1 =>
-  --     simp at h
-  --     use {⟨ n, h ⟩}
-  --     simp
-  --   | l + 2 =>
-  --     induction l with
-  --     | zero =>
-  --       simp at h
-  --       simp
-  --       let ⟨ p, ⟨ h₁, h₂ ⟩ ⟩ := h
-  --       unfold IsNKPolygonal' at h₂
-  --       let S : Finset (Polygonal m hm) := { p, ⟨ n - p.val, h₂ ⟩ }
-  --       use S
-  --       dsimp [S]
-  --       constructor
-  --       . exact Finset.card_le_two
-  --       . sorry
-  --     | succ i ih =>
-  --       simp at h
-  --       simp at ih
-
-  --       let ⟨ p, ⟨ h₁, h₂ ⟩ ⟩ := h
-
-  --       unfold IsNKPolygonal' at h₂
-
-  --       let ⟨ p₁, ⟨ hpr₁, hpl₁ ⟩ ⟩ := h₂
-  --       let pr := p.val + p₁.val
-
-  --       let hinds := ih p h₁ hpl₁
-
-
-  --       sorry
-  -- . sorry
-
-instance : ∀ n : ℕ, Decidable (IsNKPolygonal' m hm n k) := by
-  have hiff (i : ℕ) (n : ℕ) : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) i)
-    ↔ ∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) i := by
-    constructor
-    . intro ⟨ p, ⟨ ⟨ ⟨ a, ⟨ hale, hapoly ⟩ ⟩, ple ⟩, hc ⟩ ⟩
-      use a
-      and_intros
-      . exact hale
-      . rw [hapoly]; exact ple
-      . rw [hapoly]; exact hc
-    . intro ⟨ a, ⟨ hale, hpolyle, hisnk⟩ ⟩
-      use getnthpoly m a hm
-      unfold getnthpolyfun at hisnk
-      and_intros
-      . use a
-        constructor
-        . exact hale
-        . rfl
-      . exact hpolyle
-      . exact hisnk
-
-
-  match k with
-  | 0 => intro n; unfold IsNKPolygonal'; exact instDecidableFalse
-  | 1 => intro n; unfold IsNKPolygonal'; exact instDecidableIsnPolygonal
-  | l + 2 =>
-    induction l with
-    | zero =>
+  | zero => intro n; exact inferInstance
+  | succ k ih =>
       intro n
-      unfold IsNKPolygonal'
+      -- We show that whether n is the sum of k + 1 polygonals is decidable.
 
-      suffices h' : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) 1) by
-        have hp' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) 1) ↔ (∃ p ∈ {p : Polygonal m hm | p.val ≤ n}, IsNKPolygonal' m hm (n - p.val) (0 + 1)) := by
-          rw [← getlepoly₀Correct m n hm]
-          rfl
-        apply decidable_of_decidable_of_iff (hp')
+      -- Get the list of polygonals less than or equal to n
+      let numsToTest := (List.range (n + 1)).filter (IsnPolygonal m hm)
 
-      let p (a : ℕ) := (getnthpolyfun m hm a).val ≤ n ∧ IsnPolygonal m (n - (getnthpolyfun m hm a).val) hm
-      have hpeq (a : ℕ) : p a = (((getnthpolyfun m hm a).val ≤ n) ∧ IsnPolygonal m (n - (getnthpolyfun m hm a).val) hm) := by
-        simp
+      -- Filter the list down to those p such that n - p is the sum of
+      -- k primes.
+      let numList := numsToTest.filter (fun p ↦ IsNKPolygonal m hm k (n - p))
 
-      have hpd : DecidablePred p := by
-        intro a
-        unfold p
-        exact instDecidableAnd
+      if h : numList ≠ [] then
+        -- If the list is nonempty, let p be the head.
+        let p := numList.head h
+        have claim1 : IsnPolygonal m hm p := by
+          have : ∀ n ∈ numList, IsnPolygonal m hm n := by simp [numList, numsToTest]
+          simp [p, this]
 
-      have hpiff₂ : (∃ a < n + 1, p a) ↔ (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsnPolygonal m (n - (getnthpolyfun m hm a).val) hm) := by
-        unfold p
-        rfl
+        -- Also, n - p is the sum of k primes.
+        have claim2 : IsNKPolygonal m hm k (n - p) := by
+          have : ∀ p ∈ numList, IsNKPolygonal m hm k (n - p) := by
+            simp [numsToTest, numList]
+            intro _ _ h _
+            exact h
+          apply this p
+          exact List.head_mem h
 
-      -- unfold getlepoly₀
-      -- simp
-
-      suffices h₀ : Decidable (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (0 + 1)) by
-        have hiff' : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (0 + 1)) ↔
-          (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (0 + 1) ):= by
-            unfold getlepoly₀
-            simp
-
-        apply decidable_of_decidable_of_iff hiff'
-
-
-      -- rw [hiff]
-      suffices h' : Decidable (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (0 + 1)) by
-        apply decidable_of_decidable_of_iff (Iff.symm (hiff (0 + 1) n))
-
-
-      unfold IsNKPolygonal'
-
-      -- rw [← hpiff₂]
-
-      exact finCaseDec p n
-
-    | succ i ih =>
-      intro n
-
-      unfold IsNKPolygonal'
-
-      have heq : ∀ p, ((p ∈ {p : Polygonal m hm | p.val ≤ n}) ↔ (p ∈ getlepoly₀ m hm n)) := by
-        intro p
-        suffices hex : {p : Polygonal m hm | p.val ≤ n} = getlepoly₀ m hm n by
-          exact Iff.symm (Eq.to_iff (congrFun (id (Eq.symm hex)) p))
-        exact Eq.symm (getlepoly₀Correct m n hm)
-
-
-      have h' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) ↔ (∃ p ∈ ({p : Polygonal m hm | p.val ≤ n}), IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) := by
-        constructor
-        . intro ⟨ p, hp₁, hp₂ ⟩
-          use p
+        -- Then n is the sum of k + 1 polygonals.
+        have pf : IsNKPolygonal m hm (k + 1) n := by
+          -- Get the list of k primes whose sum is n - p
+          obtain ⟨ polygonals', ⟨ hpolygonals, hpolygonalslen, hpolygonalssum ⟩ ⟩ := claim2
+          -- Add p to the head of the list and this list has
+          -- length k + 1 and sum to n.
+          set polygonals := p :: polygonals'
+          use polygonals
           constructor
-          . apply (heq p).mpr
-            exact hp₁
-          . exact hp₂
-        . intro ⟨ p, hp₁, hp₂ ⟩
-          use p
-          constructor
-          . apply (heq p).mp
-            exact hp₁
-          . exact hp₂
+          . simp [claim1, polygonals, hpolygonals]
+          . simp [polygonals, hpolygonalssum]
+            rw [add_comm, Nat.sub_add_cancel]
+            constructor
+            . exact hpolygonalslen
+            . rfl
+            suffices p ∈ numsToTest by simp [numsToTest] at this; linarith
+            apply List.head_filter_mem
 
-      suffices hk : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 1 + 1)) by
-        apply decidable_of_decidable_of_iff h'
+        exact (isTrue pf)
+      else -- The list of p such that n - p is the sum of k polygonals is empty
+        have pf : ¬IsNKPolygonal m hm (k + 1) n := by
+          -- We proceed by contradiction.
+          by_contra g
+          simp [IsNKPolygonal] at g
+          -- Get the list of k + 1primes whose sum is n
+          obtain ⟨ polygonals, ⟨ hpolygonals, hpolygonalslen, hpolygonalssum ⟩ ⟩ := g
 
-      unfold IsNKPolygonal' at ih
+          -- It suffices to show that the list of p such that
+          -- n - p is the sum of k primes is not empty
+          apply h
+
+          -- Let p be the head of the list.
+          set p := polygonals.head (by exact List.ne_nil_of_length_eq_add_one hpolygonalslen)
+
+          by_cases g : p > n
+          . -- p > n can be easily excluded since it is part of the list of
+            -- primes that sum to n.
+            have : p ∈ polygonals := by exact List.head_mem (List.ne_nil_of_length_eq_add_one hpolygonalslen)
+            obtain pge := List.le_sum_of_mem this
+            obtain pgtn := Nat.lt_of_lt_of_le g pge
+            simp [hpolygonalssum] at pgtn
+          . -- We show that p is in the list of p' such that n - p' is the sum of k primes
+            have : p ∈ numList := by
+              dsimp [numList]
+              rw [List.mem_filter]
+              constructor
+              . -- p ∈ numsToTest
+                simp [numsToTest]
+                constructor
+                . simp at g
+                  exact Order.lt_add_one_iff.mpr g
+                . apply hpolygonals
+                  exact List.head_mem (List.ne_nil_of_length_eq_add_one hpolygonalslen)
+              . -- IsNKPolygonal m hm k (n - p)
+                simp [IsNKPolygonal]
+                use polygonals.tail
+                simp [ hpolygonalslen, hpolygonalssum, p]
+                constructor
+                . intro p hp
+                  apply hpolygonals
+                  exact List.mem_of_mem_tail hp
+                . refine Nat.eq_sub_of_add_eq ?_
+                  rw [add_comm, ← List.sum_cons]
+                  simp [hpolygonalssum]
+
+            exact List.ne_nil_of_mem this
+
+        exact isFalse pf
 
 
-      suffices hdec : Decidable (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) by
-        have hp' : (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) ↔ (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2)) := by
-          rfl
-        apply decidable_of_decidable_of_iff hp'
-
-      suffices h₀ : Decidable (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (i + 2)) by
-        have hiff' : (∃ p, ((∃ a < n + 1, getnthpolyfun m hm a = p) ∧ p.val ≤ n) ∧ IsNKPolygonal' m hm (n - p.val) (i + 2)) ↔
-          (∃ p ∈ getlepoly₀ m hm n, IsNKPolygonal' m hm (n - p.val) (i + 2) ):= by
-            unfold getlepoly₀
-            simp
-
-        apply decidable_of_decidable_of_iff hiff'
-
-      suffices h' : Decidable (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)) by
-        apply decidable_of_decidable_of_iff (Iff.symm (hiff (i + 2) n))
-
-      let p (a : ℕ) := (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)
-      have hpeq (a : ℕ) : p a = ((getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)) := by
-        rfl
-      have hpiff₂ : (∃ a < n + 1, (getnthpolyfun m hm a).val ≤ n ∧ IsNKPolygonal' m hm (n - (getnthpolyfun m hm a).val) (i + 2)) ↔ (∃ a < n + 1, p a) := by
-        unfold p
-        rfl
-      have hpd : DecidablePred p := by
-        intro a
-        unfold p
-        exact instDecidableAnd
-
-      suffices hdec' : Decidable (∃ a < n + 1, p a) by
-        apply decidable_of_decidable_of_iff hpiff₂
-
-      exact finCaseDec p n
-
-#eval decide <| IsNKPolygonal' 5 (by linarith) 89 4
-
--- set_option pp.proofs true
-
--- example : IsNKPolygonal' 5 (by linarith) 89 7 := by
---   decide +kernel -- works!`
---   decide +native -- works!
+example : IsNKPolygonal 3 (by norm_num) 1 0 := by decide +kernel
+example : IsNKPolygonal 3 (by norm_num) 1 1 := by decide +kernel
+example : IsNKPolygonal 5 (by norm_num) 1 5 := by decide +kernel
+example : IsnPolygonal 5 (by norm_num) 5 := by decide +kernel
+example : ¬IsNKPolygonal 3 (by norm_num) 1 11 := by decide +kernel
+example : IsNKPolygonal 5 (by norm_num) 4 10 := by decide +kernel
+example : IsNKPolygonal 5 (by norm_num) 5 9 := by decide +kernel
+example : ¬IsNKPolygonal 5 (by norm_num) 4 9 := by decide +kernel
+example : IsNKPolygonal 5 (by norm_num) 5 21 := by decide +kernel -- quite slow
+example : ¬IsNKPolygonal 5 (by norm_num) 4 21 := by decide +kernel -- quite slow
