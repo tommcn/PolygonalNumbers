@@ -291,8 +291,11 @@ theorem CauchyPolygonalNumberTheorem
     norm_cast at hr
 
 
+def pentaExceptions : Finset ℕ := {9, 21, 31, 43, 55, 89}
 
-theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ [9, 21, 31, 43, 55, 89]) → IsNKPolygonal 5 (by norm_num) 4 n := by
+set_option maxRecDepth 100000
+
+theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ pentaExceptions) → IsNKPolygonal 5 (by norm_num) 4 n := by
   intro n
 
   have h : n ≥ 477 ∨ n < 477 := by
@@ -357,14 +360,18 @@ theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ [9, 21, 31, 43, 55, 8
         norm_cast at hs'
 
     apply CauchyPolygonalNumberTheorem 3 n (by linarith) hb
-  . intro h
-
-    suffices h' : ∀ n : ℕ, n < 477 ∧ ¬ (n ∈ [9, 21, 31, 43, 55, 89]) → IsNKPolygonal 5 (by norm_num) 4 n by
-      sorry
+  . suffices h : ∀ n : ℕ, n < 477 ∧ ¬ (n ∈ pentaExceptions) → IsNKPolygonal 5 (by norm_num) 4 n by
+      intro h'
+      simp at h
+      let g' := h n g h'
+      exact g'
 
     simp
 
-    -- decide
+    decide +kernel
+
+--     sorry
 
 
-    sorry
+-- example : IsNKPolygonal 5 (by norm_num) 4 477 := by
+--   decide +kernel
