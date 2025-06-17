@@ -291,7 +291,6 @@ theorem CauchyPolygonalNumberTheorem
     norm_cast at hr
 
 
-def pentaExceptions : Finset ℕ := {9, 21, 31, 43, 55, 89}
 
 def p0 : IsnPolygonal 5 (by norm_num) 0 := by simp [IsnPolygonal];
 def p1 : IsnPolygonal 5 (by norm_num) 1 := by simp [IsnPolygonal]; use 1; ring
@@ -311,6 +310,8 @@ def p287 : IsnPolygonal 5 (by norm_num) 287 := by simp [IsnPolygonal]; use 14; r
 def p330 : IsnPolygonal 5 (by norm_num) 330 := by simp [IsnPolygonal]; use 15; ring
 def p376 : IsnPolygonal 5 (by norm_num) 376 := by simp [IsnPolygonal]; use 16; ring
 def p425 : IsnPolygonal 5 (by norm_num) 425 := by simp [IsnPolygonal]; use 17; ring
+
+def pentaExceptions : Finset ℕ := {9, 21, 31, 43, 55, 89}
 
 theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ pentaExceptions) → IsNKPolygonal 5 (by norm_num) 4 n := by
   intro n
@@ -865,3 +866,308 @@ theorem SumOfFourPentagonalNumber : ∀ n : ℕ, ¬ (n ∈ pentaExceptions) → 
     . simp; use [51, 176, 247, 0]; simp [p51, p176, p247, p0]
     . simp; use [145, 330, 0, 0]; simp [p145, p330, p0, p0]
     . simp; use [51, 425, 0, 0]; simp [p51, p425, p0, p0]
+
+
+-- 0, 1, 6, 15, 28, 45, 66, 91, 120, 153, 190
+def h0 : IsnPolygonal 6 (by norm_num) 0 := by simp [IsnPolygonal]
+def h1 : IsnPolygonal 6 (by norm_num) 1 := by simp [IsnPolygonal]; use 1; ring
+def h6 : IsnPolygonal 6 (by norm_num) 6 := by simp [IsnPolygonal]; use 2; ring
+def h15 : IsnPolygonal 6 (by norm_num) 15 := by simp [IsnPolygonal]; use 3; ring
+def h28 : IsnPolygonal 6 (by norm_num) 28 := by simp [IsnPolygonal]; use 4; ring
+def h45 : IsnPolygonal 6 (by norm_num) 45 := by simp [IsnPolygonal]; use 5; ring
+def h66 : IsnPolygonal 6 (by norm_num) 66 := by simp [IsnPolygonal]; use 6; ring
+def h91 : IsnPolygonal 6 (by norm_num) 91 := by simp [IsnPolygonal]; use 7; ring
+def h120 : IsnPolygonal 6 (by norm_num) 120 := by simp [IsnPolygonal]; use 8; ring
+def h153 : IsnPolygonal 6 (by norm_num) 153 := by simp [IsnPolygonal]; use 9; ring
+def h190 : IsnPolygonal 6 (by norm_num) 190 := by simp [IsnPolygonal]; use 10; ring
+
+def hexaExceptions : Finset ℕ := {11, 26}
+
+theorem SumOfFiveHexagonalNumber : ∀ n : ℕ, ¬ (n ∈ hexaExceptions) → IsNKPolygonal 6 (by norm_num) 5 n := by
+  intro n
+
+  have h : n ≥ 212 ∨ n < 212 := by
+    exact le_or_lt 212 n
+
+
+  rcases h with g | g
+  . intro _
+
+    have hb :  4 ≥ 4 ∧ n ≥ 53 * 4 ∨ 4 = 3 ∧ n ≥ 159 * 4 := by
+      left
+      simp
+      linarith
+
+    suffices hs : ∃ (S : List (Polygonal (6) (by linarith))),
+        (sumPolyToInt (6) (by linarith) S  = n)
+      ∧ (S.length ≤ 5) by
+      dsimp [IsNKPolygonal]
+      simp
+      let ⟨ S, hn ⟩ := hs
+      let S' : List ℕ := List.map (fun x ↦ x.val) S
+      let S₀ : List ℕ := List.replicate (5 - S'.length) 0
+      use (S₀.append S')
+      simp
+      and_intros
+      . intro n
+        intro h
+        rcases h with g | g
+        . unfold S₀ at g
+          simp at g
+          rw [g.right]
+          exact zero_is_poly 6 (by linarith)
+        . unfold S' at g
+          simp at g
+          let ⟨ a, ha ⟩ := g
+          rw [← ha.right]
+          let ⟨ a, hpa ⟩ := a
+          exact hpa
+      . have hlen : S₀.length = 5 - S'.length := by
+          unfold S₀
+          simp
+        have hslen : S'.length ≤ 5 := by
+          have hleneq : S'.length = S.length := by
+            exact List.length_map S fun x ↦ x.val
+          rw [hleneq]
+          exact hn.right
+        rw [hlen]
+        exact Nat.sub_add_cancel hslen
+      . have hs' : S'.sum = sumPolyToInt 6 (by linarith) S := by
+          dsimp [S', sumPolyToInt]
+          unfold foldrfun
+          simp
+          unfold List.sum
+          rw [List.foldr_map (Nat.cast ∘ fun x ↦ x.val) (fun x1 x2 ↦ x1 + x2) S 0]
+          simp
+        have hs₀ : S₀.sum = 0 := by
+          unfold S₀
+          simp
+        rw [hs₀]
+        simp
+        rw [hn.left] at hs'
+        norm_cast at hs'
+
+    apply CauchyPolygonalNumberTheorem 4 n (by linarith) hb
+  . suffices h : ∀ n : ℕ, n < 212 ∧ ¬ (n ∈ hexaExceptions) → IsNKPolygonal 6 (by norm_num) 5 n by
+      intro h'
+      simp at h
+      let g' := h n g h'
+      exact g'
+
+    simp [hexaExceptions]
+
+    intro n hn
+
+    interval_cases n
+    . decide
+    . simp; use [1, 0, 0, 0, 0]; simp [h1, h0, h0, h0, h0]
+    . simp; use [1, 1, 0, 0, 0]; simp [h1, h1, h0, h0, h0]
+    . simp; use [1, 1, 1, 0, 0]; simp [h1, h1, h1, h0, h0]
+    . simp; use [1, 1, 1, 1, 0]; simp [h1, h1, h1, h1, h0]
+    . simp; use [1, 1, 1, 1, 1]; simp [h1, h1, h1, h1, h1]
+    . simp; use [6, 0, 0, 0, 0]; simp [h6, h0, h0, h0, h0]
+    . simp; use [1, 6, 0, 0, 0]; simp [h1, h6, h0, h0, h0]
+    . simp; use [1, 1, 6, 0, 0]; simp [h1, h1, h6, h0, h0]
+    . simp; use [1, 1, 1, 6, 0]; simp [h1, h1, h1, h6, h0]
+    . simp; use [1, 1, 1, 1, 6]; simp [h1, h1, h1, h1, h6]
+    . simp;
+    . simp; use [6, 6, 0, 0, 0]; simp [h6, h6, h0, h0, h0]
+    . simp; use [1, 6, 6, 0, 0]; simp [h1, h6, h6, h0, h0]
+    . simp; use [1, 1, 6, 6, 0]; simp [h1, h1, h6, h6, h0]
+    . simp; use [15, 0, 0, 0, 0]; simp [h15, h0, h0, h0, h0]
+    . simp; use [1, 15, 0, 0, 0]; simp [h1, h15, h0, h0, h0]
+    . simp; use [1, 1, 15, 0, 0]; simp [h1, h1, h15, h0, h0]
+    . simp; use [6, 6, 6, 0, 0]; simp [h6, h6, h6, h0, h0]
+    . simp; use [1, 6, 6, 6, 0]; simp [h1, h6, h6, h6, h0]
+    . simp; use [1, 1, 6, 6, 6]; simp [h1, h1, h6, h6, h6]
+    . simp; use [6, 15, 0, 0, 0]; simp [h6, h15, h0, h0, h0]
+    . simp; use [1, 6, 15, 0, 0]; simp [h1, h6, h15, h0, h0]
+    . simp; use [1, 1, 6, 15, 0]; simp [h1, h1, h6, h15, h0]
+    . simp; use [6, 6, 6, 6, 0]; simp [h6, h6, h6, h6, h0]
+    . simp; use [1, 6, 6, 6, 6]; simp [h1, h6, h6, h6, h6]
+    . simp;
+    . simp; use [6, 6, 15, 0, 0]; simp [h6, h6, h15, h0, h0]
+    . simp; use [28, 0, 0, 0, 0]; simp [h28, h0, h0, h0, h0]
+    . simp; use [1, 28, 0, 0, 0]; simp [h1, h28, h0, h0, h0]
+    . simp; use [15, 15, 0, 0, 0]; simp [h15, h15, h0, h0, h0]
+    . simp; use [1, 15, 15, 0, 0]; simp [h1, h15, h15, h0, h0]
+    . simp; use [1, 1, 15, 15, 0]; simp [h1, h1, h15, h15, h0]
+    . simp; use [6, 6, 6, 15, 0]; simp [h6, h6, h6, h15, h0]
+    . simp; use [6, 28, 0, 0, 0]; simp [h6, h28, h0, h0, h0]
+    . simp; use [1, 6, 28, 0, 0]; simp [h1, h6, h28, h0, h0]
+    . simp; use [6, 15, 15, 0, 0]; simp [h6, h15, h15, h0, h0]
+    . simp; use [1, 6, 15, 15, 0]; simp [h1, h6, h15, h15, h0]
+    . simp; use [1, 1, 6, 15, 15]; simp [h1, h1, h6, h15, h15]
+    . simp; use [6, 6, 6, 6, 15]; simp [h6, h6, h6, h6, h15]
+    . simp; use [6, 6, 28, 0, 0]; simp [h6, h6, h28, h0, h0]
+    . simp; use [1, 6, 6, 28, 0]; simp [h1, h6, h6, h28, h0]
+    . simp; use [6, 6, 15, 15, 0]; simp [h6, h6, h15, h15, h0]
+    . simp; use [15, 28, 0, 0, 0]; simp [h15, h28, h0, h0, h0]
+    . simp; use [1, 15, 28, 0, 0]; simp [h1, h15, h28, h0, h0]
+    . simp; use [45, 0, 0, 0, 0]; simp [h45, h0, h0, h0, h0]
+    . simp; use [1, 45, 0, 0, 0]; simp [h1, h45, h0, h0, h0]
+    . simp; use [1, 1, 45, 0, 0]; simp [h1, h1, h45, h0, h0]
+    . simp; use [1, 1, 1, 45, 0]; simp [h1, h1, h1, h45, h0]
+    . simp; use [6, 15, 28, 0, 0]; simp [h6, h15, h28, h0, h0]
+    . simp; use [1, 6, 15, 28, 0]; simp [h1, h6, h15, h28, h0]
+    . simp; use [6, 45, 0, 0, 0]; simp [h6, h45, h0, h0, h0]
+    . simp; use [1, 6, 45, 0, 0]; simp [h1, h6, h45, h0, h0]
+    . simp; use [1, 1, 6, 45, 0]; simp [h1, h1, h6, h45, h0]
+    . simp; use [1, 1, 1, 6, 45]; simp [h1, h1, h1, h6, h45]
+    . simp; use [6, 6, 15, 28, 0]; simp [h6, h6, h15, h28, h0]
+    . simp; use [28, 28, 0, 0, 0]; simp [h28, h28, h0, h0, h0]
+    . simp; use [1, 28, 28, 0, 0]; simp [h1, h28, h28, h0, h0]
+    . simp; use [15, 15, 28, 0, 0]; simp [h15, h15, h28, h0, h0]
+    . simp; use [1, 15, 15, 28, 0]; simp [h1, h15, h15, h28, h0]
+    . simp; use [15, 45, 0, 0, 0]; simp [h15, h45, h0, h0, h0]
+    . simp; use [1, 15, 45, 0, 0]; simp [h1, h15, h45, h0, h0]
+    . simp; use [6, 28, 28, 0, 0]; simp [h6, h28, h28, h0, h0]
+    . simp; use [6, 6, 6, 45, 0]; simp [h6, h6, h6, h45, h0]
+    . simp; use [6, 15, 15, 28, 0]; simp [h6, h15, h15, h28, h0]
+    . simp; use [1, 6, 15, 15, 28]; simp [h1, h6, h15, h15, h28]
+    . simp; use [66, 0, 0, 0, 0]; simp [h66, h0, h0, h0, h0]
+    . simp; use [1, 66, 0, 0, 0]; simp [h1, h66, h0, h0, h0]
+    . simp; use [1, 1, 66, 0, 0]; simp [h1, h1, h66, h0, h0]
+    . simp; use [1, 1, 1, 66, 0]; simp [h1, h1, h1, h66, h0]
+    . simp; use [1, 1, 1, 1, 66]; simp [h1, h1, h1, h1, h66]
+    . simp; use [15, 28, 28, 0, 0]; simp [h15, h28, h28, h0, h0]
+    . simp; use [6, 66, 0, 0, 0]; simp [h6, h66, h0, h0, h0]
+    . simp; use [28, 45, 0, 0, 0]; simp [h28, h45, h0, h0, h0]
+    . simp; use [1, 28, 45, 0, 0]; simp [h1, h28, h45, h0, h0]
+    . simp; use [15, 15, 45, 0, 0]; simp [h15, h15, h45, h0, h0]
+    . simp; use [1, 15, 15, 45, 0]; simp [h1, h15, h15, h45, h0]
+    . simp; use [6, 15, 28, 28, 0]; simp [h6, h15, h28, h28, h0]
+    . simp; use [6, 6, 66, 0, 0]; simp [h6, h6, h66, h0, h0]
+    . simp; use [6, 28, 45, 0, 0]; simp [h6, h28, h45, h0, h0]
+    . simp; use [1, 6, 28, 45, 0]; simp [h1, h6, h28, h45, h0]
+    . simp; use [15, 66, 0, 0, 0]; simp [h15, h66, h0, h0, h0]
+    . simp; use [1, 15, 66, 0, 0]; simp [h1, h15, h66, h0, h0]
+    . simp; use [1, 1, 15, 66, 0]; simp [h1, h1, h15, h66, h0]
+    . simp; use [28, 28, 28, 0, 0]; simp [h28, h28, h28, h0, h0]
+    . simp; use [6, 6, 28, 45, 0]; simp [h6, h6, h28, h45, h0]
+    . simp; use [15, 15, 28, 28, 0]; simp [h15, h15, h28, h28, h0]
+    . simp; use [6, 15, 66, 0, 0]; simp [h6, h15, h66, h0, h0]
+    . simp; use [15, 28, 45, 0, 0]; simp [h15, h28, h45, h0, h0]
+    . simp; use [1, 15, 28, 45, 0]; simp [h1, h15, h28, h45, h0]
+    . simp; use [45, 45, 0, 0, 0]; simp [h45, h45, h0, h0, h0]
+    . simp; use [91, 0, 0, 0, 0]; simp [h91, h0, h0, h0, h0]
+    . simp; use [1, 91, 0, 0, 0]; simp [h1, h91, h0, h0, h0]
+    . simp; use [1, 1, 91, 0, 0]; simp [h1, h1, h91, h0, h0]
+    . simp; use [28, 66, 0, 0, 0]; simp [h28, h66, h0, h0, h0]
+    . simp; use [1, 28, 66, 0, 0]; simp [h1, h28, h66, h0, h0]
+    . simp; use [6, 45, 45, 0, 0]; simp [h6, h45, h45, h0, h0]
+    . simp; use [6, 91, 0, 0, 0]; simp [h6, h91, h0, h0, h0]
+    . simp; use [1, 6, 91, 0, 0]; simp [h1, h6, h91, h0, h0]
+    . simp; use [1, 1, 6, 91, 0]; simp [h1, h1, h6, h91, h0]
+    . simp; use [6, 28, 66, 0, 0]; simp [h6, h28, h66, h0, h0]
+    . simp; use [28, 28, 45, 0, 0]; simp [h28, h28, h45, h0, h0]
+    . simp; use [6, 15, 15, 66, 0]; simp [h6, h15, h15, h66, h0]
+    . simp; use [6, 6, 91, 0, 0]; simp [h6, h6, h91, h0, h0]
+    . simp; use [1, 6, 6, 91, 0]; simp [h1, h6, h6, h91, h0]
+    . simp; use [15, 45, 45, 0, 0]; simp [h15, h45, h45, h0, h0]
+    . simp; use [15, 91, 0, 0, 0]; simp [h15, h91, h0, h0, h0]
+    . simp; use [1, 15, 91, 0, 0]; simp [h1, h15, h91, h0, h0]
+    . simp; use [1, 1, 15, 91, 0]; simp [h1, h1, h15, h91, h0]
+    . simp; use [15, 28, 66, 0, 0]; simp [h15, h28, h66, h0, h0]
+    . simp; use [1, 15, 28, 66, 0]; simp [h1, h15, h28, h66, h0]
+    . simp; use [45, 66, 0, 0, 0]; simp [h45, h66, h0, h0, h0]
+    . simp; use [1, 45, 66, 0, 0]; simp [h1, h45, h66, h0, h0]
+    . simp; use [1, 6, 15, 91, 0]; simp [h1, h6, h15, h91, h0]
+    . simp; use [1, 1, 1, 45, 66]; simp [h1, h1, h1, h45, h66]
+    . simp; use [6, 15, 28, 66, 0]; simp [h6, h15, h28, h66, h0]
+    . simp; use [15, 28, 28, 45, 0]; simp [h15, h28, h28, h45, h0]
+    . simp; use [6, 45, 66, 0, 0]; simp [h6, h45, h66, h0, h0]
+    . simp; use [28, 45, 45, 0, 0]; simp [h28, h45, h45, h0, h0]
+    . simp; use [28, 91, 0, 0, 0]; simp [h28, h91, h0, h0, h0]
+    . simp; use [120, 0, 0, 0, 0]; simp [h120, h0, h0, h0, h0]
+    . simp; use [1, 120, 0, 0, 0]; simp [h1, h120, h0, h0, h0]
+    . simp; use [1, 1, 120, 0, 0]; simp [h1, h1, h120, h0, h0]
+    . simp; use [1, 1, 1, 120, 0]; simp [h1, h1, h1, h120, h0]
+    . simp; use [6, 28, 45, 45, 0]; simp [h6, h28, h45, h45, h0]
+    . simp; use [6, 28, 91, 0, 0]; simp [h6, h28, h91, h0, h0]
+    . simp; use [6, 120, 0, 0, 0]; simp [h6, h120, h0, h0, h0]
+    . simp; use [1, 6, 120, 0, 0]; simp [h1, h6, h120, h0, h0]
+    . simp; use [1, 1, 6, 120, 0]; simp [h1, h1, h6, h120, h0]
+    . simp; use [28, 28, 28, 45, 0]; simp [h28, h28, h28, h45, h0]
+    . simp; use [6, 6, 28, 45, 45]; simp [h6, h6, h28, h45, h45]
+    . simp; use [6, 6, 28, 91, 0]; simp [h6, h6, h28, h91, h0]
+    . simp; use [66, 66, 0, 0, 0]; simp [h66, h66, h0, h0, h0]
+    . simp; use [1, 66, 66, 0, 0]; simp [h1, h66, h66, h0, h0]
+    . simp; use [15, 28, 91, 0, 0]; simp [h15, h28, h91, h0, h0]
+    . simp; use [15, 120, 0, 0, 0]; simp [h15, h120, h0, h0, h0]
+    . simp; use [45, 91, 0, 0, 0]; simp [h45, h91, h0, h0, h0]
+    . simp; use [1, 45, 91, 0, 0]; simp [h1, h45, h91, h0, h0]
+    . simp; use [6, 66, 66, 0, 0]; simp [h6, h66, h66, h0, h0]
+    . simp; use [28, 45, 66, 0, 0]; simp [h28, h45, h66, h0, h0]
+    . simp; use [6, 15, 28, 91, 0]; simp [h6, h15, h28, h91, h0]
+    . simp; use [6, 15, 120, 0, 0]; simp [h6, h15, h120, h0, h0]
+    . simp; use [6, 45, 91, 0, 0]; simp [h6, h45, h91, h0, h0]
+    . simp; use [1, 6, 45, 91, 0]; simp [h1, h6, h45, h91, h0]
+    . simp; use [6, 6, 66, 66, 0]; simp [h6, h6, h66, h66, h0]
+    . simp; use [6, 28, 45, 66, 0]; simp [h6, h28, h45, h66, h0]
+    . simp; use [28, 28, 45, 45, 0]; simp [h28, h28, h45, h45, h0]
+    . simp; use [15, 66, 66, 0, 0]; simp [h15, h66, h66, h0, h0]
+    . simp; use [28, 120, 0, 0, 0]; simp [h28, h120, h0, h0, h0]
+    . simp; use [1, 28, 120, 0, 0]; simp [h1, h28, h120, h0, h0]
+    . simp; use [15, 15, 120, 0, 0]; simp [h15, h15, h120, h0, h0]
+    . simp; use [15, 45, 91, 0, 0]; simp [h15, h45, h91, h0, h0]
+    . simp; use [1, 15, 45, 91, 0]; simp [h1, h15, h45, h91, h0]
+    . simp; use [153, 0, 0, 0, 0]; simp [h153, h0, h0, h0, h0]
+    . simp; use [1, 153, 0, 0, 0]; simp [h1, h153, h0, h0, h0]
+    . simp; use [1, 1, 153, 0, 0]; simp [h1, h1, h153, h0, h0]
+    . simp; use [45, 45, 66, 0, 0]; simp [h45, h45, h66, h0, h0]
+    . simp; use [66, 91, 0, 0, 0]; simp [h66, h91, h0, h0, h0]
+    . simp; use [1, 66, 91, 0, 0]; simp [h1, h66, h91, h0, h0]
+    . simp; use [6, 153, 0, 0, 0]; simp [h6, h153, h0, h0, h0]
+    . simp; use [1, 6, 153, 0, 0]; simp [h1, h6, h153, h0, h0]
+    . simp; use [1, 1, 6, 153, 0]; simp [h1, h1, h6, h153, h0]
+    . simp; use [6, 45, 45, 66, 0]; simp [h6, h45, h45, h66, h0]
+    . simp; use [6, 66, 91, 0, 0]; simp [h6, h66, h91, h0, h0]
+    . simp; use [28, 45, 91, 0, 0]; simp [h28, h45, h91, h0, h0]
+    . simp; use [45, 120, 0, 0, 0]; simp [h45, h120, h0, h0, h0]
+    . simp; use [1, 45, 120, 0, 0]; simp [h1, h45, h120, h0, h0]
+    . simp; use [28, 28, 45, 66, 0]; simp [h28, h28, h45, h66, h0]
+    . simp; use [15, 153, 0, 0, 0]; simp [h15, h153, h0, h0, h0]
+    . simp; use [1, 15, 153, 0, 0]; simp [h1, h15, h153, h0, h0]
+    . simp; use [1, 1, 15, 153, 0]; simp [h1, h1, h15, h153, h0]
+    . simp; use [6, 45, 120, 0, 0]; simp [h6, h45, h120, h0, h0]
+    . simp; use [15, 66, 91, 0, 0]; simp [h15, h66, h91, h0, h0]
+    . simp; use [1, 15, 66, 91, 0]; simp [h1, h15, h66, h91, h0]
+    . simp; use [6, 15, 153, 0, 0]; simp [h6, h15, h153, h0, h0]
+    . simp; use [28, 28, 28, 91, 0]; simp [h28, h28, h28, h91, h0]
+    . simp; use [28, 28, 120, 0, 0]; simp [h28, h28, h120, h0, h0]
+    . simp; use [45, 66, 66, 0, 0]; simp [h45, h66, h66, h0, h0]
+    . simp; use [15, 15, 28, 120, 0]; simp [h15, h15, h28, h120, h0]
+    . simp; use [15, 28, 45, 91, 0]; simp [h15, h28, h45, h91, h0]
+    . simp; use [15, 45, 120, 0, 0]; simp [h15, h45, h120, h0, h0]
+    . simp; use [28, 153, 0, 0, 0]; simp [h28, h153, h0, h0, h0]
+    . simp; use [91, 91, 0, 0, 0]; simp [h91, h91, h0, h0, h0]
+    . simp; use [15, 15, 153, 0, 0]; simp [h15, h15, h153, h0, h0]
+    . simp; use [1, 15, 15, 153, 0]; simp [h1, h15, h15, h153, h0]
+    . simp; use [28, 66, 91, 0, 0]; simp [h28, h66, h91, h0, h0]
+    . simp; use [66, 120, 0, 0, 0]; simp [h66, h120, h0, h0, h0]
+    . simp; use [6, 28, 153, 0, 0]; simp [h6, h28, h153, h0, h0]
+    . simp; use [6, 91, 91, 0, 0]; simp [h6, h91, h91, h0, h0]
+    . simp; use [6, 15, 15, 153, 0]; simp [h6, h15, h15, h153, h0]
+    . simp; use [190, 0, 0, 0, 0]; simp [h190, h0, h0, h0, h0]
+    . simp; use [1, 190, 0, 0, 0]; simp [h1, h190, h0, h0, h0]
+    . simp; use [1, 1, 190, 0, 0]; simp [h1, h1, h190, h0, h0]
+    . simp; use [28, 45, 120, 0, 0]; simp [h28, h45, h120, h0, h0]
+    . simp; use [6, 6, 91, 91, 0]; simp [h6, h6, h91, h91, h0]
+    . simp; use [15, 15, 45, 120, 0]; simp [h15, h15, h45, h120, h0]
+    . simp; use [6, 190, 0, 0, 0]; simp [h6, h190, h0, h0, h0]
+    . simp; use [1, 6, 190, 0, 0]; simp [h1, h6, h190, h0, h0]
+    . simp; use [45, 153, 0, 0, 0]; simp [h45, h153, h0, h0, h0]
+    . simp; use [1, 45, 153, 0, 0]; simp [h1, h45, h153, h0, h0]
+    . simp; use [1, 1, 45, 153, 0]; simp [h1, h1, h45, h153, h0]
+    . simp; use [15, 66, 120, 0, 0]; simp [h15, h66, h120, h0, h0]
+    . simp; use [6, 6, 190, 0, 0]; simp [h6, h6, h190, h0, h0]
+    . simp; use [1, 45, 66, 91, 0]; simp [h1, h45, h66, h91, h0]
+    . simp; use [6, 45, 153, 0, 0]; simp [h6, h45, h153, h0, h0]
+    . simp; use [15, 190, 0, 0, 0]; simp [h15, h190, h0, h0, h0]
+    . simp; use [1, 15, 190, 0, 0]; simp [h1, h15, h190, h0, h0]
+    . simp; use [1, 1, 15, 190, 0]; simp [h1, h1, h15, h190, h0]
+    . simp; use [6, 6, 6, 190, 0]; simp [h6, h6, h6, h190, h0]
+    . simp; use [28, 28, 153, 0, 0]; simp [h28, h28, h153, h0, h0]
+    . simp; use [28, 91, 91, 0, 0]; simp [h28, h91, h91, h0, h0]
+    . simp; use [91, 120, 0, 0, 0]; simp [h91, h120, h0, h0, h0]
