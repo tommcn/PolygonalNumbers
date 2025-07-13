@@ -21,7 +21,7 @@ def IsnPolygonal₀ (s : ℤ) (_ : s ≥ 3) (n : ℕ) := n = 0 ∨ (IsSquare (8*
 
 
 def Triangular := Subtype (fun (n : ℕ) ↦ IsTriangular n)
-def Polygonal (s : ℤ) (hm : s ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal s hm n)
+def Polygonal (s : ℤ) (hs : s ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal s hs n)
 
 
 def foldrfun (s : ℤ) (hs : s ≥ 3) := fun (x1 : Polygonal s hs) (x2 : ℤ) ↦ x1.val + x2
