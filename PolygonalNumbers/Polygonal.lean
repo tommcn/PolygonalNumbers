@@ -13,30 +13,26 @@ import PolygonalNumbers.Lemmas
 -- Wikipedia definitions
 -- `m` -> order
 def IsTriangular (n : ℤ) := ∃ (k : ℤ), (k * (k + 1)) = 2 * n
-def IsnPolygonal (m : ℤ) (_ : m ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k * (k - 1)) + k = n --∧ k > 0
-def IsnPolygonal' (m : ℤ) (_ : m ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ) - 2) / 2) * (k^2 - k) + k = n --∧ k > 0
-def IsnPolygonal'' (m : ℤ) (_ : m ≥ 3) (n : ℕ) := n = 0 ∨ ∃ (k : ℕ), (((m : ℚ)- 2)*k^2 - (m - 4)*k) / 2 = n --∧ k > 0
--- def IsnPolygonal₀ (m : ℤ) (n : ℤ) := (√(8*(m-2)*n + (m-4)^2) + (m - 4)) / (2 * (m - 2))
-def IsnPolygonal₀ (m : ℤ) (_ : m ≥ 3) (n : ℕ) := n = 0 ∨ (IsSquare (8*(m-2)*n + (m-4)^2)
-                        ∧ (Int.sqrt (8*(m-2)*n + (m-4)^2) + (m - 4)) % (2 * (m - 2)) = 0)
-                        --∧ n ≠ 0
-                     --   ∧ (∃ (k : ℕ), (k ^ 2 = (8*(m-2)*n + (m-4)^2) ∧ (k + (m - 4)) % (2 * (m - 2)) = 0))
-                     -- Rat.sqrt
+def IsnPolygonal (s : ℤ) (_ : s ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((s : ℚ) - 2) / 2) * (k * (k - 1)) + k = n
+def IsnPolygonal' (s : ℤ) (_ : s ≥ 3) (n : ℕ)  := n = 0 ∨ ∃ (k : ℕ), (((s : ℚ) - 2) / 2) * (k^2 - k) + k = n
+def IsnPolygonal'' (s : ℤ) (_ : s ≥ 3) (n : ℕ) := n = 0 ∨ ∃ (k : ℕ), (((s : ℚ)- 2)*k^2 - (s - 4)*k) / 2 = n
+def IsnPolygonal₀ (s : ℤ) (_ : s ≥ 3) (n : ℕ) := n = 0 ∨ (IsSquare (8*(s-2)*n + (s-4)^2)
+                        ∧ (Int.sqrt (8*(s-2)*n + (s-4)^2) + (s - 4)) % (2 * (s - 2)) = 0)
 
 
 def Triangular := Subtype (fun (n : ℕ) ↦ IsTriangular n)
-def Polygonal (m : ℤ) (hm : m ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal m hm n)
+def Polygonal (s : ℤ) (hm : s ≥ 3) := Subtype (fun (n : ℕ) ↦ IsnPolygonal s hm n)
 
 
-def foldrfun (m : ℤ) (hm : m ≥ 3) := fun (x1 : Polygonal m hm) (x2 : ℤ) ↦ x1.val + x2
+def foldrfun (s : ℤ) (hs : s ≥ 3) := fun (x1 : Polygonal s hs) (x2 : ℤ) ↦ x1.val + x2
 
-instance : LeftCommutative (foldrfun n hm : Polygonal n hm → ℤ → ℤ) where
+instance : LeftCommutative (foldrfun n hs : Polygonal n hs → ℤ → ℤ) where
   left_comm := by
     intro a b c
     simp [foldrfun]
     ring
 
-def sumPolyToInt (m : ℤ) (hm : m ≥ 3) (S : List (Polygonal m hm)) : ℤ := S.foldr (foldrfun m hm) 0
+def sumPolyToInt (s : ℤ) (hs : s ≥ 3) (S : List (Polygonal s hs)) : ℤ := S.foldr (foldrfun s hs) 0
 
 
 /--
@@ -47,7 +43,7 @@ lemma kfactq (k : ℚ) : k * (k - 1) = k^2 - k := by
 
 lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
   unfold IsnPolygonal IsnPolygonal'
-  funext m a hm
+  funext s hs a
   apply propext
   constructor
   . intro h
@@ -70,7 +66,7 @@ lemma PolyEquiv: IsnPolygonal = IsnPolygonal' := by
 
 lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
   unfold IsnPolygonal IsnPolygonal''
-  funext m a hm
+  funext s hs a
   apply propext
   constructor
   . intro h
@@ -98,11 +94,11 @@ lemma PolyEquiv' : IsnPolygonal = IsnPolygonal'' := by
 
 lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
   unfold IsnPolygonal₀
-  funext m hm x
+  funext s hs a
   apply propext
 
-  have hcasesthr : m = 3 ∨ m > 3 := by
-    exact Or.symm (LE.le.gt_or_eq hm)
+  have hcasesthr : s = 3 ∨ s > 3 := by
+    exact Or.symm (LE.le.gt_or_eq hs)
 
   constructor
   . intro h
@@ -111,22 +107,22 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
     -- let ⟨ k, hk ⟩ := h
     let hcpy := h
     dsimp [IsnPolygonal] at hcpy
-    have hexzero : x = 0 ∨ x > 0 := by
-      exact Nat.eq_zero_or_pos x
+    have hexzero : a = 0 ∨ a > 0 := by
+      exact Nat.eq_zero_or_pos a
     rcases hexzero with hzero | hpos
     . left; exact hzero
 
     -- rcases hcpy with hzero | h₁
     -- . left; exact hzero
     right
-    have hexne : x ≠ 0 := by exact Nat.not_eq_zero_of_lt hpos
-    have hexz : x = 0 ↔ False := by exact iff_false_intro hexne
+    have hexne : a ≠ 0 := by exact Nat.not_eq_zero_of_lt hpos
+    have hexz : a = 0 ↔ False := by exact iff_false_intro hexne
     rw [hexz] at hcpy
     simp at hcpy
 
     let ⟨ k, hk ⟩ := hcpy
-    have hsqrtsq : 8 * (m - 2) * x + (m - 4) ^ 2 = (2 * k * (m - 2) - (m - 4)) * (2 * k * (m - 2) - (m - 4)) := by
-      have hev : Even ((m - 2) * k ^ 2 - (m - 4) * k) := by
+    have hsqrtsq : 8 * (s - 2) * a + (s - 4) ^ 2 = (2 * k * (s - 2) - (s - 4)) * (2 * k * (s - 2) - (s - 4)) := by
+      have hev : Even ((s - 2) * k ^ 2 - (s - 4) * k) := by
         refine Int.even_sub.mpr ?_
         constructor
         . intro heven
@@ -135,14 +131,14 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
           rcases heven with h₁ | h₁
           . left
             refine (Int.even_sub).mpr ?_
-            . have hmnet : m ≠ 3 := by
+            . have hmnet : s ≠ 3 := by
                 contrapose h₁
                 simp at h₁
                 simp
                 rw [h₁]
                 simp
-              have hmgtf : m > 3 := by
-                exact lt_of_le_of_ne hm (id (Ne.symm hmnet))
+              have hmgtf : s > 3 := by
+                exact lt_of_le_of_ne hs (id (Ne.symm hmnet))
               constructor
               . intro _
                 dsimp [Even]
@@ -177,40 +173,40 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
           . right
             rw [@sq]
             exact Even.mul_right h₁ k
-      have hint : ((m - 2) * k ^ 2 - (↑m - 4) * k) / 2 = x := by
+      have hint : ((s - 2) * k ^ 2 - (s - 4) * k) / 2 = a := by
         refine Eq.symm (Int.eq_ediv_of_mul_eq_right ?_ ?_)
         linarith
-        have hq : (((m : ℚ) - 2) * k ^ 2 - (m - 4) * k) = 2 * x := by
+        have hq : (((s : ℚ) - 2) * k ^ 2 - (s - 4) * k) = 2 * a := by
           rw [← hk]
           ring
         apply Eq.symm
-        have htx : (2 * (x : ℚ)) = (((2 * x) : ℤ) : ℚ) := by
+        have htx : (2 * (a : ℚ)) = (((2 * a) : ℤ) : ℚ) := by
           simp
 
-        have htmk : ((m : ℚ) - 2) * k ^ 2 - (m - 4) * k = ((((m - 2) * k ^ 2 - (m - 4) * k) : ℤ) : ℚ) := by
+        have htmk : ((s : ℚ) - 2) * k ^ 2 - (s - 4) * k = ((((s - 2) * k ^ 2 - (s - 4) * k) : ℤ) : ℚ) := by
           simp
         rw [htx, htmk] at hq
         exact Eq.symm ((fun {a b} ↦ Rat.intCast_inj.mp) (id (Eq.symm hq)))
       rw [← hint]
-      have hexr : ∃ (r : ℤ), ((m - 2) * k ^ 2 - (m - 4) * k) = 2 * r := by
-        exact Even.exists_two_nsmul ((m - 2) * k ^ 2 - (m - 4) * k) hev
+      have hexr : ∃ (r : ℤ), ((s - 2) * k ^ 2 - (s - 4) * k) = 2 * r := by
+        exact Even.exists_two_nsmul ((s - 2) * k ^ 2 - (s - 4) * k) hev
       let ⟨ r, hr ⟩ := hexr
-      calc 8 * (m - 2) * (((m - 2) * k ^ 2 - (m - 4) * k) / 2) + (m - 4) ^ 2
-        _ = 4 * (m - 2) * (((m - 2) * k ^ 2 - (m - 4) * k)) + (m - 4) ^ 2 := by
+      calc 8 * (s - 2) * (((s - 2) * k ^ 2 - (s - 4) * k) / 2) + (s - 4) ^ 2
+        _ = 4 * (s - 2) * (((s - 2) * k ^ 2 - (s - 4) * k)) + (s - 4) ^ 2 := by
           rw [hr]
           simp
           ring
-        _ = ((2 * (m - 2) * k) - (m - 4))^2 := by ring
+        _ = ((2 * (s - 2) * k) - (s - 4))^2 := by ring
       ring
 
-    have hexzero : x = 0 ∨ x > 0 := by
-      exact Nat.eq_zero_or_pos x
+    have hexzero : a = 0 ∨ a > 0 := by
+      exact Nat.eq_zero_or_pos a
 
     constructor
     . rw [PolyEquiv'] at h
-      use (2 * k * (m - 2) - (m - 4))
+      use (2 * k * (s - 2) - (s - 4))
     . rw [hsqrtsq]
-      have hintsqrt : Int.sqrt ((2 * k * (m - 2) - (m - 4)) * (2 * k * (m - 2) - (m - 4))) = (2 * k * (m - 2) - (m - 4)).natAbs := by
+      have hintsqrt : Int.sqrt ((2 * k * (s - 2) - (s - 4)) * (2 * k * (s - 2) - (s - 4))) = (2 * k * (s - 2) - (s - 4)).natAbs := by
         rw [Int.sqrt_eq]
       rw [hintsqrt]
       simp
@@ -221,59 +217,59 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       rcases hkor with hzero | hpos
       . rw [hzero]
         simp
-        have habs : 4 - m ≥ 0 ∨ 4 - m < 0 := by
-          exact Int.le_or_lt 0 (4 - m)
+        have habs : 4 - s ≥ 0 ∨ 4 - s < 0 := by
+          exact Int.le_or_lt 0 (4 - s)
         rcases habs with hnonneg | hneg
-        . have habs' : abs (4 - m) = 4 - m := by
+        . have habs' : abs (4 - s) = 4 - s := by
             exact abs_of_nonneg hnonneg
           rw [habs']
           simp
-        . have habs' : abs (4 - m) = -(4 - m) := by
+        . have habs' : abs (4 - s) = -(4 - s) := by
             exact abs_of_neg hneg
           rw [habs']
           simp
           rw [hzero] at hk
           simp at hk
           exfalso
-          have hnez : 0 ≠ (x : ℚ) := by
+          have hnez : 0 ≠ (a : ℚ) := by
             apply Ne.symm
             apply Nat.cast_ne_zero.mpr
             exact hexne
           contradiction
-      . have htsqrtpos : 2 * k * (m - 2) - (m - 4) ≥ 0 := by
+      . have htsqrtpos : 2 * k * (s - 2) - (s - 4) ≥ 0 := by
           rcases hcasesthr with hthree | hneqthree
           . rw [hthree]
             linarith
           . simp
-            have hmt : m - 2 > 0 := by
+            have hmt : s - 2 > 0 := by
               linarith
             refine Int.le_add_of_sub_right_le ?_
-            calc m - 4
-              _ ≤ 2 * (m - 2) := by linarith
+            calc s - 4
+              _ ≤ 2 * (s - 2) := by linarith
             refine Int.mul_le_mul_of_nonneg_right ?_ ?_
             . linarith
             . linarith
 
-        have habs : |2 * k * (m - 2) - (m - 4)| = 2 * k * (m - 2) - (m - 4) := by
+        have habs : |2 * k * (s - 2) - (s - 4)| = 2 * k * (s - 2) - (s - 4) := by
           exact abs_of_nonneg htsqrtpos
 
         rw [habs]
         ring
 
-  . have hexzerocases : x = 0 ∨ x > 0 := by exact Nat.eq_zero_or_pos x
+  . have hexzerocases : a = 0 ∨ a > 0 := by exact Nat.eq_zero_or_pos a
     rcases hexzerocases with hzero | hpos
     . intro _; dsimp [IsnPolygonal]; left; exact hzero
     intro h₁
-    have hand : IsSquare (8 * (m - 2) * ↑x + (m - 4) ^ 2) ∧ (Int.sqrt (8 * (m - 2) * ↑x + (m - 4) ^ 2) + (m - 4)) % (2 * (m - 2)) = 0 := by
-      have hexne : x ≠ 0 := by exact Nat.not_eq_zero_of_lt hpos
-      have hexz : x = 0 ↔ False := by exact iff_false_intro hexne
+    have hand : IsSquare (8 * (s - 2) * ↑a + (s - 4) ^ 2) ∧ (Int.sqrt (8 * (s - 2) * ↑a + (s - 4) ^ 2) + (s - 4)) % (2 * (s - 2)) = 0 := by
+      have hexne : a ≠ 0 := by exact Nat.not_eq_zero_of_lt hpos
+      have hexz : a = 0 ↔ False := by exact iff_false_intro hexne
       rw [hexz] at h₁
       simp at h₁
       simp
       exact h₁
     -- let ⟨ hsq, hdiv ⟩ := hand
     let ⟨ ⟨ r', hr' ⟩, h₂ ⟩ := hand
-    have hrest : ∃ (r : ℤ), 8 * (m - 2) * ↑x + (m - 4) ^ 2 = r * r ∧ r ≥ 0 := by
+    have hrest : ∃ (r : ℤ), 8 * (s - 2) * ↑a + (s - 4) ^ 2 = r * r ∧ r ≥ 0 := by
       let r := r'.natAbs
       use r
       constructor
@@ -290,38 +286,38 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
     rw [Int.sqrt_eq] at h₂
     dsimp [IsnPolygonal]
 
-    let rm₄ := r.natAbs + (m - 4)
-    have hf : 2 * ((m : ℝ) - 2) > 0 := by
+    let rm₄ := r.natAbs + (s - 4)
+    have hf : 2 * ((s : ℝ) - 2) > 0 := by
         refine mul_pos ?_ ?_
         simp
         ring_nf
-        suffices h : 2 < m by
-          have ht : (2 : ℝ) < m := by
+        suffices h : 2 < s by
+          have ht : (2 : ℝ) < s := by
             exact Int.cast_lt.mpr h
           exact lt_neg_add_iff_lt.mpr ht
         linarith
-    have hf₂ : 2 * ((m : ℝ) - 2) ≠ 0 := by exact Ne.symm (ne_of_lt hf)
-    have hfq : 2 * ((m : ℚ) - 2) > 0 := by
+    have hf₂ : 2 * ((s : ℝ) - 2) ≠ 0 := by exact Ne.symm (ne_of_lt hf)
+    have hfq : 2 * ((s : ℚ) - 2) > 0 := by
         refine mul_pos ?_ ?_
         simp
-        have hmr : (m : ℚ) ≥ 3 := by
-          exact Int.ceil_le.mp hm
+        have hsr : (s : ℚ) ≥ 3 := by
+          exact Int.ceil_le.mp hs
         linarith
-    have hf₂q : 2 * ((m : ℚ) - 2) ≠ 0 := by exact Ne.symm (ne_of_lt hfq)
-    have htwo : (2 * ((m : ℚ) - 2)) /  (2 * ((m : ℚ) - 2)) = 1 := by
+    have hf₂q : 2 * ((s : ℚ) - 2) ≠ 0 := by exact Ne.symm (ne_of_lt hfq)
+    have htwo : (2 * ((s : ℚ) - 2)) /  (2 * ((s : ℚ) - 2)) = 1 := by
         rw [div_self]
         exact hf₂q
-    have heq : ((((rm₄) / (2 * (m - 2))) : ℤ) : ℚ) = (rm₄ : ℚ) / (2 * (m - 2)) := by
-      have hl : ((((rm₄ / (2 * (m - 2))) : ℚ) * (2 * (m - 2)))) = rm₄ := by
+    have heq : ((((rm₄) / (2 * (s - 2))) : ℤ) : ℚ) = (rm₄ : ℚ) / (2 * (s - 2)) := by
+      have hl : ((((rm₄ / (2 * (s - 2))) : ℚ) * (2 * (s - 2)))) = rm₄ := by
         refine
           Eq.symm
             ((fun a b ↦ (Mathlib.Tactic.Rify.ratCast_eq a b).mpr) (↑rm₄)
-              (↑rm₄ / (2 * (↑m - 2)) * (2 * (↑m - 2))) ?_)
+              (↑rm₄ / (2 * (↑s - 2)) * (2 * (↑s - 2))) ?_)
         simp
         refine Eq.symm (div_mul_cancel_of_imp ?_)
         intro h
         exfalso
-        have hf₃ : 2 * ((m : ℝ) - 2) = 0 ∧ 2 * ((m : ℝ) - 2) ≠ 0:= by
+        have hf₃ : 2 * ((s : ℝ) - 2) = 0 ∧ 2 * ((s : ℝ) - 2) ≠ 0:= by
           constructor
           exact h
           exact hf₂
@@ -331,31 +327,31 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       . exact hf₂q
       . --let ⟨ hdiv, hneq ⟩ := h₂
         let hdiv := h₂
-        have hex : ∃ (k : ℤ), rm₄ = (2 * (m - 2)) * k := by
+        have hex : ∃ (k : ℤ), rm₄ = (2 * (s - 2)) * k := by
           dsimp [rm₄]
           refine exists_eq_mul_right_of_dvd ?_
           exact Int.dvd_of_emod_eq_zero hdiv
 
-        have hmodrm : rm₄ % (2 * (m - 2)) = 0 := by
+        have hmodrm : rm₄ % (2 * (s - 2)) = 0 := by
           dsimp [rm₄]
           exact Int.emod_eq_zero_of_dvd hex
 
-        have hexrm : ∃ (k : ℤ), rm₄ = 2 * (m - 2) * k := by
+        have hexrm : ∃ (k : ℤ), rm₄ = 2 * (s - 2) * k := by
           refine dvd_iff_exists_eq_mul_right.mp ?_
           exact Int.dvd_of_emod_eq_zero hdiv
 
         let ⟨ k, hk ⟩ := hex
         rw [hk]
         simp
-        calc 2 * ((m : ℚ) - 2) * k / (2 * (m - 2)) * (2 * (m - 2))
-          _ = k * ((2 * ((m : ℚ) - 2)) / (2 * (m - 2))) * (2 * (m - 2)) := by ring
-          _ = k * 1 * (2 * (m - 2)) := by rw [htwo]
+        calc 2 * ((s : ℚ) - 2) * k / (2 * (s - 2)) * (2 * (s - 2))
+          _ = k * ((2 * ((s : ℚ) - 2)) / (2 * (s - 2))) * (2 * (s - 2)) := by ring
+          _ = k * 1 * (2 * (s - 2)) := by rw [htwo]
         ring
 
-    have heq' : ((((rm₄) / (2 * (m - 2))).natAbs) : ℚ) = abs ((rm₄) / (2 * (m - 2))) := by
-      exact Nat.cast_natAbs (rm₄ / (2 * (m - 2)))
+    have heq' : ((((rm₄) / (2 * (s - 2))).natAbs) : ℚ) = abs ((rm₄) / (2 * (s - 2))) := by
+      exact Nat.cast_natAbs (rm₄ / (2 * (s - 2)))
 
-    have heq'' : (abs ((rm₄) / (2 * (m - 2))) : ℤ) = abs (((rm₄ : ℚ)) / (2 * (m - 2))) := by
+    have heq'' : (abs ((rm₄) / (2 * (s - 2))) : ℤ) = abs (((rm₄ : ℚ)) / (2 * (s - 2))) := by
       rw [← heq]
       exact Int.cast_abs
 
@@ -363,14 +359,14 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
     . rw [heqthree]
       simp
       right
-      use ((rm₄) / (2 * (m - 2))).natAbs
+      use ((rm₄) / (2 * (s - 2))).natAbs
       rw [heq',heq'']
       have hrm₄thr : rm₄ = r.natAbs - 1 := by
         dsimp [rm₄]
         rw [heqthree]
         ring
 
-      have reqzeroiff : r = 0 ↔ 8 * (m - 2) * x + (m - 4) ^ 2 = 0:= by
+      have reqzeroiff : r = 0 ↔ 8 * (s - 2) * a + (s - 4) ^ 2 = 0:= by
         constructor
         . intro ha
           rw [hr, ha]
@@ -390,16 +386,16 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
         rw [hrm4zero]
         -- rw [habs]
         rw [heqthree]
-        have hfal : 8 * (x : ℤ) + 1 = 0 := by
+        have hfal : 8 * (a : ℤ) + 1 = 0 := by
           rw [heqthree, hzero] at hr
           simp at hr
           exact hr
-        have hfal' : 8 * (x : ℤ) = -1 := by
+        have hfal' : 8 * (a : ℤ) = -1 := by
           exact (Int.add_left_inj 1).mp hfal
-        have hxgeq : (x : ℤ) ≥ 0 := by
+        have hxgeq : (a : ℤ) ≥ 0 := by
           linarith
-        have hxgeq' : 8 * (x : ℤ) ≥ 0 := by
-          exact Int.le.intro_sub (8 * x + 0) rfl
+        have hxgeq' : 8 * (a : ℤ) ≥ 0 := by
+          exact Int.le.intro_sub (8 * a + 0) rfl
         exfalso
         contradiction
       . have hreqone : r = 1 ∨ r > 1 := by
@@ -420,7 +416,7 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
           -- let ⟨ _, hf ⟩ := h₂
           -- exact hf hr
 
-        . have hgeqzero : (rm₄ / (2 * (m - 2))) ≥ 0 := by
+        . have hgeqzero : (rm₄ / (2 * (s - 2))) ≥ 0 := by
             refine Int.ediv_nonneg ?_ ?_
             . dsimp [rm₄]
               rw [heqthree]
@@ -439,7 +435,7 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
             rw [hrabs]
             linarith
 
-          have hrm₄abs : (rm₄ / (2 * (m - 2))).natAbs = (rm₄ / (2 * (m - 2))) := by
+          have hrm₄abs : (rm₄ / (2 * (s - 2))).natAbs = (rm₄ / (2 * (s - 2))) := by
             refine Int.natAbs_of_nonneg ?_
             refine (Int.div_nonneg_iff_of_pos ?_).mpr hrm₄geqzero
             linarith
@@ -463,7 +459,7 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
             refine abs_of_pos ?_
             refine sub_pos.mpr ?_
             exact Int.floor_lt.mp hgtone
-          have hstep1 : 8 * (x : ℚ) + 1 = r * r := by
+          have hstep1 : 8 * (a : ℚ) + 1 = r * r := by
             apply Eq.symm
             calc (r : ℚ) * r
               _ = ((r * r) : ℤ) := by exact Eq.symm (Rat.intCast_mul r r)
@@ -475,8 +471,8 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
             simp
             ring
 
-          have hxeq : (x : ℚ) = 8⁻¹ * ((r : ℚ) * r - 1) := by
-            suffices hassumpt : 8 * (x : ℚ) = (r : ℚ) * r - 1 by
+          have hxeq : (a : ℚ) = 8⁻¹ * ((r : ℚ) * r - 1) := by
+            suffices hassumpt : 8 * (a : ℚ) = (r : ℚ) * r - 1 by
               apply Eq.symm
               refine (IsUnit.inv_mul_eq_iff_eq_mul ?_).mpr (id (Eq.symm hassumpt))
               simp
@@ -497,7 +493,7 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       dsimp [rm₄]
       linarith
     right
-    use (rm₄ / (2 * (m - 2))).natAbs
+    use (rm₄ / (2 * (s - 2))).natAbs
 
     have hrn : r.natAbs * r.natAbs = r * r := by simp
     have hrnq : (r.natAbs : ℚ) * r.natAbs = r * r := by
@@ -508,7 +504,7 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
       apply Eq.symm
       exact Eq.symm (Rat.intCast_mul ↑r.natAbs ↑r.natAbs)
 
-    have hrq : 8 * (m - 2) * x + (m - 4) ^ 2 = (r : ℚ) * r := by
+    have hrq : 8 * (s - 2) * a + (s - 4) ^ 2 = (r : ℚ) * r := by
       apply Eq.symm
       calc (r : ℚ) * r
         _ = ((r * r) : ℤ) := by exact Eq.symm (Rat.intCast_mul r r)
@@ -531,91 +527,91 @@ lemma PolyEquiv₀ : IsnPolygonal = IsnPolygonal₀ := by
         rw [← hn]
         rw [← habsq]
 
-    have h : x = ((r.natAbs : ℚ) * r.natAbs - (m-4)^2) / (8 *(m-2)) := by
+    have h : a = ((r.natAbs : ℚ) * r.natAbs - (s-4)^2) / (8 *(s-2)) := by
       rw [hrnq]
       rw [← hrq]
       simp
       apply Eq.symm
-      have h : (m - 2) / (m - 2) = 1 := by
+      have h : (s - 2) / (s - 2) = 1 := by
         refine Int.ediv_self ?_
         linarith
 
-      have hemtq : (8*((m : ℚ)-2)) / ((8*(m-2))) = 1 := by
+      have hemtq : (8*((s : ℚ)-2)) / ((8*(s-2))) = 1 := by
         refine div_self ?_
         simp
-        have hmt : (m : ℚ) - 2 > 0 := by
+        have hmt : (s : ℚ) - 2 > 0 := by
           linarith
         exact right_ne_zero_of_mul hf₂q
 
 
       calc
-        _ = (((8*(m-2))) * (x : ℚ) ) / (8*(m-2)) := by ring
-        _ = (x * ((8*(m-2)))) / (8*(m-2)) := by rw [mul_comm]
-        _ = x * ((8*(m-2)) / (8*(m-2))) := by ring
-        _ = x * 1 := by rw [hemtq]
+        _ = (((8*(s-2))) * (a : ℚ) ) / (8*(s-2)) := by ring
+        _ = (a * ((8*(s-2)))) / (8*(s-2)) := by rw [mul_comm]
+        _ = a * ((8*(s-2)) / (8*(s-2))) := by ring
+        _ = a * 1 := by rw [hemtq]
       simp
     rw [h]
 
-    have hrm₄abs : (rm₄ / (2 * (m - 2))).natAbs = (rm₄ / (2 * (m - 2))) := by
+    have hrm₄abs : (rm₄ / (2 * (s - 2))).natAbs = (rm₄ / (2 * (s - 2))) := by
       refine Int.natAbs_of_nonneg ?_
       refine (Int.div_nonneg_iff_of_pos ?_).mpr hrm₄geqzero
       linarith
 
-    have hrm₄qeq : (((rm₄ / (2 * (m - 2))).natAbs) : ℚ) = (((rm₄ / (2 * (m - 2))) : ℤ) : ℚ) := by
+    have hrm₄qeq : (((rm₄ / (2 * (s - 2))).natAbs) : ℚ) = (((rm₄ / (2 * (s - 2))) : ℤ) : ℚ) := by
       exact Rat.ext hrm₄abs rfl
 
     rw [hrm₄qeq]
     rw [heq]
 
-    have heq' : ((r.natAbs + (m - 4)) : ℤ) = ((r.natAbs + (m - 4)) : ℚ) := by
+    have heq' : ((r.natAbs + (s - 4)) : ℤ) = ((r.natAbs + (s - 4)) : ℚ) := by
       simp
       rw [@Int.cast_natAbs]
       exact Eq.symm Int.cast_abs
       -- have heq'' : (r).natAbs
 
-    have hmtwo : (((m : ℚ) - 2) / (2 * (m - 2))) = 1 / 2 := by
-      calc (((m : ℚ) - 2) / (2 * (m - 2)))
-        _ = 2 / 2 * ((m - 2) / (2 * (m - 2))):= by ring
-        _ = 1 / 2 * 2 * ((m - 2) / (2 * (m - 2))):= by ring
-        _ = 1 / 2 * (2 * (m - 2) / (2 * (m - 2))):= by ring
+    have hmtwo : (((s : ℚ) - 2) / (2 * (s - 2))) = 1 / 2 := by
+      calc (((s : ℚ) - 2) / (2 * (s - 2)))
+        _ = 2 / 2 * ((s - 2) / (2 * (s - 2))):= by ring
+        _ = 1 / 2 * 2 * ((s - 2) / (2 * (s - 2))):= by ring
+        _ = 1 / 2 * (2 * (s - 2) / (2 * (s - 2))):= by ring
         _ = 1 / 2 * (1):= by rw [htwo]
         _ = 1 / 2 := by simp
     -- constructor
-    calc ((m : ℚ) - 2) / 2 * (rm₄ / (2 * (m - 2)) * (rm₄ / (2 * (m - 2)) - 1)) + rm₄ / (2 * (m - 2))
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * (rm₄ / (2 * (m - 2)) - 1)) + (rm₄ / (2 * (m - 2))) := by simp
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * (rm₄ / (2 * (m - 2)) - ((2 * (m - 2)) / (2 * (m - 2))))) + (rm₄ / (2 * (m - 2))) := by rw [htwo]
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((rm₄ - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by ring
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((((r.natAbs + (m - 4)) : ℤ) - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by dsimp [rm₄]
-      _ = ((m - 2) / 2) * ((rm₄ / (2 * (m - 2))) * ((((r.natAbs + (m - 4))) - (2 * (m - 2))) / (2 * (m - 2)))) + (rm₄ / (2 * (m - 2))) := by rw [heq']
-      _ = (1 / (2 * (m - 2))) * (((m - 2) / 2) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + rm₄) := by ring
-      _ = (1 / (2 * (m - 2))) * ((1 / 2) * ((m - 2)) * (rm₄ * (r.natAbs - m) / (2 * (m - 2))) + ((2 * (m - 2)) / (2 * (m - 2)) * rm₄)) := by rw [htwo]; ring
-      _ = (1 / (2 * (m - 2))) * (((1 / 2) * ((rm₄ * r.natAbs - m * rm₄ + 4 * rm₄)) * ((m - 2) / (2 * (m - 2))))) := by ring
-      _ = (1 / (2 * (m - 2))) * (((1 / 2) * ((rm₄ * r.natAbs - m * rm₄ + 4 * rm₄)) * (1 / 2))) := by rw [hmtwo]
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (rm₄ * (r.natAbs - m + 4)) := by ring
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (((r.natAbs + (m - 4)) : ℤ) * (r.natAbs - m + 4)) := by dsimp [rm₄]
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * ((r.natAbs + (m - 4)) * (r.natAbs - m + 4)) := by rw [heq']
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m * r.natAbs + 4 * r.natAbs + (m - 4) * r.natAbs - (m - 4) * m + (m - 4) * 4) := by ring
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs ^ 2 - m ^ 2 + 8 * m - 16) := by ring
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r.natAbs * r.natAbs - (m - 4) ^ 2) := by ring
-      _ = ((1 / 4) * (1 / (2 * (m - 2)))) * (r * r - (m - 4) ^ 2) := by rw [hrnq]
+    calc ((s : ℚ) - 2) / 2 * (rm₄ / (2 * (s - 2)) * (rm₄ / (2 * (s - 2)) - 1)) + rm₄ / (2 * (s - 2))
+      _ = ((s - 2) / 2) * ((rm₄ / (2 * (s - 2))) * (rm₄ / (2 * (s - 2)) - 1)) + (rm₄ / (2 * (s - 2))) := by simp
+      _ = ((s - 2) / 2) * ((rm₄ / (2 * (s - 2))) * (rm₄ / (2 * (s - 2)) - ((2 * (s - 2)) / (2 * (s - 2))))) + (rm₄ / (2 * (s - 2))) := by rw [htwo]
+      _ = ((s - 2) / 2) * ((rm₄ / (2 * (s - 2))) * ((rm₄ - (2 * (s - 2))) / (2 * (s - 2)))) + (rm₄ / (2 * (s - 2))) := by ring
+      _ = ((s - 2) / 2) * ((rm₄ / (2 * (s - 2))) * ((((r.natAbs + (s - 4)) : ℤ) - (2 * (s - 2))) / (2 * (s - 2)))) + (rm₄ / (2 * (s - 2))) := by dsimp [rm₄]
+      _ = ((s - 2) / 2) * ((rm₄ / (2 * (s - 2))) * ((((r.natAbs + (s - 4))) - (2 * (s - 2))) / (2 * (s - 2)))) + (rm₄ / (2 * (s - 2))) := by rw [heq']
+      _ = (1 / (2 * (s - 2))) * (((s - 2) / 2) * (rm₄ * (r.natAbs - s) / (2 * (s - 2))) + rm₄) := by ring
+      _ = (1 / (2 * (s - 2))) * ((1 / 2) * ((s - 2)) * (rm₄ * (r.natAbs - s) / (2 * (s - 2))) + ((2 * (s - 2)) / (2 * (s - 2)) * rm₄)) := by rw [htwo]; ring
+      _ = (1 / (2 * (s - 2))) * (((1 / 2) * ((rm₄ * r.natAbs - s * rm₄ + 4 * rm₄)) * ((s - 2) / (2 * (s - 2))))) := by ring
+      _ = (1 / (2 * (s - 2))) * (((1 / 2) * ((rm₄ * r.natAbs - s * rm₄ + 4 * rm₄)) * (1 / 2))) := by rw [hmtwo]
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (rm₄ * (r.natAbs - s + 4)) := by ring
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (((r.natAbs + (s - 4)) : ℤ) * (r.natAbs - s + 4)) := by dsimp [rm₄]
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * ((r.natAbs + (s - 4)) * (r.natAbs - s + 4)) := by rw [heq']
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (r.natAbs ^ 2 - s * r.natAbs + 4 * r.natAbs + (s - 4) * r.natAbs - (s - 4) * s + (s - 4) * 4) := by ring
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (r.natAbs ^ 2 - s ^ 2 + 8 * s - 16) := by ring
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (r.natAbs * r.natAbs - (s - 4) ^ 2) := by ring
+      _ = ((1 / 4) * (1 / (2 * (s - 2)))) * (r * r - (s - 4) ^ 2) := by rw [hrnq]
     simp
-    calc 4⁻¹ * (((m : ℚ) - 2)⁻¹ * 2⁻¹) * (r * r - (↑m - 4) ^ 2)
-      _ = (r * r - (↑m - 4) ^ 2) * ((8)⁻¹ * ((m : ℚ) - 2)⁻¹)  := by ring
-      _ = (r * r - (↑m - 4) ^ 2) * (8 * ((m : ℚ) - 2))⁻¹  := by
+    calc 4⁻¹ * (((s : ℚ) - 2)⁻¹ * 2⁻¹) * (r * r - (s - 4) ^ 2)
+      _ = (r * r - (s - 4) ^ 2) * ((8)⁻¹ * ((s : ℚ) - 2)⁻¹)  := by ring
+      _ = (r * r - (s - 4) ^ 2) * (8 * ((s : ℚ) - 2))⁻¹  := by
         simp
         left
         linarith
-      _ = (r * r - (m - 4)^2) / (8 * (m - 2)) := by ring
+      _ = (r * r - (s - 4)^2) / (8 * (s - 2)) := by ring
 
     rw [hrnq]
 
-instance : BEq (Polygonal m hm) where
+instance : BEq (Polygonal s hs) where
   beq a b := if (a.val == b.val)
              then true
              else false
 
 
-instance : LawfulBEq (Polygonal m hm) where
+instance : LawfulBEq (Polygonal s hs) where
   rfl := by
     intro a
     rw [BEq.beq]
@@ -631,7 +627,7 @@ instance : LawfulBEq (Polygonal m hm) where
     rw [a.eq_iff]
     exact h₁
 
-instance : DecidableEq (Polygonal n hm) :=
+instance : DecidableEq (Polygonal s hs) :=
   fun a b =>
     if h : a.val = b.val then
       isTrue (by rw [a.eq_iff]; exact h)
@@ -639,24 +635,24 @@ instance : DecidableEq (Polygonal n hm) :=
       isFalse (by rw [a.eq_iff]; exact h)
 
 
-instance : LE (Polygonal m hm) where
+instance : LE (Polygonal s hs) where
   le a b := a.val ≤ b.val
 
-lemma Polyrw (m : ℤ) (n : ℕ) (hm : m ≥ 3) : IsnPolygonal m hm n ↔ IsnPolygonal' m hm n := by
+lemma Polyrw (s : ℤ) (hs : s ≥ 3) (n : ℕ) : IsnPolygonal s hs n ↔ IsnPolygonal' s hs n := by
   rw [PolyEquiv]
 
-theorem one_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m hm 1 := by
+theorem one_is_poly (s : ℤ) (hs : s ≥ 3) : IsnPolygonal s hs 1 := by
   dsimp [IsnPolygonal]
   right
   use 1
   simp
 
-theorem zero_is_poly (m : ℤ) (hm : m ≥ 3) : IsnPolygonal m hm 0 := by
+theorem zero_is_poly (s : ℤ) (hs : s ≥ 3) : IsnPolygonal s hs 0 := by
   dsimp [IsnPolygonal]
   simp
 
-def PolyOne (m : ℤ) (hm : m ≥ 3) : Polygonal m hm := ⟨ 1, one_is_poly m hm ⟩
-def PolyZero (m : ℤ) (hm : m ≥ 3) : Polygonal m hm := ⟨ 0, zero_is_poly m hm ⟩
+def PolyOne (s : ℤ) (hs : s ≥ 3) : Polygonal s hs := ⟨ 1, one_is_poly s hs ⟩
+def PolyZero (s : ℤ) (hs : s ≥ 3) : Polygonal s hs := ⟨ 0, zero_is_poly s hs ⟩
 
 #eval PolyZero (3) (by linarith) ≤ PolyOne (3) (by linarith)
 
@@ -679,17 +675,6 @@ instance : Decidable (IsnPolygonal m n h) := by
 
 example : IsnPolygonal 5 (by decide) 5  := by
   decide +kernel -- works!
-
-
-/- n is the sum of k polygonal numbers of order m-/
--- def IsNKPolygonal (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) := ∃ (l : List (Polygonal m hm)), l.length = k ∧ n = l.foldl (fun a b => a + b.val) 0
-
--- def IsNKPolygonal' (m : ℤ) (n : ℕ) (k : ℕ) (hm : m ≥ 3) := (k = 1 ∧ IsnPolygonal m n hm) ∨ (k > 1 ∧ ∃ (l : List (Polygonal m hm)), l.length = (k - 1) ∧ IsnPolygonal m (n - l.foldl (fun a b => a + b.val) 0) hm)
-
--- instance : Decidable (IsNKPolygonal m n k hm) := by
---   rw [IsNKPolygonal]
-
---   refine instDecidableAnd ?_ ?_
 
 
 lemma polyform (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : ((m : ℚ) / 2) * (r^2 - r) + r = |⌈ ((m : ℚ) / 2) * (r^2 - r) + r ⌉| := by
@@ -803,30 +788,30 @@ lemma polyformval (m : ℤ) (r : ℕ) (hm2geq3 : (m + 2) ≥ 3) : IsnPolygonal (
     exact Eq.symm (Nat.cast_natAbs ⌈(m : ℚ) / 2 * (↑r ^ 2 - ↑r) + ↑r⌉)
   exact polyform m r hm2geq3
 
-def getnthpoly (m : ℤ) (hm : m ≥ 3) (n : ℕ) : Polygonal m hm :=
-  let num : ℚ := (((m : ℚ) - 2) / 2) * (n ^2 - n) + n
+def getnthpoly (s : ℤ) (hs : s ≥ 3) (n : ℕ) : Polygonal s hs :=
+  let num : ℚ := (((s : ℚ) - 2) / 2) * (n ^2 - n) + n
   have hnum : num  = |⌈ num ⌉| := by
     dsimp [num]
-    have h : (m : ℚ) - 2 = (((m - 2) : ℤ) : ℚ) := by simp
+    have h : (s : ℚ) - 2 = (((s - 2) : ℤ) : ℚ) := by simp
     rw [h]
-    apply polyform (((m - 2) : ℤ)) n
+    apply polyform (((s - 2) : ℤ)) n
     linarith
 
-  have h : IsnPolygonal m hm ⌈ num ⌉.natAbs  := by
-    have hm' : (m - 2 + 2) ≥ 3 := by linarith
+  have h : IsnPolygonal s hs ⌈ num ⌉.natAbs  := by
+    have hm' : (s - 2 + 2) ≥ 3 := by linarith
     dsimp [num]
-    suffices h' :  IsnPolygonal (m - 2 + 2) hm' ⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉.natAbs  by
+    suffices h' :  IsnPolygonal (s - 2 + 2) hm' ⌈(((s - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉.natAbs  by
       simp at h'
       simp
       exact h'
-    refine polyformval (m - 2) n hm'
+    refine polyformval (s - 2) n hm'
 
   ⟨ ⌈ num ⌉.natAbs, h ⟩
 
-lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm n).val ≤ (getnthpoly m hm (n + 1)).val := by
+lemma getnthpoly_monotone (s : ℤ) (hs : s ≥ 3) (n : ℕ)  : (getnthpoly s hs n).val ≤ (getnthpoly s hs (n + 1)).val := by
   dsimp [getnthpoly]
-  have hm' : m - 2 + 2 ≥ 3 := by linarith
-  suffices h : |(⌈((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n⌉)| ≤ |⌈((m : ℚ) - 2) / 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| by
+  have hm' : s - 2 + 2 ≥ 3 := by linarith
+  suffices h : |(⌈((s : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n⌉)| ≤ |⌈((s : ℚ) - 2) / 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| by
     norm_cast at h
     simp
     simp at h
@@ -835,12 +820,12 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
     have h₀ (m : ℤ) : m.natAbs = |m| := by
       simp
 
-    let a := ⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat (n ^ 2) n)⌉ + n
-    have a_eq : a = ⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat (n ^ 2) n)⌉ + n := by
+    let a := ⌈Rat.divInt (s - 2) 2 * ↑(Int.subNatNat (n ^ 2) n)⌉ + n
+    have a_eq : a = ⌈Rat.divInt (s - 2) 2 * ↑(Int.subNatNat (n ^ 2) n)⌉ + n := by
       dsimp [a]
 
-    let a' := |⌈Rat.divInt (m - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n|
-    have a'_eq : a' = |⌈Rat.divInt (m - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n| := by
+    let a' := |⌈Rat.divInt (s - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n|
+    have a'_eq : a' = |⌈Rat.divInt (s - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n| := by
       dsimp [a']
 
     have haa' : a = a' := by
@@ -848,7 +833,7 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
       dsimp [a']
       simp
 
-      have h₅ : ⌈Rat.divInt (m - 2) 2 * (↑n ^ 2 - ↑n)⌉ + n ≥ 0 := by
+      have h₅ : ⌈Rat.divInt (s - 2) 2 * (↑n ^ 2 - ↑n)⌉ + n ≥ 0 := by
         refine Int.add_nonneg ?_ ?_
         . refine Int.ceil_nonneg ?_
           refine Rat.mul_nonneg ?_ ?_
@@ -865,14 +850,14 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
     rw [← a_eq]
     rw [← a'_eq] at h
 
-    let b := ⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat ((n + 1) ^ 2) (n + 1)) + ↑(n + 1)⌉
+    let b := ⌈Rat.divInt (s - 2) 2 * ↑(Int.subNatNat ((n + 1) ^ 2) (n + 1)) + ↑(n + 1)⌉
 
-    have b_eq : b = ⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat ((n + 1) ^ 2) (n + 1)) + ↑(n + 1)⌉ := by
+    have b_eq : b = ⌈Rat.divInt (s - 2) 2 * ↑(Int.subNatNat ((n + 1) ^ 2) (n + 1)) + ↑(n + 1)⌉ := by
       dsimp [b]
 
-    let b' := |⌈Rat.divInt (m - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉|
+    let b' := |⌈Rat.divInt (s - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉|
 
-    have b'_eq : b' = |⌈Rat.divInt (m - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| := by
+    have b'_eq : b' = |⌈Rat.divInt (s - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| := by
       dsimp [b']
 
     rw [← b_eq]
@@ -882,7 +867,7 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
       dsimp [b]
       dsimp [b']
       simp
-      have h₅ : ⌈Rat.divInt (m - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉ ≥ 0 := by
+      have h₅ : ⌈Rat.divInt (s - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉ ≥ 0 := by
         refine Int.ceil_nonneg ?_
         refine Rat.add_nonneg ?_ ?_
         . refine Rat.mul_nonneg ?_ ?_
@@ -899,12 +884,12 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
     have h₄ : a ≥ 0 := by
       rw [haa']
       dsimp [a']
-      exact abs_nonneg (⌈Rat.divInt (m - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n)
+      exact abs_nonneg (⌈Rat.divInt (s - 2) 2 * (↑n ^ 2 - ↑n)⌉ + ↑n)
 
     have h₄' : b ≥ 0 := by
       rw [hbb']
       dsimp [b']
-      exact abs_nonneg ⌈Rat.divInt (m - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉
+      exact abs_nonneg ⌈Rat.divInt (s - 2) 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉
 
     suffices h' : a ≤ b by
       have haabs : a = a.natAbs := by exact Int.eq_natAbs_of_zero_le h₄
@@ -915,13 +900,13 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
     rw [← haa', ← hbb'] at h
     exact h
 
-  have hsub : (m - 2 : ℚ) = (((m - 2) : ℤ) : ℚ) := by
+  have hsub : (s - 2 : ℚ) = (((s - 2) : ℤ) : ℚ) := by
     simp
   rw [hsub]
-  let h₀ := polyform (m - 2) n hm'
-  let h₀' := polyform (m - 2) (n + 1) hm'
+  let h₀ := polyform (s - 2) n hm'
+  let h₀' := polyform (s - 2) (n + 1) hm'
 
-  suffices h₁ : ((|⌈((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n⌉|) : ℚ) ≤ |⌈((m : ℚ) - 2) / 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| by
+  suffices h₁ : ((|⌈((s : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n⌉|) : ℚ) ≤ |⌈((s : ℚ) - 2) / 2 * ((↑n + 1) ^ 2 - (↑n + 1)) + (↑n + 1)⌉| by
     norm_cast
     norm_cast at h₁
 
@@ -944,35 +929,35 @@ lemma getnthpoly_monotone (m : ℤ) (hm : m ≥ 3) (n : ℕ)  : (getnthpoly m hm
       . linarith
   . linarith
 
-lemma getnthpoly_polyone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m hm 1) = PolyOne m hm := by
+lemma getnthpoly_polyone (s : ℤ) (hs : s ≥ 3) : (getnthpoly s hs 1) = PolyOne s hs := by
   dsimp [getnthpoly]
   dsimp [PolyOne]
   simp
 
-lemma getnthpoly_intone (m : ℤ) (hm : m ≥ 3) : (getnthpoly m hm 1).val = 1 := by
+lemma getnthpoly_intone (s : ℤ) (hs : s ≥ 3) : (getnthpoly s hs 1).val = 1 := by
   dsimp [getnthpoly]
   simp
 
-lemma getnthpoly_geq (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m hm n).val ≥ n := by
+lemma getnthpoly_geq (s : ℤ) (hs : s ≥ 3) (n : ℕ) : (getnthpoly s hs n).val ≥ n := by
   dsimp [getnthpoly]
-  have h₀ : (((m - 2) : ℤ) : ℚ) / 2 * (↑n ^ 2 - ↑n) + ↑n = |⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉| := by
+  have h₀ : (((s - 2) : ℤ) : ℚ) / 2 * (↑n ^ 2 - ↑n) + ↑n = |⌈(((s - 2) : ℤ) : ℚ)/ 2 * (↑n ^ 2 - ↑n) + ↑n⌉| := by
     -- apply polyform m n hm
-    apply polyform (m - 2) n
+    apply polyform (s - 2) n
     linarith
 
-  have hm2 : (((m - 2) : ℤ) : ℚ) = m - 2 := by simp
+  have hm2 : (((s - 2) : ℤ) : ℚ) = s - 2 := by simp
 
   rw [hm2] at h₀
-  let a :=  ((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n
-  have haeq : a = ((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n := by rfl
-  suffices h₁ : ((m : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n ≥ n by
+  let a :=  ((s : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n
+  have haeq : a = ((s : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n := by rfl
+  suffices h₁ : ((s : ℚ) - 2) / 2 * (↑n ^ 2 - ↑n) + ↑n ≥ n by
     rw [← haeq]
     rw [← haeq] at h₁
 
     have haeq' : a = |⌈a⌉| := by
       dsimp [a]
       rw [← hm2]
-      apply polyform (m - 2) n
+      apply polyform (s - 2) n
       linarith
     have hnab : ⌈a⌉.natAbs = a := by
       nth_rw 2 [haeq']
@@ -993,7 +978,7 @@ lemma getnthpoly_geq (m : ℤ) (n : ℕ) (hm : m ≥ 3) : (getnthpoly m hm n).va
     refine Nat.le_self_pow ?_ n
     linarith
 
-lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m hm x} = { (getnthpoly m hm n).val | n : ℕ} := by
+lemma poly_set (s : ℤ) (hs : s ≥ 3) : {x : ℕ | IsnPolygonal s hs x} = { (getnthpoly s hs n).val | n : ℕ} := by
   refine Set.ext ?_
   intro x
   constructor
@@ -1011,14 +996,14 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m hm x} = { (g
       simp
       use k
       dsimp [getnthpoly]
-      have h' : (((m - 2) : ℤ) : ℚ) / 2 * (k ^ 2 - k) + k  = |⌈(((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + k⌉| := by
-        apply polyform (m - 2) k
+      have h' : (((s - 2) : ℤ) : ℚ) / 2 * (k ^ 2 - k) + k  = |⌈(((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + k⌉| := by
+        apply polyform (s - 2) k
         linarith
 
-      suffices h₀ : (((m - 2) : ℤ) : ℚ) / 2 * (k ^ 2 - k) + k = x by
-        have h₁ : |⌈(((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉| = ⌈(((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs := by
-          exact Int.abs_eq_natAbs ⌈(((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉
-        suffices h₃ : |⌈(((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉| = x by
+      suffices h₀ : (((s - 2) : ℤ) : ℚ) / 2 * (k ^ 2 - k) + k = x by
+        have h₁ : |⌈(((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉| = ⌈(((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs := by
+          exact Int.abs_eq_natAbs ⌈(((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉
+        suffices h₃ : |⌈(((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉| = x by
           rw [hk]
           simp
         rw [h₀]
@@ -1028,9 +1013,9 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m hm x} = { (g
 
   . simp
     intro a
-    let k := getnthpoly m hm a
+    let k := getnthpoly s hs a
     intro h
-    have hkeq : k.val = (getnthpoly m hm a).val := by rfl
+    have hkeq : k.val = (getnthpoly s hs a).val := by rfl
 
     have hxk : x = k.val := by
       nth_rw 2 [h] at hkeq
@@ -1040,12 +1025,12 @@ lemma poly_set (m : ℤ) (hm : m ≥ 3) : {x : ℕ | IsnPolygonal m hm x} = { (g
     exact p
 
 
-def getnthpolyfun (m : ℤ) (hm : m ≥ 3) (x : ℕ) : Polygonal m hm := getnthpoly m hm x
+def getnthpolyfun (s : ℤ) (hs : s ≥ 3) (a : ℕ) : Polygonal s hs := getnthpoly s hs a
 
-def getlepoly₀ (m : ℤ) (hm : m ≥ 3) (b : ℕ) : Finset (Polygonal m hm) :=
+def getlepoly₀ (s : ℤ) (hs : s ≥ 3) (b : ℕ) : Finset (Polygonal s hs) :=
   let r : Finset ℕ := Finset.range (b + 1)
-  let S := (getnthpolyfun m hm) '' r
-  let FS : Finset (Polygonal m hm) := S.toFinset
+  let S := (getnthpolyfun s hs) '' r
+  let FS : Finset (Polygonal s hs) := S.toFinset
   FS.filter (fun x ↦ x.val ≤ b)
 
 
@@ -1061,7 +1046,7 @@ def finCaseDec (p : ℕ → Prop) (n : ℕ) [DecidablePred p] : Decidable (∃ a
   exact List.decidableBEx p (List.range (n + 1))
 
 
-theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m hm n = { x : Polygonal m hm | x.val ≤ n } := by
+theorem getlepoly₀Correct (s : ℤ) (hs : s ≥ 3) (n : ℕ) : getlepoly₀ s hs n = { a : Polygonal s hs | a.val ≤ n } := by
   dsimp [getlepoly₀]
   refine Set.ext ?_
   intro p
@@ -1090,7 +1075,7 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
       . let ⟨ k, hk ⟩ := g
         use k
         constructor
-        . have h₂ : ((m : ℚ) - 2) / 2 * (k * (k - 1)) + k ≥ k := by
+        . have h₂ : ((s : ℚ) - 2) / 2 * (k * (k - 1)) + k ≥ k := by
             simp
             refine Rat.mul_nonneg ?_ ?_
             . refine Rat.div_nonneg ?_ rfl
@@ -1114,32 +1099,32 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
         . dsimp [getnthpolyfun]
           dsimp [getnthpoly]
 
-          have h₀ : (((m - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k = |⌈(((m - 2) : ℤ) : ℚ)/ 2 * (↑k ^ 2 - ↑k) + ↑k⌉| := by
-            apply polyform (m - 2) k
+          have h₀ : (((s - 2) : ℤ) : ℚ) / 2 * (↑k ^ 2 - ↑k) + ↑k = |⌈(((s - 2) : ℤ) : ℚ)/ 2 * (↑k ^ 2 - ↑k) + ↑k⌉| := by
+            apply polyform (s - 2) k
             linarith
 
-          suffices h' :  (getnthpoly m hm k).val = a by
+          suffices h' :  (getnthpoly s hs k).val = a by
             dsimp [getnthpoly] at h'
             simp
 
             apply Subtype.ext_iff_val.mpr
             simp
 
-            have h₂ : ⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k)⌉ + ↑k = ⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + k⌉ := by
-              exact Eq.symm (Int.ceil_add_nat (((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k)) k)
+            have h₂ : ⌈((s : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k)⌉ + ↑k = ⌈((s : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + k⌉ := by
+              exact Eq.symm (Int.ceil_add_nat (((s : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k)) k)
 
             rw [← h₂] at h'
             exact h'
 
           dsimp [getnthpoly]
-          have hm2 : (((m - 2) : ℤ) : ℚ) = m - 2 := by simp
+          have hm2 : (((s - 2) : ℤ) : ℚ) = s - 2 := by simp
           rw [← hm2]
           rw [hm2] at h₀
           rw [← kfactq k] at h₀
           rw [h₀] at hk
 
-          suffices h₁ : |⌈((m : ℚ) - 2) / 2 * (↑k * (↑k - 1)) + ↑k⌉| = ⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs by
-            suffices h₂ : (a : ℚ) = (⌈((m : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs : ℚ) by
+          suffices h₁ : |⌈((s : ℚ) - 2) / 2 * (↑k * (↑k - 1)) + ↑k⌉| = ⌈((s : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs by
+            suffices h₂ : (a : ℚ) = (⌈((s : ℚ) - 2) / 2 * (↑k ^ 2 - ↑k) + ↑k⌉.natAbs : ℚ) by
               apply Eq.symm
               norm_cast
               norm_cast at h₂
@@ -1150,13 +1135,13 @@ theorem getlepoly₀Correct (m : ℤ) (n : ℕ) (hm : m ≥ 3) : getlepoly₀ m 
             simp
             norm_cast
             norm_cast at h₁
-            exact Eq.symm (Nat.cast_natAbs (⌈Rat.divInt (m - 2) 2 * ↑(Int.subNatNat (k ^ 2) k)⌉ + ↑k))
+            exact Eq.symm (Nat.cast_natAbs (⌈Rat.divInt (s - 2) 2 * ↑(Int.subNatNat (k ^ 2) k)⌉ + ↑k))
           simp
           rw [← kfactq k]
     . exact h
 
-def IsNKPolygonal (m : ℤ) (hm : m ≥ 3) (k : ℕ) (n : ℕ) :=
-  ∃ S : List ℕ, S.all (IsnPolygonal m hm) ∧ S.length = k ∧ S.sum = n
+def IsNKPolygonal (s : ℤ) (hs : s ≥ 3) (k : ℕ) (n : ℕ) :=
+  ∃ S : List ℕ, S.all (IsnPolygonal s hs) ∧ S.length = k ∧ S.sum = n
 
 instance (m : ℤ) (hm : m ≥ 3): DecidablePred (IsNKPolygonal m hm 0) := by
   intro n
@@ -1184,7 +1169,7 @@ instance (m : ℤ) (hm : m ≥ 3): DecidablePred (IsNKPolygonal m hm 0) := by
 example : IsNKPolygonal 3 (by norm_num) 0 0 := by decide +kernel
 example : ¬IsNKPolygonal 3 (by norm_num) 0 1 := by decide +kernel
 
-instance (m : ℤ) (hm : m ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal m hm k) := by
+instance (s : ℤ) (hs : s ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal s hs k) := by
   induction k with
   | zero => intro n; exact inferInstance
   | succ k ih =>
@@ -1192,22 +1177,22 @@ instance (m : ℤ) (hm : m ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal m hm k
       -- We show that whether n is the sum of k + 1 polygonals is decidable.
 
       -- Get the list of polygonals less than or equal to n
-      let numsToTest := (List.range (n + 1)).filter (IsnPolygonal m hm)
+      let numsToTest := (List.range (n + 1)).filter (IsnPolygonal s hs)
 
       -- Filter the list down to those p such that n - p is the sum of
       -- k primes.
-      let numList := numsToTest.filter (fun p ↦ IsNKPolygonal m hm k (n - p))
+      let numList := numsToTest.filter (fun p ↦ IsNKPolygonal s hs k (n - p))
 
       if h : numList ≠ [] then
         -- If the list is nonempty, let p be the head.
         let p := numList.head h
-        have claim1 : IsnPolygonal m hm p := by
-          have : ∀ n ∈ numList, IsnPolygonal m hm n := by simp [numList, numsToTest]
+        have claim1 : IsnPolygonal s hs p := by
+          have : ∀ n ∈ numList, IsnPolygonal s hs n := by simp [numList, numsToTest]
           simp [p, this]
 
         -- Also, n - p is the sum of k primes.
-        have claim2 : IsNKPolygonal m hm k (n - p) := by
-          have : ∀ p ∈ numList, IsNKPolygonal m hm k (n - p) := by
+        have claim2 : IsNKPolygonal s hs k (n - p) := by
+          have : ∀ p ∈ numList, IsNKPolygonal s hs k (n - p) := by
             simp [numsToTest, numList]
             intro _ _ h _
             exact h
@@ -1215,7 +1200,7 @@ instance (m : ℤ) (hm : m ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal m hm k
           exact List.head_mem h
 
         -- Then n is the sum of k + 1 polygonals.
-        have pf : IsNKPolygonal m hm (k + 1) n := by
+        have pf : IsNKPolygonal s hs (k + 1) n := by
           -- Get the list of k primes whose sum is n - p
           obtain ⟨ polygonals', ⟨ hpolygonals, hpolygonalslen, hpolygonalssum ⟩ ⟩ := claim2
           -- Add p to the head of the list and this list has
@@ -1234,7 +1219,7 @@ instance (m : ℤ) (hm : m ≥ 3) (k : ℕ): DecidablePred (IsNKPolygonal m hm k
 
         exact (isTrue pf)
       else -- The list of p such that n - p is the sum of k polygonals is empty
-        have pf : ¬IsNKPolygonal m hm (k + 1) n := by
+        have pf : ¬IsNKPolygonal s hs (k + 1) n := by
           -- We proceed by contradiction.
           by_contra g
           simp [IsNKPolygonal] at g
